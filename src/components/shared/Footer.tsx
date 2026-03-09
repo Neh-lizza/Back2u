@@ -1,3 +1,4 @@
+//src/components/shared/Footer.tsx
 import { ShieldCheck, Heart, MapPin, Twitter, Instagram, Github } from "lucide-react";
 import Link from "next/link";
 
