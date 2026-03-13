@@ -1,65 +1,473 @@
-//src/ components/ MatchAndChat.tsx
+// src/components/MatchAndChat.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CheckCircle2, MessageSquare, X, Send, 
-  ShieldCheck, MapPin, Phone, MoreHorizontal,
-  Image as ImageIcon, Smile, Sparkles
+import {
+  MessageSquare, X, Send, ShieldCheck,
+  MapPin, Image as ImageIcon, Sparkles, Loader2,
+  CheckCircle2, Phone
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import type { MatchRow, ItemRow, UserRow, MessageRow } from "@/types/database";
+
+// ── TYPES ──────────────────────────────────────────────────
+type MatchWithItems = MatchRow & {
+  lost_item: (ItemRow & {
+    user: Pick<UserRow, "id" | "full_name" | "avatar_url"> | null;
+  }) | null;
+  found_item: (ItemRow & {
+    user: Pick<UserRow, "id" | "full_name" | "avatar_url"> | null;
+  }) | null;
+};
+
+type ActiveChat = {
+  id: string;
+  item_id: string;
+  participant_a: string;
+  participant_b: string;
+  other_user: Pick<UserRow, "id" | "full_name" | "avatar_url"> | null;
+  item: Pick<ItemRow, "id" | "title" | "type" | "photos"> | null;
+};
+
+type MessageWithSender = MessageRow & {
+  sender: Pick<UserRow, "id" | "full_name" | "avatar_url"> | null;
+};
 
 export default function MatchSystem() {
-  const [showMatch, setShowMatch] = useState(true);
+  const router = useRouter();
+  const supabase = createClient();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [pendingMatch, setPendingMatch] = useState<MatchWithItems | null>(null);
+  const [showMatch, setShowMatch] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [activeChat, setActiveChat] = useState<ActiveChat | null>(null);
+  const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [openingChat, setOpeningChat] = useState(false);
+
+  // ── Get current user ──
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUser(user);
+    });
+  }, []);
+
+  // ── Listen for new matches in realtime ──
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Also check for any existing pending matches on mount
+    const checkExistingMatches = async () => {
+      const { data } = await supabase
+        .from("matches")
+        .select(`
+          *,
+          lost_item:items!matches_lost_item_id_fkey(
+            *, user:users(id, full_name, avatar_url)
+          ),
+          found_item:items!matches_found_item_id_fkey(
+            *, user:users(id, full_name, avatar_url)
+          )
+        `)
+        .eq("status", "pending")
+        .or(
+          `lost_item.user_id.eq.${currentUser.id},found_item.user_id.eq.${currentUser.id}`
+        )
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setPendingMatch(data as MatchWithItems);
+        setShowMatch(true);
+      }
+    };
+
+    checkExistingMatches();
+
+    // Realtime: fire when new match is inserted
+    const channel = supabase
+      .channel("match-system")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "matches",
+        },
+        async (payload) => {
+          // Fetch full match with item details
+          const { data } = await supabase
+            .from("matches")
+            .select(`
+              *,
+              lost_item:items!matches_lost_item_id_fkey(
+                *, user:users(id, full_name, avatar_url)
+              ),
+              found_item:items!matches_found_item_id_fkey(
+                *, user:users(id, full_name, avatar_url)
+              )
+            `)
+            .eq("id", payload.new.id)
+            .single();
+
+          if (!data) return;
+
+          const match = data as MatchWithItems;
+
+          // Only show if this match involves the current user
+          const isInvolved =
+            match.lost_item?.user_id === currentUser.id ||
+            match.found_item?.user_id === currentUser.id;
+
+          if (isInvolved) {
+            setPendingMatch(match);
+            setShowMatch(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUser]);
+
+  // ── Open chat from match ──
+  const handleOpenChatFromMatch = async () => {
+    if (!pendingMatch || !currentUser) return;
+    setOpeningChat(true);
+
+    try {
+      // Determine which item belongs to current user
+      const myItem = pendingMatch.lost_item?.user_id === currentUser.id
+        ? pendingMatch.lost_item
+        : pendingMatch.found_item;
+
+      const otherItem = pendingMatch.lost_item?.user_id === currentUser.id
+        ? pendingMatch.found_item
+        : pendingMatch.lost_item;
+
+      if (!myItem || !otherItem) return;
+
+      // Check if chat already exists
+      const { data: existingChat } = await supabase
+        .from("chats")
+        .select("*")
+        .eq("match_id", pendingMatch.id)
+        .maybeSingle();
+
+      let chatId = existingChat?.id;
+
+      if (!chatId) {
+        // Create chat from match
+        const { data: newChat, error } = await supabase
+          .from("chats")
+          .insert({
+            match_id:      pendingMatch.id,
+            item_id:       myItem.id,
+            participant_a: myItem.user_id,
+            participant_b: otherItem.user_id,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        chatId = newChat.id;
+
+        // Update match status
+        await supabase
+          .from("matches")
+          .update({ status: "accepted" })
+          .eq("id", pendingMatch.id);
+
+        // Send system message
+        await supabase.from("messages").insert({
+          chat_id:   chatId,
+          sender_id: currentUser.id,
+          content:   `Match accepted! ${pendingMatch.score}% match for "${myItem.title}". Let's connect.`,
+          type:      "system",
+        });
+      }
+
+      // Load chat details
+      await loadChat(chatId, otherItem.user_id);
+
+      setShowMatch(false);
+      setShowChat(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setOpeningChat(false);
+    }
+  };
+
+  // ── Load a chat by ID ──
+  const loadChat = async (chatId: string, otherUserId: string) => {
+    const [{ data: chatData }, { data: otherUser }, { data: msgs }] = await Promise.all([
+      supabase
+        .from("chats")
+        .select("*, item:items(id, title, type, photos)")
+        .eq("id", chatId)
+        .single(),
+      supabase
+        .from("users")
+        .select("id, full_name, avatar_url")
+        .eq("id", otherUserId)
+        .single(),
+      supabase
+        .from("messages")
+        .select("*, sender:users(id, full_name, avatar_url)")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    if (chatData) {
+      setActiveChat({
+        ...chatData,
+        other_user: otherUser,
+        item: chatData.item,
+      } as ActiveChat);
+    }
+
+    setMessages((msgs as MessageWithSender[]) ?? []);
+
+    // Mark messages as read
+    await supabase
+      .from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("chat_id", chatId)
+      .neq("sender_id", currentUser?.id)
+      .is("read_at", null);
+
+    // Subscribe to realtime messages for this chat
+    subscribeToChat(chatId);
+  };
+
+  // ── Realtime message subscription ──
+  const subscribeToChat = (chatId: string) => {
+    supabase
+      .channel(`chat-${chatId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        },
+        async (payload) => {
+          // Fetch with sender info
+          const { data } = await supabase
+            .from("messages")
+            .select("*, sender:users(id, full_name, avatar_url)")
+            .eq("id", payload.new.id)
+            .single();
+
+          if (data) {
+            setMessages(prev => [...prev, data as MessageWithSender]);
+            // Mark as read if chat is open
+            if (data.sender_id !== currentUser?.id) {
+              await supabase
+                .from("messages")
+                .update({ read_at: new Date().toISOString() })
+                .eq("id", data.id);
+            }
+          }
+        }
+      )
+      .subscribe();
+  };
+
+  // ── Auto scroll to latest message ──
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // ── Send text message ──
+  const handleSend = async () => {
+    if (!message.trim() || !activeChat || !currentUser || sending) return;
+    setSending(true);
+
+    const content = message.trim();
+    setMessage("");
+
+    await supabase.from("messages").insert({
+      chat_id:   activeChat.id,
+      sender_id: currentUser.id,
+      content,
+      type:      "text",
+    });
+
+    // Notify other participant
+    const otherId = activeChat.participant_a === currentUser.id
+      ? activeChat.participant_b
+      : activeChat.participant_a;
+
+    await supabase.from("notifications").insert({
+      user_id: otherId,
+      type:    "chat_message",
+      title:   "New message",
+      body:    content.slice(0, 60),
+      data:    { chat_id: activeChat.id },
+    });
+
+    setSending(false);
+  };
+
+  // ── Send photo ──
+  const handlePhotoSend = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChat || !currentUser) return;
+
+    const path = `chats/${activeChat.id}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage
+      .from("item-photos")
+      .upload(path, file);
+
+    if (error) return;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("item-photos")
+      .getPublicUrl(path);
+
+    await supabase.from("messages").insert({
+      chat_id:   activeChat.id,
+      sender_id: currentUser.id,
+      content:   publicUrl,
+      type:      "image",
+    });
+  };
+
+  // ── Enter key to send ──
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  // ── Go to full chat page ──
+  const goToFullChat = () => {
+    if (activeChat) {
+      setShowChat(false);
+      router.push(`/chat?id=${activeChat.id}`);
+    }
+  };
+
+  // Determine my item vs other item for match display
+  const myMatchItem = pendingMatch
+    ? (pendingMatch.lost_item?.user_id === currentUser?.id
+        ? pendingMatch.lost_item
+        : pendingMatch.found_item)
+    : null;
+
+  const otherMatchItem = pendingMatch
+    ? (pendingMatch.lost_item?.user_id === currentUser?.id
+        ? pendingMatch.found_item
+        : pendingMatch.lost_item)
+    : null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center p-6 font-satoshi">
-      
-      {/* --- 1. MATCH NOTIFICATION (THE PUSH) --- */}
+    <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center p-6">
+
+      {/* ════ MATCH NOTIFICATION POPUP ════ */}
       <AnimatePresence>
-        {showMatch && (
-          <motion.div 
+        {showMatch && pendingMatch && (
+          <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 100 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="pointer-events-auto w-full max-w-md glass-card rounded-[3rem] p-8 shadow-[0_32px_64px_rgba(0,0,0,0.2)] border-2 border-[#00FF85]/30 relative overflow-hidden bg-white/90 backdrop-blur-2xl"
+            className="pointer-events-auto w-full max-w-md rounded-[3rem] p-8 shadow-[0_32px_64px_rgba(0,0,0,0.2)] border-2 border-primary/30 relative overflow-hidden bg-white/95 backdrop-blur-2xl"
           >
-            {/* Background Glow */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00FF85]/20 blur-[80px] rounded-full" />
-            
+            {/* Background glow */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[80px] rounded-full" />
+
             <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-[#00FF85] rounded-[2rem] flex items-center justify-center shadow-xl shadow-[#00FF85]/30 mb-6 rotate-3">
-                <Sparkles className="text-white" size={32} />
+              {/* Icon */}
+              <div className="w-20 h-20 bg-primary rounded-[2rem] flex items-center justify-center shadow-xl shadow-primary/30 mb-6 rotate-3">
+                <Sparkles className="text-dark" size={32} />
               </div>
-              
-              <h2 className="font-clash text-3xl font-black uppercase tracking-tighter mb-2">It's a Match!</h2>
+
+              {/* Score badge */}
+              <div className="mb-3 px-4 py-1 bg-primary/10 border border-primary/20 rounded-full">
+                <span className="text-primary font-black text-xs uppercase tracking-widest">
+                  {pendingMatch.score}% Match
+                </span>
+              </div>
+
+              <h2 className="font-clash text-3xl font-black uppercase tracking-tighter mb-2">
+                It's a Match!
+              </h2>
               <p className="text-slate-500 text-sm font-medium mb-8 px-4">
-                Someone in <span className="text-black font-black">Akwa, Douala</span> has found an item matching your <span className="text-[#00E075] font-black italic">iPhone 13 Pro</span> description.
+                We found a{" "}
+                <span className="text-dark font-black">{pendingMatch.score}% match</span>{" "}
+                for your{" "}
+                <span className="text-primary font-black italic">
+                  {myMatchItem?.title}
+                </span>
               </p>
 
+              {/* Item comparison */}
               <div className="w-full grid grid-cols-2 gap-4 mb-8">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Your Post</p>
-                  <img src="https://images.unsplash.com/photo-1633114128174-2f8aa49759b0?auto=format&fit=crop&w=100" className="w-full h-20 object-cover rounded-xl grayscale" />
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Your Item</p>
+                  {myMatchItem?.photos?.[0] ? (
+                    <img
+                      src={myMatchItem.photos[0]}
+                      className="w-full h-20 object-cover rounded-xl grayscale"
+                      alt=""
+                    />
+                  ) : (
+                    <div className="w-full h-20 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-xs font-bold uppercase">
+                      No photo
+                    </div>
+                  )}
+                  <p className="text-[9px] font-black uppercase tracking-tight text-dark mt-2 truncate">
+                    {myMatchItem?.title}
+                  </p>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border-2 border-[#00FF85] shadow-inner">
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#00E075] mb-1">Found Item</p>
-                  <img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba3f21?auto=format&fit=crop&w=100" className="w-full h-20 object-cover rounded-xl" />
+                <div className="bg-white p-4 rounded-2xl border-2 border-primary shadow-inner">
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-primary mb-2">
+                    {otherMatchItem?.type === "found" ? "Found Item" : "Lost Item"}
+                  </p>
+                  {otherMatchItem?.photos?.[0] ? (
+                    <img
+                      src={otherMatchItem.photos[0]}
+                      className="w-full h-20 object-cover rounded-xl"
+                      alt=""
+                    />
+                  ) : (
+                    <div className="w-full h-20 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-xs font-bold uppercase">
+                      No photo
+                    </div>
+                  )}
+                  <p className="text-[9px] font-black uppercase tracking-tight text-dark mt-2 truncate">
+                    {otherMatchItem?.title}
+                  </p>
                 </div>
               </div>
 
+              {/* Actions */}
               <div className="flex flex-col w-full gap-3">
-                <button 
-                  onClick={() => { setShowMatch(false); setShowChat(true); }}
-                  className="w-full py-5 bg-black text-[#00FF85] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                <button
+                  onClick={handleOpenChatFromMatch}
+                  disabled={openingChat}
+                  className="w-full py-5 bg-dark text-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-60"
                 >
-                  <MessageSquare size={18} /> Chat with Finder
+                  {openingChat ? (
+                    <><Loader2 size={18} className="animate-spin" /> Opening Chat...</>
+                  ) : (
+                    <><MessageSquare size={18} /> Chat with Finder</>
+                  )}
                 </button>
-                <button 
+                <button
                   onClick={() => setShowMatch(false)}
-                  className="text-slate-400 text-[10px] font-black uppercase tracking-widest py-2"
+                  className="text-slate-400 text-[10px] font-black uppercase tracking-widest py-2 hover:text-dark transition-colors"
                 >
                   Dismiss for now
                 </button>
@@ -69,82 +477,149 @@ export default function MatchSystem() {
         )}
       </AnimatePresence>
 
-      {/* --- 2. THE PREMIUM CHAT INTERFACE --- */}
+      {/* ════ FLOATING CHAT WINDOW ════ */}
       <AnimatePresence>
-        {showChat && (
-          <motion.div 
+        {showChat && activeChat && (
+          <motion.div
             initial={{ opacity: 0, x: 50, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="pointer-events-auto absolute bottom-10 right-10 w-[450px] h-[650px] glass-card rounded-[3.5rem] shadow-2xl flex flex-col border border-white bg-white/95"
+            className="pointer-events-auto absolute bottom-10 right-10 w-[420px] h-[600px] rounded-[3.5rem] shadow-2xl flex flex-col border border-white bg-white/98 backdrop-blur-2xl overflow-hidden"
           >
             {/* Chat Header */}
-            <header className="p-8 pb-6 border-b border-black/5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <header className="p-6 pb-4 border-b border-black/5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-200 overflow-hidden">
-                    <img src="https://i.pravatar.cc/150?u=finder" alt="avatar" />
+                  <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center font-black text-primary text-lg overflow-hidden">
+                    {activeChat.other_user?.avatar_url ? (
+                      <img src={activeChat.other_user.avatar_url} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      activeChat.other_user?.full_name?.charAt(0).toUpperCase()
+                    )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00FF85] border-2 border-white rounded-full" />
+                  <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-primary border-2 border-white rounded-full" />
                 </div>
                 <div>
-                  <h4 className="font-clash font-black uppercase text-sm tracking-tight">Jean-Marc E.</h4>
-                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-[#00E075] tracking-widest">
-                    <ShieldCheck size={12} /> Verified Finder
+                  <h4 className="font-clash font-black uppercase text-sm tracking-tight text-dark">
+                    {activeChat.other_user?.full_name ?? "User"}
+                  </h4>
+                  <div className="flex items-center gap-1 text-[9px] font-black uppercase text-primary tracking-widest">
+                    <ShieldCheck size={10} /> Verified
                   </div>
                 </div>
               </div>
+
               <div className="flex gap-2">
-                <button className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-black transition-colors"><Phone size={16}/></button>
-                <button onClick={() => setShowChat(false)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-black"><X size={16}/></button>
+                {/* Go to full chat page */}
+                <button
+                  onClick={goToFullChat}
+                  className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-dark transition-colors text-[9px] font-black uppercase tracking-widest"
+                >
+                  Full
+                </button>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-dark transition-colors"
+                >
+                  <X size={15} />
+                </button>
               </div>
             </header>
 
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar">
+            {/* Item context bar */}
+            {activeChat.item && (
+              <div className="px-6 py-3 bg-primary/5 border-b border-primary/10 flex items-center gap-3 shrink-0">
+                <div className={`w-2 h-2 rounded-full ${activeChat.item.type === "found" ? "bg-primary" : "bg-[#FF4D4D]"}`} />
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">
+                  Re: {activeChat.item.title}
+                </p>
+              </div>
+            )}
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
               <div className="flex justify-center">
-                <span className="px-4 py-1.5 bg-slate-50 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">Security: Chat is Encrypted</span>
+                <span className="px-4 py-1.5 bg-slate-50 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  🔒 Chat is private
+                </span>
               </div>
 
-              {/* Incoming */}
-              <div className="flex gap-3 max-w-[85%]">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 shrink-0" />
-                <div className="bg-slate-100 p-4 rounded-2xl rounded-tl-none">
-                  <p className="text-sm font-medium text-slate-700 leading-relaxed">
-                    Hello! I found this iPhone near the Marche Central. It has a cracked screen protector, is this yours?
-                  </p>
-                </div>
-              </div>
+              {messages.map(msg => {
+                const isMe = msg.sender_id === currentUser?.id;
+                const isSystem = msg.type === "system";
 
-              {/* Outgoing */}
-              <div className="flex flex-row-reverse gap-3 max-w-[85%] ml-auto">
-                <div className="bg-black text-white p-4 rounded-2xl rounded-tr-none">
-                  <p className="text-sm font-medium leading-relaxed text-[#00FF85]">
-                    Yes! That matches exactly. Does it have a blue silicone case?
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex justify-center pt-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-[#E9FBF3] rounded-full text-[10px] font-black uppercase text-[#00E075] tracking-widest border border-[#00FF85]/20">
-                   <MapPin size={12} /> Jean-Marc shared a location
-                </div>
-              </div>
+                if (isSystem) return (
+                  <div key={msg.id} className="flex justify-center">
+                    <span className="px-4 py-1.5 bg-primary/10 rounded-full text-[9px] font-black uppercase tracking-widest text-primary border border-primary/20">
+                      {msg.content}
+                    </span>
+                  </div>
+                );
+
+                if (msg.type === "image") return (
+                  <div key={msg.id} className={`flex gap-3 ${isMe ? "flex-row-reverse" : ""} max-w-[85%] ${isMe ? "ml-auto" : ""}`}>
+                    <img
+                      src={msg.content}
+                      className="w-48 h-48 object-cover rounded-2xl shadow-sm"
+                      alt="shared image"
+                    />
+                  </div>
+                );
+
+                return (
+                  <div key={msg.id} className={`flex gap-3 ${isMe ? "flex-row-reverse" : ""} max-w-[85%] ${isMe ? "ml-auto" : ""}`}>
+                    {!isMe && (
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 shrink-0 self-end overflow-hidden flex items-center justify-center text-[10px] font-black text-slate-400">
+                        {msg.sender?.full_name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className={`p-4 rounded-2xl ${isMe ? "bg-dark text-primary rounded-br-none" : "bg-slate-100 text-slate-700 rounded-bl-none"}`}>
+                      <p className="text-sm font-medium leading-relaxed">{msg.content}</p>
+                      <p className={`text-[8px] font-bold mt-1 uppercase tracking-widest ${isMe ? "text-white/30 text-right" : "text-slate-400"}`}>
+                        {new Date(msg.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                        {msg.read_at && isMe && " · ✓✓"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat Input */}
-            <footer className="p-8 pt-0">
+            {/* Input */}
+            <footer className="p-4 border-t border-slate-100 shrink-0">
               <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-2 flex items-center gap-2">
-                <button className="p-3 text-slate-400 hover:text-black transition-colors"><ImageIcon size={20}/></button>
-                <input 
-                  type="text" 
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type a message..." 
-                  className="flex-1 bg-transparent border-none outline-none text-sm font-medium px-2"
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoSend}
                 />
-                <button className="p-3 bg-black text-[#00FF85] rounded-[1.5rem] hover:scale-105 transition-all">
-                  <Send size={18} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2.5 text-slate-400 hover:text-dark transition-colors"
+                >
+                  <ImageIcon size={18} />
+                </button>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-transparent border-none outline-none text-sm font-medium px-2 text-dark placeholder:text-slate-400"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!message.trim() || sending}
+                  className="p-3 bg-dark text-primary rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all disabled:opacity-40"
+                >
+                  {sending
+                    ? <Loader2 size={16} className="animate-spin" />
+                    : <Send size={16} strokeWidth={3} />
+                  }
                 </button>
               </div>
             </footer>
