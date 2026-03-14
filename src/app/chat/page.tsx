@@ -378,7 +378,7 @@ export default function ChatPage() {
     }
 
     setShowRating(false);
-    router.push("/dashboard");
+    router.push(`/recovery/success?recovery_id=${recoveryId}&chat_id=${activeChat?.id}`);
   };
 
   // ── Enter key ──

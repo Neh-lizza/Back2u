@@ -88,7 +88,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Browse", href: "/browse", icon: Search },
     { name: "Dashboard", href: "/dashboard", icon: User },
-    { name: "Chat", href: "/chat", icon: Bell },
+    { name: "Messages", href: "/chat", icon: Bell },
   ];
 
   return (

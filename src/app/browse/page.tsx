@@ -15,7 +15,7 @@ import type { ItemRow, UserRow } from "@/types/database";
 import MatchSystem from "@/components/MatchAndChat";
 
 // Mapbox
-import Map, { Marker, Popup, NavigationControl } from "react-map-gl";
+import Map, { Marker, Popup, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
