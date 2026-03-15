@@ -1,12 +1,14 @@
+// src/components/shared/Navbar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Bell, Search, PlusCircle, User, LogOut, Loader2 } from "lucide-react";
+import { Menu, X, Search, PlusCircle, User, LogOut, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import NotificationBell from "@/components/shared/NotificationBell";
 
 export default function Navbar() {
   const router = useRouter();
@@ -15,7 +17,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
 
   // ── Scroll handler — unchanged ──
@@ -27,12 +28,10 @@ export default function Navbar() {
 
   // ── Get current session + listen for auth changes ──
   useEffect(() => {
-    // Get initial session
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
 
-    // Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -41,39 +40,6 @@ export default function Navbar() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // ── Fetch unread notification count (only when logged in) ──
-  useEffect(() => {
-    if (!user) { setUnreadCount(0); return; }
-
-    const fetchUnread = async () => {
-      const { count } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
-      setUnreadCount(count ?? 0);
-    };
-
-    fetchUnread();
-
-    // Realtime: update count when new notification arrives
-    const channel = supabase
-      .channel("navbar-notifications")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => fetchUnread()
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
 
   // ── Logout handler ──
   const handleLogout = async () => {
@@ -88,7 +54,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Browse", href: "/browse", icon: Search },
     { name: "Dashboard", href: "/dashboard", icon: User },
-    { name: "Messages", href: "/chat", icon: Bell },
+    { name: "Messages", href: "/chat", icon: Search },
   ];
 
   return (
@@ -114,16 +80,7 @@ export default function Navbar() {
             ))}
 
             {/* Notification bell — only when logged in */}
-            {user && (
-              <Link href="/chat" className="relative text-white/50 hover:text-primary transition-colors">
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-[8px] font-black text-dark">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-            )}
+            {user && <NotificationBell userId={user.id} />}
 
             {/* Report button — unchanged */}
             <Link
@@ -163,7 +120,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu — unchanged layout, logout added */}
+      {/* Mobile Menu — unchanged layout */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
