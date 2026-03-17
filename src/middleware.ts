@@ -10,6 +10,8 @@ const PROTECTED_ROUTES = [
   '/report',
   '/browse',
   '/chat',
+  '/admin',
+  '/recovery',
 ]
 
 // Routes that logged-in users should NOT access
