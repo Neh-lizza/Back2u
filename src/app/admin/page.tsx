@@ -12,63 +12,30 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-// ── ALL TYPES DEFINED LOCALLY — no external import needed ──
 type AdminStats = {
-  totalItems:      number;
-  activeItems:     number;
-  totalUsers:      number;
-  totalRecoveries: number;
-  pendingFlags:    number;
-  pendingReview:   number;
-  totalTips:       number;
-  archivedItems:   number;
+  totalItems: number; activeItems: number; totalUsers: number;
+  totalRecoveries: number; pendingFlags: number; pendingReview: number;
+  totalTips: number; archivedItems: number;
 };
-
 type FlaggedItem = {
-  id:            string;
-  title:         string;
-  type:          string;
-  photos:        string[];
-  flag_count:    number;
-  user_id:       string;
-  location_name: string | null;
-  city:          string | null;
-  description:   string | null;
-  user:          { id: string; full_name: string } | null;
-  flags:         { reason: string }[];
+  id: string; title: string; type: string; photos: string[];
+  flag_count: number; user_id: string; location_name: string | null;
+  city: string | null; description: string | null;
+  user: { id: string; full_name: string } | null;
+  flags: { reason: string }[];
 };
-
 type PendingItem = {
-  id:            string;
-  title:         string;
-  type:          string;
-  photos:        string[];
-  user_id:       string;
-  location_name: string | null;
-  city:          string | null;
-  description:   string | null;
-  user:          { id: string; full_name: string } | null;
+  id: string; title: string; type: string; photos: string[];
+  user_id: string; location_name: string | null; city: string | null;
+  description: string | null;
+  user: { id: string; full_name: string } | null;
 };
-
-type ArchivedItem = {
-  id:         string;
-  title:      string;
-  type:       string;
-  photos:     string[];
-  updated_at: string;
-};
-
+type ArchivedItem = { id: string; title: string; type: string; photos: string[]; updated_at: string; };
 type UserItem = {
-  id:          string;
-  full_name:   string;
-  avatar_url:  string | null;
-  city:        string | null;
-  role:        string;
-  rating:      number;
-  is_banned:   boolean;
-  items_count: number;
+  id: string; full_name: string; avatar_url: string | null;
+  city: string | null; role: string; rating: number;
+  is_banned: boolean; items_count: number;
 };
-
 type AdminTab = "overview" | "flags" | "pending" | "users" | "archived";
 
 function StatCard({ label, value, icon: Icon, color = "text-primary", sub }: {
@@ -103,14 +70,14 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-  const checkAdmin = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth"); return; }
-    const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-    if ((profile as any)?.role !== "admin") { router.push("/dashboard"); return; }
-    setIsAdmin(true);
-    loadAll();
-  };
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/auth"); return; }
+      const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+      if ((profile as any)?.role !== "admin") { router.push("/dashboard"); return; }
+      setIsAdmin(true);
+      loadAll();
+    };
     checkAdmin();
   }, []);
 
@@ -135,24 +102,28 @@ export default function AdminDashboard() {
       supabase.from("items").select("*", { count: "exact", head: true }).eq("status", "archived"),
       supabase.from("recoveries").select("tip_amount").eq("tip_status", "paid"),
     ]);
-    const totalTips = tipsData?.reduce((sum: number, r: any) => sum + (r.tip_amount ?? 0), 0) ?? 0;
-    setStats({ totalItems: totalItems ?? 0, activeItems: activeItems ?? 0, totalUsers: totalUsers ?? 0, totalRecoveries: totalRecoveries ?? 0, pendingFlags: pendingFlags ?? 0, pendingReview: pendingReview ?? 0, totalTips, archivedItems: archivedItems ?? 0 });
+    const totalTips = (tipsData as any[])?.reduce((sum: number, r: any) => sum + (r.tip_amount ?? 0), 0) ?? 0;
+    setStats({
+      totalItems: totalItems ?? 0, activeItems: activeItems ?? 0, totalUsers: totalUsers ?? 0,
+      totalRecoveries: totalRecoveries ?? 0, pendingFlags: pendingFlags ?? 0,
+      pendingReview: pendingReview ?? 0, totalTips, archivedItems: archivedItems ?? 0,
+    });
   };
 
   const loadFlaggedItems = async () => {
     const { data } = await supabase.from("items").select("*, user:users(id, full_name), flags(*)").gt("flag_count", 0).order("flag_count", { ascending: false });
-    setFlaggedItems((data as FlaggedItem[]) ?? []);
+    setFlaggedItems((data as any[]) ?? []);
   };
 
   const loadPendingItems = async () => {
     const { data } = await supabase.from("items").select("*, user:users(id, full_name)").eq("status", "pending_review").order("created_at", { ascending: true });
-    setPendingItems((data as PendingItem[]) ?? []);
+    setPendingItems((data as any[]) ?? []);
   };
 
   const loadUsers = async () => {
     const { data } = await supabase.from("users").select("*").order("created_at", { ascending: false });
     if (!data) return;
-    const enriched = await Promise.all(data.map(async (u: any) => {
+    const enriched = await Promise.all((data as any[]).map(async (u: any) => {
       const { count } = await supabase.from("items").select("*", { count: "exact", head: true }).eq("user_id", u.id);
       return { ...u, items_count: count ?? 0 };
     }));
@@ -161,29 +132,29 @@ export default function AdminDashboard() {
 
   const loadArchivedItems = async () => {
     const { data } = await supabase.from("items").select("id, title, type, photos, updated_at").eq("status", "archived").order("updated_at", { ascending: false });
-    setArchivedItems((data as ArchivedItem[]) ?? []);
+    setArchivedItems((data as any[]) ?? []);
   };
 
   const approveItem = async (itemId: string) => {
     setActionLoading(itemId);
-    await supabase.from("items").update({ status: "active", admin_approved: true }).eq("id", itemId);
+    await (supabase.from("items") as any).update({ status: "active", admin_approved: true }).eq("id", itemId);
     const item = pendingItems.find(i => i.id === itemId);
-    if (item) await supabase.from("notifications").insert({ user_id: item.user_id, type: "admin_approved", title: "Your item has been approved", body: `"${item.title}" is now live on Back2U.`, data: { item_id: itemId } });
+    if (item) await (supabase.from("notifications") as any).insert({ user_id: item.user_id, type: "admin_approved", title: "Your item has been approved", body: `"${item.title}" is now live on Back2U.`, data: { item_id: itemId } });
     await loadPendingItems(); await loadStats(); setActionLoading(null);
   };
 
   const rejectItem = async (itemId: string) => {
     setActionLoading(itemId);
-    await supabase.from("items").update({ status: "rejected", admin_approved: false }).eq("id", itemId);
+    await (supabase.from("items") as any).update({ status: "rejected", admin_approved: false }).eq("id", itemId);
     const item = pendingItems.find(i => i.id === itemId);
-    if (item) await supabase.from("notifications").insert({ user_id: item.user_id, type: "admin_rejected", title: "Your item was not approved", body: `"${item.title}" did not meet our guidelines.`, data: { item_id: itemId } });
+    if (item) await (supabase.from("notifications") as any).insert({ user_id: item.user_id, type: "admin_rejected", title: "Your item was not approved", body: `"${item.title}" did not meet our guidelines.`, data: { item_id: itemId } });
     await loadPendingItems(); await loadStats(); setActionLoading(null);
   };
 
   const resolveFlag = async (itemId: string) => {
     setActionLoading(itemId);
-    await supabase.from("flags").update({ status: "resolved" }).eq("item_id", itemId);
-    await supabase.from("items").update({ flag_count: 0 }).eq("id", itemId);
+    await (supabase.from("flags") as any).update({ status: "resolved" }).eq("item_id", itemId);
+    await (supabase.from("items") as any).update({ flag_count: 0 }).eq("id", itemId);
     await loadFlaggedItems(); await loadStats(); setActionLoading(null);
   };
 
@@ -196,21 +167,21 @@ export default function AdminDashboard() {
 
   const toggleBan = async (userId: string, isBanned: boolean) => {
     setActionLoading(userId);
-    await supabase.from("users").update({ is_banned: !isBanned, ban_reason: !isBanned ? "Banned by admin" : null }).eq("id", userId);
+    await (supabase.from("users") as any).update({ is_banned: !isBanned, ban_reason: !isBanned ? "Banned by admin" : null }).eq("id", userId);
     await loadUsers(); setActionLoading(null);
   };
 
   const promoteToAdmin = async (userId: string) => {
     if (!confirm("Promote this user to admin?")) return;
     setActionLoading(userId);
-    await supabase.from("users").update({ role: "admin" }).eq("id", userId);
+    await (supabase.from("users") as any).update({ role: "admin" }).eq("id", userId);
     await loadUsers(); setActionLoading(null);
   };
 
   const restoreItem = async (itemId: string) => {
     setActionLoading(itemId);
     const newExpiry = new Date(); newExpiry.setMonth(newExpiry.getMonth() + 6);
-    await supabase.from("items").update({ status: "active", expires_at: newExpiry.toISOString() }).eq("id", itemId);
+    await (supabase.from("items") as any).update({ status: "active", expires_at: newExpiry.toISOString() }).eq("id", itemId);
     await loadArchivedItems(); await loadStats(); setActionLoading(null);
   };
 
@@ -264,9 +235,9 @@ export default function AdminDashboard() {
               <StatCard label="Active Items"   value={stats.activeItems}     icon={TrendingUp} />
               <StatCard label="Total Users"    value={stats.totalUsers}      icon={Users} />
               <StatCard label="Recoveries"     value={stats.totalRecoveries} icon={CheckCircle2} />
-              <StatCard label="Pending Flags"  value={stats.pendingFlags}    icon={Flag}       color="text-red-400" />
+              <StatCard label="Pending Flags"  value={stats.pendingFlags}    icon={Flag}        color="text-red-400" />
               <StatCard label="Pending Review" value={stats.pendingReview}   icon={ShieldAlert} color="text-secondary" />
-              <StatCard label="Archived"       value={stats.archivedItems}   icon={Archive}    color="text-white/40" />
+              <StatCard label="Archived"       value={stats.archivedItems}   icon={Archive}     color="text-white/40" />
               <StatCard label="Tips Collected" value={`${stats.totalTips.toLocaleString()} XAF`} icon={DollarSign} />
             </div>
             <div className="grid md:grid-cols-3 gap-4">
