@@ -103,14 +103,14 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth"); return; }
-      const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-      if (profile?.role !== "admin") { router.push("/dashboard"); return; }
-      setIsAdmin(true);
-      loadAll();
-    };
+  const checkAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/auth"); return; }
+    const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+    if ((profile as any)?.role !== "admin") { router.push("/dashboard"); return; }
+    setIsAdmin(true);
+    loadAll();
+  };
     checkAdmin();
   }, []);
 
