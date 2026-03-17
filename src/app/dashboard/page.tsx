@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
+import {
   Bell, MapPin, Plus, MessageSquare, 
   Search, Clock, ChevronRight, Star,
   TrendingUp, CheckCircle, Shield, LayoutGrid
