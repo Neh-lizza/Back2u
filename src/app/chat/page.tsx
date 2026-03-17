@@ -30,6 +30,7 @@ type ChatListItem = {
 type MessageWithSender = MessageRow & {
   sender: Pick<UserRow, "id" | "full_name" | "avatar_url"> | null;
 };
+// Note: we could optimize by not fetching sender for every message, but it's simpler for this example
 
 // ── HELPERS ────────────────────────────────────────────────
 function timeAgo(dateStr: string): string {
