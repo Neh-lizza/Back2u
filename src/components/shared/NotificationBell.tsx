@@ -55,6 +55,7 @@ function timeAgo(dateStr: string): string {
 export default function NotificationBell({ userId }: { userId: string }) {
   const router = useRouter();
   const supabase = createClient();
+  const db = supabase as any;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = useState(false);
@@ -65,15 +66,15 @@ export default function NotificationBell({ userId }: { userId: string }) {
   // ── Fetch notifications ──
   const fetchNotifications = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    const { data } = await db
+  .from("notifications")
+  .select("*")
+  .eq("user_id", userId)
+  .order("created_at", { ascending: false })
+  .limit(20);
 
     setNotifications((data as NotificationRow[]) ?? []);
-    setUnreadCount(data?.filter(n => !n.read).length ?? 0);
+    setUnreadCount(data?.filter((n: any) => !n.read).length ?? 0);
     setLoading(false);
   };
 
@@ -113,7 +114,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const handleOpen = async () => {
     setOpen(prev => !prev);
     if (!open && unreadCount > 0) {
-      await supabase
+      await db
         .from("notifications")
         .update({ read: true })
         .eq("user_id", userId)
@@ -126,7 +127,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
   // ── Click notification ──
   const handleNotifClick = async (notif: NotificationRow) => {
     if (!notif.read) {
-      await supabase
+      await db
         .from("notifications")
         .update({ read: true })
         .eq("id", notif.id);
@@ -137,7 +138,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   // ── Clear all ──
   const handleClearAll = async () => {
-    await supabase
+    await db
       .from("notifications")
       .delete()
       .eq("user_id", userId);

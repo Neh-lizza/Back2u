@@ -123,16 +123,14 @@ export default function AuthPage() {
     }
 
     // Update profile with city + region (trigger created the row already)
-    if (data.user) {
-      await supabase
-        .from("users")
-        .update({
-          city:   selectedCity?.city,
-          region: selectedCity?.region,
-        })
-        .eq("id", data.user.id);
-    }
-
+if (data.user) {
+  await (supabase.from("users") as any)
+    .update({
+      city:   selectedCity?.city,
+      region: selectedCity?.region,
+    })
+    .eq("id", data.user.id);
+}
     // Show success tick — don't redirect yet, user needs to confirm email first
     setRegisterSuccess(true);
   };

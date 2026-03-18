@@ -1,18 +1,39 @@
+// src/app/browse/[id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, MapPin, Clock, Flag, MessageSquare,
-  ShieldAlert, EyeOff, User, Loader2, AlertCircle,
+  ArrowLeft, MapPin, Clock, MessageSquare,
+  ShieldAlert, EyeOff, Loader2, AlertCircle,
   ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { ItemRow, UserRow, ChatRow } from "@/types/database";
 
-type ItemWithUser = ItemRow & {
-  user: Pick<UserRow, "id" | "full_name" | "avatar_url" | "rating" | "recovery_count"> | null;
+// ── TYPES DEFINED LOCALLY ──────────────────────────────────
+type ItemWithUser = {
+  id:             string;
+  user_id:        string;
+  type:           string;
+  title:          string;
+  description:    string | null;
+  category:       string | null;
+  photos:         string[];
+  location_name:  string | null;
+  city:           string | null;
+  status:         string;
+  sensitivity:    string;
+  is_anonymous:   boolean;
+  date_occurred:  string | null;
+  created_at:     string;
+  user: {
+    id:             string;
+    full_name:      string;
+    avatar_url:     string | null;
+    rating:         number;
+    recovery_count: number;
+  } | null;
 };
 
 function timeAgo(dateStr: string): string {
@@ -38,7 +59,6 @@ export default function ItemDetailPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
 
-  // Fetch item + current user
   useEffect(() => {
     const load = async () => {
       const [{ data: { user } }, { data: itemData, error: itemError }] = await Promise.all([
@@ -61,7 +81,6 @@ export default function ItemDetailPage() {
     load();
   }, [id]);
 
-  // ── Claim / Contact handler ──
   const handleClaim = async () => {
     if (!currentUser) { router.push("/auth"); return; }
     if (!item) return;
@@ -69,9 +88,9 @@ export default function ItemDetailPage() {
     setClaimError(null);
 
     try {
-      // Check if chat already exists for this item between these two users
-      const { data: existingChat } = await supabase
-        .from("chats")
+      // Check if chat already exists
+      const { data: existingChat } = await (supabase
+        .from("chats") as any)
         .select("id")
         .eq("item_id", item.id)
         .or(`participant_a.eq.${currentUser.id},participant_b.eq.${currentUser.id}`)
@@ -83,12 +102,12 @@ export default function ItemDetailPage() {
       }
 
       // Create new chat
-      const { data: newChat, error: chatError } = await supabase
-        .from("chats")
+      const { data: newChat, error: chatError } = await (supabase
+        .from("chats") as any)
         .insert({
           item_id:       item.id,
-          participant_a: item.user_id,      // poster
-          participant_b: currentUser.id,    // claimant
+          participant_a: item.user_id,
+          participant_b: currentUser.id,
           match_id:      null,
         })
         .select()
@@ -97,19 +116,19 @@ export default function ItemDetailPage() {
       if (chatError) throw new Error(chatError.message);
 
       // Update item status to matched
-      await supabase
-        .from("items")
+      await (supabase.from("items") as any)
         .update({ status: "matched" })
         .eq("id", item.id);
 
       // Notify the poster
-      await supabase.from("notifications").insert({
-        user_id: item.user_id,
-        type:    "chat_message",
-        title:   "Someone contacted you about your item",
-        body:    `A user wants to discuss your ${item.type} item: "${item.title}"`,
-        data:    { item_id: item.id, chat_id: newChat.id },
-      });
+      await (supabase.from("notifications") as any)
+        .insert({
+          user_id: item.user_id,
+          type:    "chat_message",
+          title:   "Someone contacted you about your item",
+          body:    `A user wants to discuss your ${item.type} item: "${item.title}"`,
+          data:    { item_id: item.id, chat_id: newChat.id },
+        });
 
       router.push(`/chat?id=${newChat.id}`);
     } catch (err: any) {
@@ -138,8 +157,6 @@ export default function ItemDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-slate-900">
-
-      {/* Back button */}
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-6">
         <button
           onClick={() => router.back()}
@@ -150,7 +167,7 @@ export default function ItemDetailPage() {
 
         <div className="grid md:grid-cols-2 gap-12">
 
-          {/* ── LEFT: Photos ── */}
+          {/* Photos */}
           <div className="space-y-4">
             <div className="aspect-square rounded-[3rem] overflow-hidden bg-slate-100 relative">
               {photos.length > 0 ? (
@@ -174,22 +191,15 @@ export default function ItemDetailPage() {
                       </span>
                     </div>
                   )}
-                  {/* Photo navigation */}
                   {photos.length > 1 && (
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                      <button
-                        onClick={() => setPhotoIndex(i => Math.max(0, i - 1))}
-                        className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all"
-                      >
+                      <button onClick={() => setPhotoIndex(i => Math.max(0, i - 1))} className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all">
                         <ChevronLeft size={16} />
                       </button>
                       <span className="px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-white text-[10px] font-black">
                         {photoIndex + 1} / {photos.length}
                       </span>
-                      <button
-                        onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))}
-                        className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all"
-                      >
+                      <button onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))} className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all">
                         <ChevronRight size={16} />
                       </button>
                     </div>
@@ -202,15 +212,10 @@ export default function ItemDetailPage() {
               )}
             </div>
 
-            {/* Thumbnail strip */}
             {photos.length > 1 && (
               <div className="flex gap-3 overflow-x-auto no-scrollbar">
                 {photos.map((photo, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setPhotoIndex(i)}
-                    className={`w-20 h-20 rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${photoIndex === i ? "border-primary" : "border-transparent"}`}
-                  >
+                  <button key={i} onClick={() => setPhotoIndex(i)} className={`w-20 h-20 rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${photoIndex === i ? "border-primary" : "border-transparent"}`}>
                     <img src={photo} className={`w-full h-full object-cover ${isSensitive ? "blur-md" : ""}`} alt="" />
                   </button>
                 ))}
@@ -218,9 +223,8 @@ export default function ItemDetailPage() {
             )}
           </div>
 
-          {/* ── RIGHT: Details ── */}
+          {/* Details */}
           <div className="space-y-8">
-            {/* Type + sensitivity badges */}
             <div className="flex items-center gap-3">
               <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${item.type === "found" ? "bg-primary text-dark" : "bg-[#FF4D4D] text-white"}`}>
                 {item.type}
@@ -238,17 +242,12 @@ export default function ItemDetailPage() {
             </div>
 
             <div>
-              <h1 className="text-4xl font-black font-clash uppercase tracking-tighter text-dark mb-4">
-                {item.title}
-              </h1>
+              <h1 className="text-4xl font-black font-clash uppercase tracking-tighter text-dark mb-4">{item.title}</h1>
               {item.category && (
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-                  {item.category}
-                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">{item.category}</span>
               )}
             </div>
 
-            {/* Description — hidden for very_sensitive until chat */}
             {item.sensitivity !== "very_sensitive" && item.description && (
               <div className="bg-white rounded-[2rem] p-6 border border-slate-100">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Description</p>
@@ -256,17 +255,14 @@ export default function ItemDetailPage() {
               </div>
             )}
 
-            {/* Meta info */}
             <div className="space-y-3">
               {item.location_name && (
                 <div className="flex items-center gap-3 text-sm font-bold text-slate-500">
-                  <MapPin size={16} className="text-primary" />
-                  {item.location_name}
+                  <MapPin size={16} className="text-primary" />{item.location_name}
                 </div>
               )}
               <div className="flex items-center gap-3 text-sm font-bold text-slate-500">
-                <Clock size={16} className="text-primary" />
-                Reported {timeAgo(item.created_at)}
+                <Clock size={16} className="text-primary" />Reported {timeAgo(item.created_at)}
               </div>
               {item.date_occurred && (
                 <div className="flex items-center gap-3 text-sm font-bold text-slate-500">
@@ -276,7 +272,6 @@ export default function ItemDetailPage() {
               )}
             </div>
 
-            {/* Poster info — hidden if anonymous */}
             {!item.is_anonymous && item.user && (
               <div className="flex items-center gap-4 bg-white rounded-[2rem] p-5 border border-slate-100">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center font-black text-primary text-lg">
@@ -291,7 +286,6 @@ export default function ItemDetailPage() {
               </div>
             )}
 
-            {/* CTA */}
             {!isOwnItem && item.status !== "recovered" && (
               <div className="space-y-3">
                 {claimError && (

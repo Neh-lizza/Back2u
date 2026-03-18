@@ -1,4 +1,3 @@
-// src/app/report/page.tsx
 "use client";
 
 import { useState, useRef } from "react";
@@ -28,7 +27,8 @@ const CATEGORIES = [
 export default function EnhancedReportPage() {
   const router = useRouter();
   const supabase = createClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const db = supabase as any;
+const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -92,7 +92,7 @@ export default function EnhancedReportPage() {
       }
 
       // 2. Rate limit check — max 3 active reports
-      const { count } = await supabase
+      const { count } = await db
         .from("items")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
@@ -105,7 +105,7 @@ export default function EnhancedReportPage() {
       }
 
       // 3. Get user's city + region for feed filtering
-      const { data: profile } = await supabase
+      const { data: profile } = await db
         .from("users")
         .select("city, region")
         .eq("id", user.id)
@@ -130,7 +130,7 @@ export default function EnhancedReportPage() {
       }
 
       // 5. Insert item into DB
-      const { error: insertError } = await supabase
+      const { error: insertError } = await db
         .from("items")
         .insert({
           user_id:       user.id,
@@ -155,14 +155,14 @@ export default function EnhancedReportPage() {
       // 6. If very_sensitive → notify admins (insert admin notification)
       if (formData.sensitivity === "very_sensitive") {
         // Get all admin user IDs
-        const { data: admins } = await supabase
+        const { data: admins } = await db
           .from("users")
           .select("id")
           .eq("role", "admin");
 
         if (admins && admins.length > 0) {
-          await supabase.from("notifications").insert(
-            admins.map(admin => ({
+          await db.from("notifications").insert(
+           admins.map((admin: any) => ({
               user_id: admin.id,
               type:    "admin_approved" as const,
               title:   "High Risk item pending review",
