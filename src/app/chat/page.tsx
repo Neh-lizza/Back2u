@@ -198,8 +198,25 @@ function ChatPage() {
     setShowRecoveryPrompt(false);
     setRecovering(false);
     if (recovery?.confirmed_by_a && recovery?.confirmed_by_b) {
-      setShowRating(true);
-    } else {
+  // Mark item as recovered so it disappears from browse
+  await db.from("items").update({ status: "recovered" }).eq("id", activeChat.item_id);
+  // Notify both users
+  await db.from("notifications").insert({
+    user_id: activeChat.participant_a,
+    type: "recovery_confirmed",
+    title: "Item Successfully Recovered! 🎉",
+    body: `"${activeChat.item?.title}" has been marked as recovered.`,
+    data: { chat_id: activeChat.id },
+  });
+  await db.from("notifications").insert({
+    user_id: activeChat.participant_b,
+    type: "recovery_confirmed",
+    title: "Item Successfully Recovered! 🎉",
+    body: `"${activeChat.item?.title}" has been marked as recovered.`,
+    data: { chat_id: activeChat.id },
+  });
+  setShowRating(true);
+} else {
       await db.from("messages").insert({ chat_id: activeChat.id, sender_id: currentUser.id, content: "✅ Recovery confirmed. Waiting for the other party to confirm.", type: "system" });
     }
   };
