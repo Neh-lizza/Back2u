@@ -1,4 +1,4 @@
-// src/middleware.ts
+// src/proxy.ts
 // Protects routes, refreshes sessions, handles redirects
 
 import { createServerClient } from '@supabase/ssr'
@@ -15,8 +15,15 @@ const PROTECTED_ROUTES = [
 ]
 
 // Routes that logged-in users should NOT access
+// NOTE: /auth/reset is intentionally excluded — a logged-in user
+// clicking their reset email link must be allowed through to update their password.
 const AUTH_ROUTES = [
   '/auth',
+]
+
+// Routes always accessible regardless of auth state
+const PUBLIC_OVERRIDES = [
+  '/auth/reset',
 ]
 
 export async function proxy(request: NextRequest) {
@@ -49,6 +56,12 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
+
+  // Always allow public overrides (e.g. password reset page)
+  const isPublicOverride = PUBLIC_OVERRIDES.some(route => path.startsWith(route))
+  if (isPublicOverride) {
+    return supabaseResponse
+  }
 
   // If user is not logged in and tries to access protected route → redirect to /auth
   const isProtected = PROTECTED_ROUTES.some(route => path.startsWith(route))

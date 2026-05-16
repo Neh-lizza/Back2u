@@ -230,6 +230,16 @@ if (data.user) {
                   />
                 </div>
 
+                {/* Forgot password link */}
+                <div className="flex justify-end">
+                  <Link
+                    href="/auth/reset"
+                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
                 {/* Error message */}
                 {loginError && (
                   <div className="flex items-center gap-2 text-red-500 text-[10px] font-bold uppercase tracking-widest">
