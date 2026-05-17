@@ -27,6 +27,7 @@ type ItemWithUser = {
   title:         string;
   photos:        string[];
   location_name: string | null;
+  location_geo:  { type: string; coordinates: [number, number] } | null;
   city:          string | null;
   status:        string;
   sensitivity:   string;
@@ -53,6 +54,38 @@ function timeAgo(dateStr: string): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+// Fallback coordinates for each city (used when location_geo is NULL)
+const CITY_COORDS: Record<string, { lng: number; lat: number }> = {
+  "Douala":      { lng: 9.7085,  lat: 4.0511  },
+  "Yaoundé":     { lng: 11.5021, lat: 3.8480  },
+  "Buea":        { lng: 9.2316,  lat: 4.1527  },
+  "Bamenda":     { lng: 10.1592, lat: 5.9597  },
+  "Garoua":      { lng: 13.3990, lat: 9.3017  },
+  "Maroua":      { lng: 14.3158, lat: 10.5910 },
+  "Bafoussam":   { lng: 10.4200, lat: 5.4781  },
+  "Ngaoundéré":  { lng: 13.5840, lat: 7.3220  },
+  "Bertoua":     { lng: 13.6860, lat: 4.5785  },
+  "Ebolowa":     { lng: 11.1500, lat: 2.9000  },
+};
+
+// Helper — extract lng/lat from item, falling back to city coords
+function getItemCoords(item: ItemWithUser): { lng: number; lat: number } | null {
+  // location_geo comes back from PostGIS as GeoJSON when selected with ::json cast
+  // If it has coordinates, use them; otherwise fall back to city
+  if (item.location_geo && typeof item.location_geo === "object") {
+    const geo = item.location_geo as any;
+    if (geo.coordinates && geo.coordinates.length === 2) {
+      return { lng: geo.coordinates[0], lat: geo.coordinates[1] };
+    }
+  }
+  // Fall back to registered city center
+  if (item.city && CITY_COORDS[item.city]) {
+    return CITY_COORDS[item.city];
+  }
+  // Default to Cameroon center
+  return { lng: 11.5021, lat: 3.8480 };
 }
 
 function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) => void }) {
@@ -169,7 +202,7 @@ export default function BrowseMarketplace() {
     try {
       let query = db
         .from("items")
-        .select("*, user:users(id, full_name, avatar_url)")
+        .select("*, location_geo::json, user:users(id, full_name, avatar_url)")
         .in("status", ["active", "matched"])
         .eq("admin_approved", true)
         .order("created_at", { ascending: false })
@@ -303,15 +336,22 @@ export default function BrowseMarketplace() {
             <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative w-full h-[calc(100vh-140px)]">
               <Map mapboxAccessToken={MAPBOX_TOKEN} initialViewState={mapViewport} style={{ width: "100%", height: "100%" }} mapStyle="mapbox://styles/mapbox/light-v11" onMove={e => setMapViewport(e.viewState)}>
                 <NavigationControl position="top-right" />
-                {items.map(item => (
-                  <Marker key={item.id} longitude={11.5021} latitude={3.8480} anchor="bottom" onClick={e => { e.originalEvent.stopPropagation(); setSelectedMapItem(item); }}>
+                {items.map(item => {
+                  const coords = getItemCoords(item);
+                  if (!coords) return null;
+                  return (
+                  <Marker key={item.id} longitude={coords.lng} latitude={coords.lat} anchor="bottom" onClick={e => { e.originalEvent.stopPropagation(); setSelectedMapItem(item); }}>
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.15, rotate: 12 }} className={`w-12 h-12 rounded-[1rem] shadow-2xl flex items-center justify-center border-2 cursor-pointer ${item.type === "found" ? "bg-white border-primary" : "bg-white border-[#FF4D4D]"}`}>
                       <MapPin size={20} className={item.type === "found" ? "text-primary" : "text-[#FF4D4D]"} />
                     </motion.div>
                   </Marker>
-                ))}
-                {selectedMapItem && (
-                  <Popup longitude={11.5021} latitude={3.8480} anchor="top" onClose={() => setSelectedMapItem(null)} closeButton={false}>
+                  );
+                })}
+                {selectedMapItem && (() => {
+                  const coords = getItemCoords(selectedMapItem);
+                  if (!coords) return null;
+                  return (
+                  <Popup longitude={coords.lng} latitude={coords.lat} anchor="top" onClose={() => setSelectedMapItem(null)} closeButton={false}>
                     <div className="p-4 bg-white cursor-pointer w-52" onClick={() => window.location.href = `/browse/${selectedMapItem.id}`}>
                       {selectedMapItem.photos?.[0] && (
                         <div className="relative w-full h-28 rounded-xl mb-3 overflow-hidden">
@@ -323,7 +363,8 @@ export default function BrowseMarketplace() {
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{selectedMapItem.location_name || selectedMapItem.city}</p>
                     </div>
                   </Popup>
-                )}
+                  );
+                })()}
               </Map>
             </motion.div>
           )}

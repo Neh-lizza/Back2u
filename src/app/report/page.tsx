@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Package, ArrowRight, ArrowLeft,
@@ -24,11 +24,18 @@ const CATEGORIES = [
   { id: "other",        label: "Other",        icon: HelpCircle },
 ];
 
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+
 export default function EnhancedReportPage() {
   const router = useRouter();
   const supabase = createClient();
 const db = supabase as any;
 const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── GEOCODING STATE ──
+  const [geocodedCoords, setGeocodedCoords] = useState<{ lng: number; lat: number } | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -49,6 +56,34 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     anonymous:   false,
     dateOccurred:"",
   });
+
+  // ── GEOCODE location text with debounce ──
+  useEffect(() => {
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
+    const query = formData.location.trim();
+    if (query.length < 4) { setGeocodedCoords(null); return; }
+
+    geocodeTimer.current = setTimeout(async () => {
+      setGeocoding(true);
+      try {
+        // Bias results to Cameroon bounding box
+        const bbox = "8.4,-0.2,16.2,12.4"; // Cameroon bbox
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query + ", Cameroon")}.json?access_token=${MAPBOX_TOKEN}&bbox=${bbox}&limit=1&language=fr,en`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.features && data.features.length > 0) {
+          const [lng, lat] = data.features[0].center;
+          setGeocodedCoords({ lng, lat });
+        } else {
+          setGeocodedCoords(null);
+        }
+      } catch {
+        setGeocodedCoords(null);
+      } finally {
+        setGeocoding(false);
+      }
+    }, 800); // 800ms debounce
+  }, [formData.location]);
 
   // ── PHOTO HANDLER ──
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +175,10 @@ const fileInputRef = useRef<HTMLInputElement>(null);
           category:      formData.itemCategory || null,
           photos:        photoUrls,
           location_name: formData.location || null,
+          // Save real coordinates if geocoding succeeded
+          location_geo:  geocodedCoords
+            ? `POINT(${geocodedCoords.lng} ${geocodedCoords.lat})`
+            : null,
           city:          profile?.city ?? null,
           region:        profile?.region ?? null,
           sensitivity:   formData.sensitivity as "normal" | "sensitive" | "very_sensitive",
@@ -407,16 +446,28 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                   )}
                 </div>
 
-                {/* Location — unchanged */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center gap-4 focus-within:border-primary transition-all">
-                  <MapPin className="text-primary shrink-0" size={20} />
+                {/* Location with geocoding indicator */}
+                <div className={`bg-white/5 border rounded-2xl p-6 flex items-center gap-4 focus-within:border-primary transition-all ${geocodedCoords ? "border-primary/50" : "border-white/10"}`}>
+                  <MapPin className={`shrink-0 transition-colors ${geocodedCoords ? "text-primary" : "text-primary/50"}`} size={20} />
                   <input
                     value={formData.location}
                     onChange={e => setFormData({ ...formData, location: e.target.value })}
                     placeholder="LAST SEEN AT (STREET, QUARTER, TOWN...)"
                     className="bg-transparent w-full focus:outline-none text-xs font-bold uppercase tracking-widest"
                   />
+                  {geocoding && <Loader2 size={14} className="animate-spin text-white/30 shrink-0" />}
+                  {!geocoding && geocodedCoords && <CheckCircle2 size={14} className="text-primary shrink-0" />}
                 </div>
+                {geocodedCoords && (
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-primary/60 -mt-2 pl-2">
+                    ✓ Location pinned on map
+                  </p>
+                )}
+                {!geocoding && !geocodedCoords && formData.location.trim().length >= 4 && (
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 -mt-2 pl-2">
+                    Location not found — it will still be saved as text
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-4">
