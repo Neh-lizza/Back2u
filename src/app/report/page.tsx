@@ -56,6 +56,7 @@ export default function EnhancedReportPage() {
     location:     "",
     anonymous:    false,
     dateOccurred: "",
+    value_range:  "unknown",
   });
 
   // ── AUTOCOMPLETE SUGGESTIONS — debounced ──
@@ -173,6 +174,7 @@ export default function EnhancedReportPage() {
           sensitivity:   formData.sensitivity as "normal" | "sensitive" | "very_sensitive",
           is_anonymous:  formData.anonymous,
           date_occurred: formData.dateOccurred || null,
+          value_range:   formData.value_range,
         });
 
       if (insertError) throw new Error(insertError.message);
@@ -328,6 +330,39 @@ export default function EnhancedReportPage() {
                   </div>
                 </div>
 
+                {/* Value Range */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Estimated Value</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { id: "under_10k",   label: "Under 10,000 XAF",       sub: "Keys, small accessories" },
+                      { id: "10k_50k",     label: "10,000 – 50,000 XAF",    sub: "ID card, documents, wallet" },
+                      { id: "50k_150k",    label: "50,000 – 150,000 XAF",   sub: "Mid-range phone, tablet" },
+                      { id: "150k_500k",   label: "150,000 – 500,000 XAF",  sub: "Laptop, high-end phone" },
+                      { id: "over_500k",   label: "Over 500,000 XAF",       sub: "Motorbike, camera equipment" },
+                      { id: "unknown",     label: "Not sure / Unknown",      sub: "Defaults to 10k–50k fee tier" },
+                    ].map(tier => (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, value_range: tier.id })}
+                        className={`flex items-center justify-between px-5 py-4 rounded-2xl border-2 transition-all text-left ${formData.value_range === tier.id ? "border-secondary bg-secondary/5" : "border-white/5 hover:border-white/10"}`}
+                      >
+                        <div>
+                          <p className={`text-[10px] font-black uppercase tracking-widest ${formData.value_range === tier.id ? "text-secondary" : "text-white/60"}`}>{tier.label}</p>
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mt-0.5">{tier.sub}</p>
+                        </div>
+                        {formData.value_range === tier.id && (
+                          <CheckCircle2 size={16} className="text-secondary shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 pl-1">
+                    This determines the contact unlock fee if a match is found
+                  </p>
+                </div>
+
                 {/* Date */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center gap-4 focus-within:border-primary transition-all">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/30 shrink-0">Date</span>
@@ -477,6 +512,10 @@ export default function EnhancedReportPage() {
                     </div>
                   </div>
                 )}
+                <div className="flex justify-between border-b border-white/5 pb-4">
+                  <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">Est. Value</span>
+                  <span className="text-white font-black uppercase tracking-widest text-[10px]">{formData.value_range.replace(/_/g, " ")}</span>
+                </div>
                 <div className="flex justify-between border-b border-white/5 pb-4">
                   <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">Photos</span>
                   <span className="text-white font-black uppercase tracking-widest text-[10px]">{photos.length} attached</span>

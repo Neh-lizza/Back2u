@@ -104,7 +104,7 @@ function RecoverySuccessPage() {
       const response = await fetch("/api/payment/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, currency: "XAF", phone: phoneNumber, channel: paymentMethod, recovery_id: recoveryId, description: "Back2U tip for item recovery", email: currentUser.email }),
+        body: JSON.stringify({ amount, currency: "XAF", phone: phoneNumber, channel: paymentMethod, recovery_id: recoveryId, description: "Back2U tip for item recovery", payment_type: "tip", email: currentUser.email }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Payment initiation failed.");
@@ -225,7 +225,7 @@ function RecoverySuccessPage() {
               )}
             </AnimatePresence>
             {paymentError && <div className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl p-4 mb-6 text-left"><p className="text-red-400 text-[10px] font-bold uppercase tracking-widest">{paymentError}</p></div>}
-            <div className="flex items-center gap-2 mb-8"><Shield size={14} className="text-white/20" /><p className="text-white/20 text-[9px] font-bold uppercase tracking-widest">Secured by NotchPay</p></div>
+            <div className="flex items-center gap-2 mb-8"><Shield size={14} className="text-white/20" /><p className="text-white/20 text-[9px] font-bold uppercase tracking-widest">Secured by MeSomb</p></div>
             <div className="flex gap-3 w-full">
               <button onClick={() => setStep("tip")} className="flex-1 py-5 border-2 border-white/5 rounded-[2rem] font-black text-xs tracking-widest text-white/30 hover:bg-white/5 transition-all">Back</button>
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handlePayment} disabled={!paymentMethod || processingPayment || (paymentMethod !== "card" && !phoneNumber.trim())} className="flex-[2] py-5 bg-primary text-dark rounded-[2rem] font-black text-xs tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-40">
