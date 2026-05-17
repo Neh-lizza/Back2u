@@ -342,7 +342,7 @@ export default function ResetPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || stage === "done"}
+                  disabled={loading}
                   className="w-full bg-[#061209] text-white py-5 rounded-2xl font-black tracking-[0.2em] text-[10px] hover:bg-[#009A49] hover:text-[#061209] transition-all shadow-xl shadow-[#009A49]/10 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? (

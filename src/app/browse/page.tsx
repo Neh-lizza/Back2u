@@ -249,6 +249,25 @@ export default function BrowseMarketplace() {
 
   return (
     <main className="min-h-screen bg-white text-slate-900 overflow-x-hidden">
+      <style jsx global>{`
+        @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
+        .font-clash { font-family: 'Clash Grotesk', sans-serif; }
+
+        /* Dark popup override for Back2U map */
+        .back2u-popup .mapboxgl-popup-content {
+          background: #111111 !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          border-radius: 16px !important;
+          padding: 0 !important;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+        }
+        .back2u-popup .mapboxgl-popup-tip {
+          border-bottom-color: #111111 !important;
+          border-top-color: #111111 !important;
+        }
+        /* Hide Mapbox default attribution (we show our own) */
+        .mapboxgl-ctrl-attrib { display: none !important; }
+      `}</style>
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-20 z-[50] py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex bg-slate-100 p-1 rounded-2xl">
@@ -332,16 +351,21 @@ export default function BrowseMarketplace() {
                 mapboxAccessToken={MAPBOX_TOKEN}
                 initialViewState={mapViewport}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle="mapbox://styles/mapbox/light-v11"
+                mapStyle="mapbox://styles/mapbox/dark-v11"
                 onMove={e => setMapViewport(e.viewState)}
                 maxBounds={[
-                  [7.5, -0.5],   // SW corner of Cameroon
-                  [16.5, 13.0],  // NE corner of Cameroon
+                  [7.0, -0.8],   // SW — tight Cameroon boundary
+                  [17.0, 13.5],  // NE — tight Cameroon boundary
                 ]}
-                minZoom={5}
-                maxZoom={16}
+                minZoom={5.2}
+                maxZoom={17}
+                attributionControl={false}
               >
-                <NavigationControl position="top-right" />
+                <NavigationControl position="bottom-right" showCompass={false} />
+                {/* Branded corner tag */}
+                <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md rounded-xl px-3 py-2 z-10 pointer-events-none">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[#009A49]">back2u. — Cameroon</p>
+                </div>
                 {items.map(item => {
                   const coords = getItemCoords(item);
                   return (
@@ -355,16 +379,17 @@ export default function BrowseMarketplace() {
                 {selectedMapItem && (() => {
                   const coords = getItemCoords(selectedMapItem);
                   return (
-                  <Popup longitude={coords.lng} latitude={coords.lat} anchor="top" onClose={() => setSelectedMapItem(null)} closeButton={false}>
-                    <div className="p-4 bg-white cursor-pointer w-52" onClick={() => window.location.href = `/browse/${selectedMapItem.id}`}>
+                  <Popup longitude={coords.lng} latitude={coords.lat} anchor="top" onClose={() => setSelectedMapItem(null)} closeButton={false} className="back2u-popup">
+                    <div className="p-4 bg-[#111] cursor-pointer w-52 rounded-2xl" onClick={() => window.location.href = `/browse/${selectedMapItem.id}`}>
                       {selectedMapItem.photos?.[0] && (
                         <div className="relative w-full h-28 rounded-xl mb-3 overflow-hidden">
                           <Image src={selectedMapItem.photos[0]} alt={selectedMapItem.title} fill sizes="208px" className={`object-cover ${selectedMapItem.sensitivity !== "normal" ? "blur-md" : ""}`} />
                         </div>
                       )}
-                      <div className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest mb-2 ${selectedMapItem.type === "found" ? "bg-primary text-dark" : "bg-[#FF4D4D] text-white"}`}>{selectedMapItem.type}</div>
-                      <p className="font-clash font-black text-sm uppercase tracking-tight text-dark">{selectedMapItem.title}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{selectedMapItem.location_name || selectedMapItem.city}</p>
+                      <div className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest mb-2 ${selectedMapItem.type === "found" ? "bg-[#009A49] text-black" : "bg-[#FF4D4D] text-white"}`}>{selectedMapItem.type}</div>
+                      <p className="font-black text-sm uppercase tracking-tight text-white truncate">{selectedMapItem.title}</p>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">{selectedMapItem.location_name || selectedMapItem.city}</p>
+                      <p className="text-[8px] text-[#009A49] font-black uppercase tracking-widest mt-2">Tap to view →</p>
                     </div>
                   </Popup>
                   );
