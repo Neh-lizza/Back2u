@@ -27,7 +27,7 @@ type ItemWithUser = {
   title:         string;
   photos:        string[];
   location_name: string | null;
-  location_geo:  { type: string; coordinates: [number, number] } | null;
+  location_geo:  unknown | null; // raw PostGIS geography string
   city:          string | null;
   status:        string;
   sensitivity:   string;
@@ -70,22 +70,16 @@ const CITY_COORDS: Record<string, { lng: number; lat: number }> = {
   "Ebolowa":     { lng: 11.1500, lat: 2.9000  },
 };
 
-// Helper — extract lng/lat from item, falling back to city coords
-function getItemCoords(item: ItemWithUser): { lng: number; lat: number } | null {
-  // location_geo comes back from PostGIS as GeoJSON when selected with ::json cast
-  // If it has coordinates, use them; otherwise fall back to city
-  if (item.location_geo && typeof item.location_geo === "object") {
-    const geo = item.location_geo as any;
-    if (geo.coordinates && geo.coordinates.length === 2) {
-      return { lng: geo.coordinates[0], lat: geo.coordinates[1] };
-    }
-  }
-  // Fall back to registered city center
+// Helper — get map coords for an item
+// location_geo from Supabase is raw PostGIS hex — not parseable client-side.
+// We always use city fallback; precise coords are stored in DB and used by
+// the matching algorithm server-side. Map shows city-level pins.
+function getItemCoords(item: ItemWithUser): { lng: number; lat: number } {
   if (item.city && CITY_COORDS[item.city]) {
     return CITY_COORDS[item.city];
   }
   // Default to Cameroon center
-  return { lng: 11.5021, lat: 3.8480 };
+  return { lng: 12.3547, lat: 5.9631 };
 }
 
 function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) => void }) {
@@ -169,7 +163,7 @@ export default function BrowseMarketplace() {
   const [typeFilter, setTypeFilter] = useState<"all" | "lost" | "found">("all");
   const [page, setPage] = useState(0);
   const [selectedMapItem, setSelectedMapItem] = useState<ItemWithUser | null>(null);
-  const [mapViewport, setMapViewport] = useState({ longitude: 11.5021, latitude: 3.8480, zoom: 6 });
+  const [mapViewport, setMapViewport] = useState({ longitude: 12.3547, latitude: 5.9631, zoom: 5.5 });
   const [userCity, setUserCity] = useState<string | null>(null);
   const [flagItemId, setFlagItemId] = useState<string | null>(null);
   const [flagReason, setFlagReason] = useState("");
@@ -202,7 +196,7 @@ export default function BrowseMarketplace() {
     try {
       let query = db
         .from("items")
-        .select("*, location_geo::json, user:users(id, full_name, avatar_url)")
+        .select("*, user:users(id, full_name, avatar_url)")
         .in("status", ["active", "matched"])
         .eq("admin_approved", true)
         .order("created_at", { ascending: false })
@@ -334,11 +328,22 @@ export default function BrowseMarketplace() {
         <AnimatePresence mode="wait">
           {view === "map" && (
             <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative w-full h-[calc(100vh-140px)]">
-              <Map mapboxAccessToken={MAPBOX_TOKEN} initialViewState={mapViewport} style={{ width: "100%", height: "100%" }} mapStyle="mapbox://styles/mapbox/light-v11" onMove={e => setMapViewport(e.viewState)}>
+              <Map
+                mapboxAccessToken={MAPBOX_TOKEN}
+                initialViewState={mapViewport}
+                style={{ width: "100%", height: "100%" }}
+                mapStyle="mapbox://styles/mapbox/light-v11"
+                onMove={e => setMapViewport(e.viewState)}
+                maxBounds={[
+                  [7.5, -0.5],   // SW corner of Cameroon
+                  [16.5, 13.0],  // NE corner of Cameroon
+                ]}
+                minZoom={5}
+                maxZoom={16}
+              >
                 <NavigationControl position="top-right" />
                 {items.map(item => {
                   const coords = getItemCoords(item);
-                  if (!coords) return null;
                   return (
                   <Marker key={item.id} longitude={coords.lng} latitude={coords.lat} anchor="bottom" onClick={e => { e.originalEvent.stopPropagation(); setSelectedMapItem(item); }}>
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.15, rotate: 12 }} className={`w-12 h-12 rounded-[1rem] shadow-2xl flex items-center justify-center border-2 cursor-pointer ${item.type === "found" ? "bg-white border-primary" : "bg-white border-[#FF4D4D]"}`}>
@@ -349,7 +354,6 @@ export default function BrowseMarketplace() {
                 })}
                 {selectedMapItem && (() => {
                   const coords = getItemCoords(selectedMapItem);
-                  if (!coords) return null;
                   return (
                   <Popup longitude={coords.lng} latitude={coords.lat} anchor="top" onClose={() => setSelectedMapItem(null)} closeButton={false}>
                     <div className="p-4 bg-white cursor-pointer w-52" onClick={() => window.location.href = `/browse/${selectedMapItem.id}`}>

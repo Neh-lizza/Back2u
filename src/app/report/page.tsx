@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+
 // ── ITEM CATEGORIES ──────────────────────────────────────
 const CATEGORIES = [
   { id: "electronics",  label: "Electronics",  icon: Smartphone },
@@ -24,17 +26,16 @@ const CATEGORIES = [
   { id: "other",        label: "Other",        icon: HelpCircle },
 ];
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
 export default function EnhancedReportPage() {
   const router = useRouter();
   const supabase = createClient();
-const db = supabase as any;
-const fileInputRef = useRef<HTMLInputElement>(null);
+  const db = supabase as any;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── GEOCODING STATE ──
   const [geocodedCoords, setGeocodedCoords] = useState<{ lng: number; lat: number } | null>(null);
   const [geocoding, setGeocoding] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [step, setStep] = useState(1);
@@ -47,43 +48,40 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
-    type:        "lost",
-    title:       "",
-    description: "",
-    sensitivity: "normal",   // renamed from category to avoid confusion
-    itemCategory:"",          // new — electronics, documents etc.
-    location:    "",
-    anonymous:   false,
-    dateOccurred:"",
+    type:         "lost",
+    title:        "",
+    description:  "",
+    sensitivity:  "normal",
+    itemCategory: "",
+    location:     "",
+    anonymous:    false,
+    dateOccurred: "",
   });
 
-  // ── GEOCODE location text with debounce ──
+  // ── AUTOCOMPLETE SUGGESTIONS — debounced ──
   useEffect(() => {
     if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
     const query = formData.location.trim();
-    if (query.length < 4) { setGeocodedCoords(null); return; }
-
+    if (query.length < 3 || geocodedCoords) {
+      setSuggestions([]);
+      return;
+    }
     geocodeTimer.current = setTimeout(async () => {
       setGeocoding(true);
       try {
-        // Bias results to Cameroon bounding box
-        const bbox = "8.4,-0.2,16.2,12.4"; // Cameroon bbox
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query + ", Cameroon")}.json?access_token=${MAPBOX_TOKEN}&bbox=${bbox}&limit=1&language=fr,en`;
+        const bbox = "8.4,-0.2,16.2,12.4";
+        const types = "country,region,place,locality,neighborhood,address,poi";
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&bbox=${bbox}&limit=5&language=en,fr&types=${types}&country=CM`;
         const res = await fetch(url);
         const data = await res.json();
-        if (data.features && data.features.length > 0) {
-          const [lng, lat] = data.features[0].center;
-          setGeocodedCoords({ lng, lat });
-        } else {
-          setGeocodedCoords(null);
-        }
+        setSuggestions(data.features || []);
       } catch {
-        setGeocodedCoords(null);
+        setSuggestions([]);
       } finally {
         setGeocoding(false);
       }
-    }, 800); // 800ms debounce
-  }, [formData.location]);
+    }, 400);
+  }, [formData.location, geocodedCoords]);
 
   // ── PHOTO HANDLER ──
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,14 +117,9 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     setSubmitError(null);
 
     try {
-      // 1. Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth");
-        return;
-      }
+      if (!user) { router.push("/auth"); return; }
 
-      // 2. Rate limit check — max 3 active reports
       const { count } = await db
         .from("items")
         .select("*", { count: "exact", head: true })
@@ -139,14 +132,12 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         return;
       }
 
-      // 3. Get user's city + region for feed filtering
       const { data: profile } = await db
         .from("users")
         .select("city, region")
         .eq("id", user.id)
         .single();
 
-      // 4. Upload photos to Supabase Storage
       const photoUrls: string[] = [];
       for (const photo of photos) {
         const ext = photo.name.split(".").pop();
@@ -164,7 +155,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         photoUrls.push(publicUrl);
       }
 
-      // 5. Insert item into DB
       const { error: insertError } = await db
         .from("items")
         .insert({
@@ -175,7 +165,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
           category:      formData.itemCategory || null,
           photos:        photoUrls,
           location_name: formData.location || null,
-          // Save real coordinates if geocoding succeeded
           location_geo:  geocodedCoords
             ? `POINT(${geocodedCoords.lng} ${geocodedCoords.lat})`
             : null,
@@ -184,16 +173,11 @@ const fileInputRef = useRef<HTMLInputElement>(null);
           sensitivity:   formData.sensitivity as "normal" | "sensitive" | "very_sensitive",
           is_anonymous:  formData.anonymous,
           date_occurred: formData.dateOccurred || null,
-          // admin_approved defaults to true except very_sensitive
-          // expires_at defaults to now() + 6 months
-          // matching algorithm triggers automatically via DB trigger
         });
 
       if (insertError) throw new Error(insertError.message);
 
-      // 6. If very_sensitive → notify admins (insert admin notification)
       if (formData.sensitivity === "very_sensitive") {
-        // Get all admin user IDs
         const { data: admins } = await db
           .from("users")
           .select("id")
@@ -201,7 +185,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
 
         if (admins && admins.length > 0) {
           await db.from("notifications").insert(
-           admins.map((admin: any) => ({
+            admins.map((admin: any) => ({
               user_id: admin.id,
               type:    "admin_approved" as const,
               title:   "High Risk item pending review",
@@ -212,7 +196,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         }
       }
 
-      // 7. Success
       setIsSubmitted(true);
       triggerConfetti();
 
@@ -223,7 +206,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     }
   };
 
-  // ── STEP VALIDATION ──
   const canProceedToStep3 = formData.title.trim().length > 0;
 
   if (isSubmitted) return <SuccessState sensitivity={formData.sensitivity} />;
@@ -236,7 +218,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         .font-clash { font-family: 'Clash Grotesk', sans-serif; }
       `}</style>
 
-      {/* Progress & Nav — unchanged */}
       <nav className="max-w-4xl mx-auto flex justify-between items-center mb-16">
         <Link href="/" className="text-white/20 hover:text-primary transition-all font-black uppercase tracking-[0.3em] text-[10px] flex items-center gap-2">
           <ArrowLeft size={14} /> Back
@@ -254,15 +235,9 @@ const fileInputRef = useRef<HTMLInputElement>(null);
       <div className="max-w-3xl mx-auto">
         <AnimatePresence mode="wait">
 
-          {/* ════ STEP 1: CONTEXT — unchanged layout ════ */}
+          {/* ════ STEP 1: CONTEXT ════ */}
           {step === 1 && (
-            <motion.div
-              key="s1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-10"
-            >
+            <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-10">
               <div className="text-center md:text-left">
                 <h1 className="text-6xl font-black font-clash uppercase leading-none tracking-tighter mb-4">
                   Report <br /><span className="text-primary">Valuables.</span>
@@ -270,7 +245,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                 <p className="text-white/30 font-bold uppercase tracking-widest text-[10px]">Step 01 — Context</p>
               </div>
 
-              {/* Lost / Found toggle — unchanged */}
               <div className="grid md:grid-cols-2 gap-6">
                 {["lost", "found"].map(t => (
                   <button
@@ -284,58 +258,33 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                     <p className="font-clash font-black text-2xl uppercase italic">{t === "lost" ? "Lost Item" : "Found Item"}</p>
                     {t === "found" && (
                       <div className="mt-4 flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          id="anon"
-                          checked={formData.anonymous}
-                          onChange={e => setFormData({ ...formData, anonymous: e.target.checked })}
-                          className="accent-primary w-4 h-4"
-                        />
-                        <label htmlFor="anon" className="text-[10px] font-bold uppercase tracking-widest text-white/40 cursor-pointer">
-                          Report Anonymously
-                        </label>
+                        <input type="checkbox" id="anon" checked={formData.anonymous} onChange={e => setFormData({ ...formData, anonymous: e.target.checked })} className="accent-primary w-4 h-4" />
+                        <label htmlFor="anon" className="text-[10px] font-bold uppercase tracking-widest text-white/40 cursor-pointer">Report Anonymously</label>
                       </div>
                     )}
                   </button>
                 ))}
               </div>
 
-              {/* Privacy level — unchanged */}
               <div className="space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 text-center">Privacy Level</p>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { id: "normal",         icon: Package,    label: "Standard" },
+                    { id: "normal",         icon: Package,     label: "Standard" },
                     { id: "sensitive",      icon: ShieldAlert, label: "Sensitive" },
-                    { id: "very_sensitive", icon: EyeOff,     label: "High Risk" },
+                    { id: "very_sensitive", icon: EyeOff,      label: "High Risk" },
                   ].map(lvl => (
-                    <button
-                      key={lvl.id}
-                      onClick={() => setFormData({ ...formData, sensitivity: lvl.id })}
-                      className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${formData.sensitivity === lvl.id ? "border-secondary bg-secondary/5 text-secondary shadow-[0_0_15px_rgba(252,209,22,0.1)]" : "border-white/5 text-white/30"}`}
-                    >
+                    <button key={lvl.id} onClick={() => setFormData({ ...formData, sensitivity: lvl.id })} className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${formData.sensitivity === lvl.id ? "border-secondary bg-secondary/5 text-secondary shadow-[0_0_15px_rgba(252,209,22,0.1)]" : "border-white/5 text-white/30"}`}>
                       <lvl.icon size={20} />
                       <span className="text-[9px] font-black uppercase tracking-widest">{lvl.label}</span>
                     </button>
                   ))}
                 </div>
-                {/* Privacy hint */}
-                {formData.sensitivity === "sensitive" && (
-                  <p className="text-[9px] text-secondary/60 font-bold uppercase tracking-widest text-center">
-                    Image will be blurred — description visible to all
-                  </p>
-                )}
-                {formData.sensitivity === "very_sensitive" && (
-                  <p className="text-[9px] text-red-400/60 font-bold uppercase tracking-widest text-center">
-                    Post will be reviewed by admin before going live
-                  </p>
-                )}
+                {formData.sensitivity === "sensitive" && <p className="text-[9px] text-secondary/60 font-bold uppercase tracking-widest text-center">Image will be blurred — description visible to all</p>}
+                {formData.sensitivity === "very_sensitive" && <p className="text-[9px] text-red-400/60 font-bold uppercase tracking-widest text-center">Post will be reviewed by admin before going live</p>}
               </div>
 
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-primary text-black py-6 rounded-3xl font-black tracking-[0.4em] text-xs hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,154,73,0.1)]"
-              >
+              <button onClick={() => setStep(2)} className="w-full bg-primary text-black py-6 rounded-3xl font-black tracking-[0.4em] text-xs hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,154,73,0.1)]">
                 CONTINUE <ArrowRight size={18} />
               </button>
             </motion.div>
@@ -343,19 +292,13 @@ const fileInputRef = useRef<HTMLInputElement>(null);
 
           {/* ════ STEP 2: DETAILS ════ */}
           {step === 2 && (
-            <motion.div
-              key="s2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
+            <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <h2 className="text-5xl font-black font-clash uppercase tracking-tighter mb-8 leading-none">
                 The <span className="text-primary">Details.</span>
               </h2>
 
               <div className="space-y-4">
-                {/* Title — unchanged */}
+                {/* Title */}
                 <input
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -363,7 +306,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 font-clash font-black text-xl uppercase tracking-tighter focus:border-primary focus:outline-none transition-all"
                 />
 
-                {/* Description — unchanged */}
+                {/* Description */}
                 <textarea
                   rows={4}
                   value={formData.description}
@@ -372,17 +315,12 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 font-bold text-xs tracking-widest uppercase focus:border-primary focus:outline-none transition-all"
                 />
 
-                {/* NEW: Item Category */}
+                {/* Item Category */}
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Item Category</p>
                   <div className="grid grid-cols-4 gap-2">
                     {CATEGORIES.map(cat => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, itemCategory: cat.id })}
-                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${formData.itemCategory === cat.id ? "border-primary bg-primary/5 text-primary" : "border-white/5 text-white/30 hover:border-white/10"}`}
-                      >
+                      <button key={cat.id} type="button" onClick={() => setFormData({ ...formData, itemCategory: cat.id })} className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${formData.itemCategory === cat.id ? "border-primary bg-primary/5 text-primary" : "border-white/5 text-white/30 hover:border-white/10"}`}>
                         <cat.icon size={18} />
                         <span className="text-[8px] font-black uppercase tracking-widest">{cat.label}</span>
                       </button>
@@ -390,31 +328,15 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                   </div>
                 </div>
 
-                {/* NEW: Date occurred */}
+                {/* Date */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center gap-4 focus-within:border-primary transition-all">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/30 shrink-0">Date</span>
-                  <input
-                    type="date"
-                    value={formData.dateOccurred}
-                    onChange={e => setFormData({ ...formData, dateOccurred: e.target.value })}
-                    max={new Date().toISOString().split("T")[0]}
-                    className="bg-transparent w-full focus:outline-none text-xs font-bold uppercase tracking-widest text-white/60 cursor-pointer"
-                  />
+                  <input type="date" value={formData.dateOccurred} onChange={e => setFormData({ ...formData, dateOccurred: e.target.value })} max={new Date().toISOString().split("T")[0]} className="bg-transparent w-full focus:outline-none text-xs font-bold uppercase tracking-widest text-white/60 cursor-pointer" />
                 </div>
 
-                {/* Photos — real file input with previews */}
-                <div
-                  className="border-2 border-dashed border-white/10 rounded-3xl p-8 text-center hover:border-primary/50 transition-all cursor-pointer relative group"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoChange}
-                  />
+                {/* Photos */}
+                <div className="border-2 border-dashed border-white/10 rounded-3xl p-8 text-center hover:border-primary/50 transition-all cursor-pointer relative group" onClick={() => fileInputRef.current?.click()}>
+                  <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoChange} />
                   {photoPreviews.length === 0 ? (
                     <>
                       <Upload className="mx-auto mb-4 text-white/20 group-hover:text-primary transition-colors" size={32} />
@@ -426,19 +348,11 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                       {photoPreviews.map((src, i) => (
                         <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden border border-white/10">
                           <img src={src} alt="" className="w-full h-full object-cover" />
-                          <button
-                            onClick={() => removePhoto(i)}
-                            className="absolute top-1 right-1 w-5 h-5 bg-black/80 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
-                          >
-                            <X size={10} />
-                          </button>
+                          <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 bg-black/80 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"><X size={10} /></button>
                         </div>
                       ))}
                       {photoPreviews.length < 5 && (
-                        <div
-                          className="w-20 h-20 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center text-white/20 hover:border-primary hover:text-primary transition-all cursor-pointer"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
+                        <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center text-white/20 hover:border-primary hover:text-primary transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                           <Upload size={20} />
                         </div>
                       )}
@@ -446,53 +360,91 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                   )}
                 </div>
 
-                {/* Location with geocoding indicator */}
-                <div className={`bg-white/5 border rounded-2xl p-6 flex items-center gap-4 focus-within:border-primary transition-all ${geocodedCoords ? "border-primary/50" : "border-white/10"}`}>
-                  <MapPin className={`shrink-0 transition-colors ${geocodedCoords ? "text-primary" : "text-primary/50"}`} size={20} />
-                  <input
-                    value={formData.location}
-                    onChange={e => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="LAST SEEN AT (STREET, QUARTER, TOWN...)"
-                    className="bg-transparent w-full focus:outline-none text-xs font-bold uppercase tracking-widest"
-                  />
-                  {geocoding && <Loader2 size={14} className="animate-spin text-white/30 shrink-0" />}
-                  {!geocoding && geocodedCoords && <CheckCircle2 size={14} className="text-primary shrink-0" />}
+                {/* ── LOCATION — Autocomplete + Map Preview ── */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Last Seen Location</p>
+
+                  <div className="relative">
+                    <div className={`bg-white/5 border rounded-2xl p-5 flex items-center gap-4 transition-all ${geocodedCoords ? "border-primary/60" : "border-white/10 focus-within:border-white/30"}`}>
+                      <MapPin className={`shrink-0 transition-colors ${geocodedCoords ? "text-primary" : "text-white/30"}`} size={18} />
+                      <input
+                        value={formData.location}
+                        onChange={e => {
+                          setFormData({ ...formData, location: e.target.value });
+                          setGeocodedCoords(null);
+                          setSuggestions([]);
+                        }}
+                        placeholder="SEARCH STREET, QUARTER, TOWN..."
+                        className="bg-transparent w-full focus:outline-none text-xs font-bold uppercase tracking-widest placeholder:text-white/20"
+                      />
+                      {geocoding && <Loader2 size={14} className="animate-spin text-white/30 shrink-0" />}
+                      {!geocoding && geocodedCoords && <CheckCircle2 size={14} className="text-primary shrink-0" />}
+                      {geocodedCoords && (
+                        <button type="button" onClick={() => { setGeocodedCoords(null); setFormData({ ...formData, location: "" }); setSuggestions([]); }} className="text-white/20 hover:text-white/60 transition-colors shrink-0">
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Suggestions dropdown */}
+                    {suggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-[#111] border border-white/10 rounded-2xl overflow-hidden z-50 shadow-2xl">
+                        {suggestions.map((s: any, i: number) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, location: s.place_name });
+                              setGeocodedCoords({ lng: s.center[0], lat: s.center[1] });
+                              setSuggestions([]);
+                            }}
+                            className="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                          >
+                            <MapPin size={14} className="text-primary shrink-0" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">{s.text}</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-white/30 mt-0.5 truncate max-w-xs">{s.place_name}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Static map preview after pin confirmed */}
+                  {geocodedCoords && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "180px" }} className="rounded-2xl overflow-hidden border border-primary/30 relative">
+                      <img
+                        src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+009A49(${geocodedCoords.lng},${geocodedCoords.lat})/${geocodedCoords.lng},${geocodedCoords.lat},14,0/600x180@2x?access_token=${MAPBOX_TOKEN}`}
+                        alt="Location preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-md rounded-xl px-3 py-1.5">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary">✓ Pin Confirmed</p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {!geocodedCoords && (
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 pl-1">
+                      Tip: include the city for better results — e.g. "Malingo Buea" or "Akwa Douala"
+                    </p>
+                  )}
                 </div>
-                {geocodedCoords && (
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-primary/60 -mt-2 pl-2">
-                    ✓ Location pinned on map
-                  </p>
-                )}
-                {!geocoding && !geocodedCoords && formData.location.trim().length >= 4 && (
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 -mt-2 pl-2">
-                    Location not found — it will still be saved as text
-                  </p>
-                )}
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setStep(1)} className="flex-1 py-6 rounded-3xl border-2 border-white/5 font-black text-xs tracking-widest hover:bg-white/5 transition-all">
-                  BACK
-                </button>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={!canProceedToStep3}
-                  className="flex-[2] py-6 rounded-3xl bg-primary text-black font-black text-xs tracking-widest flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,154,73,0.1)] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
+                <button onClick={() => setStep(1)} className="flex-1 py-6 rounded-3xl border-2 border-white/5 font-black text-xs tracking-widest hover:bg-white/5 transition-all">BACK</button>
+                <button onClick={() => setStep(3)} disabled={!canProceedToStep3} className="flex-[2] py-6 rounded-3xl bg-primary text-black font-black text-xs tracking-widest flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,154,73,0.1)] disabled:opacity-40 disabled:cursor-not-allowed">
                   FINAL STEP <ArrowRight size={18} />
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* ════ STEP 3: REVIEW — unchanged layout, real submit ════ */}
+          {/* ════ STEP 3: REVIEW ════ */}
           {step === 3 && (
-            <motion.div
-              key="s3"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center space-y-12"
-            >
+            <motion.div key="s3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-12">
               <div>
                 <ShieldAlert size={60} className="mx-auto text-primary mb-6 animate-pulse" />
                 <h2 className="text-5xl font-black font-clash uppercase tracking-tighter mb-4">
@@ -501,7 +453,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                 <p className="text-white/30 text-sm font-medium">By submitting, you agree that all information is truthful.</p>
               </div>
 
-              {/* Review card — added category + location rows */}
               <div className="bg-white/5 rounded-3xl p-8 border border-white/10 text-left space-y-4">
                 <div className="flex justify-between border-b border-white/5 pb-4">
                   <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">Entry Type</span>
@@ -520,7 +471,10 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                 {formData.location && (
                   <div className="flex justify-between border-b border-white/5 pb-4">
                     <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">Location</span>
-                    <span className="text-white font-black uppercase tracking-widest text-[10px] max-w-[60%] text-right">{formData.location}</span>
+                    <div className="text-right max-w-[60%]">
+                      <span className="text-white font-black uppercase tracking-widest text-[10px]">{formData.location}</span>
+                      {geocodedCoords && <p className="text-primary text-[8px] font-bold uppercase tracking-widest mt-0.5">✓ GPS pinned</p>}
+                    </div>
                   </div>
                 )}
                 <div className="flex justify-between border-b border-white/5 pb-4">
@@ -533,7 +487,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
                 </div>
               </div>
 
-              {/* Error */}
               {submitError && (
                 <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-left">
                   <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
@@ -542,26 +495,9 @@ const fileInputRef = useRef<HTMLInputElement>(null);
               )}
 
               <div className="flex gap-4">
-                <button
-                  onClick={() => setStep(2)}
-                  disabled={submitting}
-                  className="flex-1 py-6 rounded-3xl border-2 border-white/5 font-black text-xs tracking-widest hover:bg-white/5 transition-all disabled:opacity-40"
-                >
-                  BACK
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="flex-[2] bg-primary text-black py-6 rounded-[2.5rem] font-black tracking-[0.3em] text-xs shadow-[0_20px_50px_rgba(0,154,73,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      SUBMITTING...
-                    </>
-                  ) : (
-                    "SUBMIT REPORT NOW"
-                  )}
+                <button onClick={() => setStep(2)} disabled={submitting} className="flex-1 py-6 rounded-3xl border-2 border-white/5 font-black text-xs tracking-widest hover:bg-white/5 transition-all disabled:opacity-40">BACK</button>
+                <button onClick={handleSubmit} disabled={submitting} className="flex-[2] bg-primary text-black py-6 rounded-[2.5rem] font-black tracking-[0.3em] text-xs shadow-[0_20px_50px_rgba(0,154,73,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
+                  {submitting ? <><Loader2 size={18} className="animate-spin" /> SUBMITTING...</> : "SUBMIT REPORT NOW"}
                 </button>
               </div>
             </motion.div>
@@ -572,42 +508,24 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   );
 }
 
-// ── SUCCESS STATE — unchanged design ──
+// ── SUCCESS STATE ──
 function SuccessState({ sensitivity }: { sensitivity: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center">
       <div className="relative mb-12">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-          transition={{ repeat: Infinity, duration: 4 }}
-          className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center"
-        >
+        <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }} className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center">
           <Heart size={60} className="text-primary fill-primary" />
         </motion.div>
       </div>
-
       <h1 className="text-6xl font-black font-clash uppercase tracking-tighter text-white mb-4">
         Report <br /> <span className="text-primary">Received!</span>
       </h1>
-
       {sensitivity === "very_sensitive" ? (
-        <p className="text-secondary/70 max-w-sm font-bold uppercase tracking-widest text-[10px] leading-relaxed mb-4">
-          Your high-risk report is pending admin review. It will go live once approved.
-        </p>
+        <p className="text-secondary/70 max-w-sm font-bold uppercase tracking-widest text-[10px] leading-relaxed mb-4">Your high-risk report is pending admin review. It will go live once approved.</p>
       ) : (
-        <p className="text-white/40 max-w-sm font-bold uppercase tracking-widest text-[10px] leading-relaxed mb-4">
-          Integrity is the bedrock of our community. Our guardians are now scanning the network for matches.
-        </p>
+        <p className="text-white/40 max-w-sm font-bold uppercase tracking-widest text-[10px] leading-relaxed mb-4">Integrity is the bedrock of our community. Our guardians are now scanning the network for matches.</p>
       )}
-
-      <Link
-        href="/dashboard"
-        className="bg-white text-black px-12 py-5 rounded-2xl font-black tracking-widest text-xs uppercase hover:bg-primary transition-all"
-      >
+      <Link href="/dashboard" className="bg-white text-black px-12 py-5 rounded-2xl font-black tracking-widest text-xs uppercase hover:bg-primary transition-all">
         Go to Dashboard
       </Link>
     </motion.div>
