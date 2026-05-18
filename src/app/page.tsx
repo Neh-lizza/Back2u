@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Counter from "@/components/Counter";
+import StickyScrollFeatures from "@/components/StickyScrollFeatures";
 
 // ── DATA ─────────────────────────────────────────────────
 const REVIEWS = [
@@ -374,6 +375,9 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ── STICKY SCROLL FEATURES ── */}
+      <StickyScrollFeatures />
 
       {/* ── COUNTERS ── */}
       <section className="bg-[#0a0a0a] py-20 rounded-[4rem] mx-4">
