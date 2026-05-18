@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Counter from "@/components/Counter";
-import StickyScrollFeatures from "@/components/StickyScrollFeatures";
+import ScrollRevealFeature from "@/components/ScrollRevealFeature";
 
 // ── DATA ─────────────────────────────────────────────────
 const REVIEWS = [
@@ -376,16 +376,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STICKY SCROLL FEATURES ── */}
-      <StickyScrollFeatures />
+      {/* ── SCROLL REVEAL ── */}
+      <ScrollRevealFeature />
 
       {/* ── COUNTERS ── */}
-      <section className="bg-[#0a0a0a] py-20 rounded-[4rem] mx-4">
-        <div className="max-w-7xl mx-auto px-8 grid md:grid-cols-3 gap-12">
+      <section className="py-12 px-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-3 gap-6">
           {[
-            { val: 2450,  label: "Items Recovered", icon: PackageCheck },
-            { val: 12000, label: "Community Members", icon: Users },
-            { val: 10,    label: "Regions Covered", icon: MapPin },
+            { val: 2450,  label: "Items Recovered",   icon: PackageCheck, blob: "#009A49" },
+            { val: 12000, label: "Community Members",  icon: Users,        blob: "#FCD116" },
+            { val: 10,    label: "Regions Covered",    icon: MapPin,       blob: "#009A49" },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -393,13 +393,31 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="flex flex-col items-center"
+              className="group relative flex flex-col justify-center items-center bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-lg py-10 px-6 hover:-translate-y-2 duration-500"
             >
-              <item.icon size={24} className="text-primary mb-4 opacity-60" />
-              <h3 className="text-6xl font-black text-white tracking-tighter italic">
-                <Counter value={item.val} />+
-              </h3>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-primary mt-2">{item.label}</p>
+              {/* Blob */}
+              <svg
+                viewBox="0 0 200 200"
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute w-48 h-48 blur-md z-10 duration-500 group-hover:blur-none group-hover:scale-110"
+                style={{ fill: item.blob + "40" }}
+              >
+                <path
+                  transform="translate(100 100)"
+                  d="M39.5,-49.6C54.8,-43.2,73.2,-36.5,78.2,-24.6C83.2,-12.7,74.8,4.4,69,22.5C63.3,40.6,60.2,59.6,49.1,64.8C38.1,70,19,61.5,0.6,60.7C-17.9,59.9,-35.9,67,-47.2,61.9C-58.6,56.7,-63.4,39.5,-70,22.1C-76.6,4.7,-84.9,-12.8,-81.9,-28.1C-79,-43.3,-64.6,-56.3,-49.1,-62.5C-33.6,-68.8,-16.8,-68.3,-2.3,-65.1C12.1,-61.9,24.2,-55.9,39.5,-49.6Z"
+                />
+              </svg>
+
+              {/* Content */}
+              <div className="relative z-20 flex flex-col items-center gap-2">
+                <item.icon size={22} className="opacity-50" style={{ color: item.blob }} />
+                <h3 className="text-5xl font-black text-white tracking-tighter italic">
+                  <Counter value={item.val} />+
+                </h3>
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] mt-1" style={{ color: item.blob }}>
+                  {item.label}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
