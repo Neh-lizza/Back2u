@@ -221,7 +221,7 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* ── HERO ── */}
-      <section className="max-w-7xl mx-auto px-8 pt-12 pb-24">
+      <section className="max-w-7xl mx-auto px-8 pt-12 pb-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <motion.div
@@ -236,10 +236,10 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-7xl md:text-8xl lg:text-[96px] font-black leading-[0.85] tracking-[-0.04em] text-[#061209] uppercase"
+              className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.0] tracking-[-0.03em] text-[#061209]"
             >
-              Lost <span className="text-primary">Today</span>.<br />
-              Found <span className="text-secondary">Soon</span>.
+              Every lost item has a story.{" "}
+              <span className="text-primary">Back2U writes the ending.</span>
             </motion.h1>
 
             <motion.p
@@ -248,7 +248,7 @@ export default function LandingPage() {
               transition={{ delay: 0.2 }}
               className="text-lg text-slate-400 font-medium max-w-md leading-relaxed"
             >
-              Cameroon's first smart lost & found network. Post a report, get matched automatically, unlock contact via MTN or Orange Money.
+              Because losing something shouldn't mean losing it forever.
             </motion.p>
 
             <motion.div
@@ -376,16 +376,71 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── WHAT IS BACK2U ── */}
+      <section className="px-8 pb-6 max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative rounded-[1.5rem] overflow-hidden px-10 py-12 md:px-16"
+          style={{
+            background: "#061209",
+            border: "1px solid rgba(0,154,73,0.2)",
+          }}
+        >
+          {/* Subtle green glow */}
+          <div className="absolute top-0 left-0 w-64 h-64 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(0,154,73,0.12) 0%, transparent 70%)" }} />
+
+          <div className="relative z-10 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/20 text-[9px] font-black uppercase tracking-[0.3em] text-primary mb-6">
+              What is Back2U?
+            </div>
+
+            <p className="text-white text-xl md:text-2xl font-medium leading-relaxed mb-6">
+              Back2U is Cameroon's first lost & found platform. When you lose something —
+              a phone, wallet, ID card, keys — you post a report here.
+            </p>
+
+            <p className="text-white/50 text-base font-medium leading-relaxed mb-4">
+              If someone found it and posted it too, our system automatically matches you
+              based on what the item is, where it was lost, and when. It then opens a
+              private chat so you can arrange the return safely — no strangers exchanging
+              phone numbers, no social media guesswork.
+            </p>
+
+            <p className="text-white/50 text-base font-medium leading-relaxed">
+              Finders earn Guardian points and a share of the unlock fee as a reward for
+              their honesty. Everyone benefits from a more trustworthy community.
+            </p>
+
+            {/* Divider + quick facts */}
+            <div className="mt-8 pt-8 border-t border-white/5 grid grid-cols-3 gap-6">
+              {[
+                { label: "For the person who lost something", desc: "Post a report, get matched, unlock contact, recover your item." },
+                { label: "For the person who found something", desc: "Post what you found, wait for a match, earn points and a reward." },
+                { label: "For everyone", desc: "A safer, more honest Cameroon where lost things come home." },
+              ].map((fact, i) => (
+                <div key={i}>
+                  <p className="text-primary text-[9px] font-black uppercase tracking-widest mb-2">{fact.label}</p>
+                  <p className="text-white/30 text-xs font-medium leading-relaxed">{fact.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* ── SCROLL REVEAL ── */}
       <ScrollRevealFeature />
 
       {/* ── COUNTERS ── */}
-      <section className="py-12 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-3 gap-6">
+      <section className="py-8 px-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-3 gap-4 md:gap-6">
           {[
-            { val: 2450,  label: "Items Recovered",   icon: PackageCheck, blob: "#009A49" },
-            { val: 12000, label: "Community Members",  icon: Users,        blob: "#FCD116" },
-            { val: 10,    label: "Regions Covered",    icon: MapPin,       blob: "#009A49" },
+            { val: 2450,  label: "Items Recovered",  icon: PackageCheck, blob: "#009A49", light: true  },
+            { val: 12000, label: "Community Members", icon: Users,        blob: "#FCD116", light: false },
+            { val: 10,    label: "Regions Covered",   icon: MapPin,       blob: "#009A49", light: true  },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -393,14 +448,22 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="group relative flex flex-col justify-center items-center bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-lg py-10 px-6 hover:-translate-y-2 duration-500"
+              className="group relative flex flex-col justify-center items-center overflow-hidden shadow-lg hover:-translate-y-2 duration-500"
+              style={{
+                borderRadius: "1rem",
+                aspectRatio: "1 / 1",
+                maxWidth: "220px",
+                width: "100%",
+                margin: "0 auto",
+                background: item.light ? "#f0faf4" : "#0a0a0a",
+              }}
             >
               {/* Blob */}
               <svg
                 viewBox="0 0 200 200"
                 xmlns="http://www.w3.org/2000/svg"
-                className="absolute w-48 h-48 blur-md z-10 duration-500 group-hover:blur-none group-hover:scale-110"
-                style={{ fill: item.blob + "40" }}
+                className="absolute w-40 h-40 md:w-48 md:h-48 blur-md z-10 duration-500 group-hover:blur-none group-hover:scale-110"
+                style={{ fill: item.blob + (item.light ? "30" : "40") }}
               >
                 <path
                   transform="translate(100 100)"
@@ -409,12 +472,28 @@ export default function LandingPage() {
               </svg>
 
               {/* Content */}
-              <div className="relative z-20 flex flex-col items-center gap-2">
-                <item.icon size={22} className="opacity-50" style={{ color: item.blob }} />
-                <h3 className="text-5xl font-black text-white tracking-tighter italic">
+              <div className="relative z-20 flex flex-col items-center gap-1 px-2 text-center">
+                <item.icon
+                  size={18}
+                  className="opacity-60 mb-1"
+                  style={{ color: item.light ? "#009A49" : item.blob }}
+                />
+                <h3
+                  className="font-black tracking-tighter italic leading-none"
+                  style={{
+                    fontSize: "clamp(1.5rem, 5vw, 3rem)",
+                    color: item.light ? "#061209" : "white",
+                  }}
+                >
                   <Counter value={item.val} />+
                 </h3>
-                <p className="text-[11px] font-bold uppercase tracking-[0.3em] mt-1" style={{ color: item.blob }}>
+                <p
+                  className="font-bold uppercase tracking-wider leading-tight"
+                  style={{
+                    fontSize: "clamp(0.45rem, 1.2vw, 0.7rem)",
+                    color: item.light ? "#009A49" : item.blob,
+                  }}
+                >
                   {item.label}
                 </p>
               </div>
@@ -424,7 +503,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-32 px-4 max-w-7xl mx-auto" id="how-it-works">
+      <section className="py-16 px-4 max-w-7xl mx-auto" id="how-it-works">
         <div className="text-center mb-20">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -443,47 +522,68 @@ export default function LandingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {HOW_IT_WORKS.map((item, i) => (
+          {HOW_IT_WORKS.map((item, i) => {
+            const isLight = i === 0 || i === 3;
+            return (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-[#0a0a0a] rounded-[2.5rem] p-8 border border-white/5 relative overflow-hidden group hover:border-white/10 transition-all"
+              className="relative overflow-hidden group transition-all"
+              style={{
+                borderRadius: "2rem",
+                background: isLight ? "#f0faf4" : "#0a0a0a",
+                border: isLight ? "1px solid rgba(0,154,73,0.15)" : "1px solid rgba(255,255,255,0.05)",
+                padding: "2rem",
+              }}
             >
               {/* Step number watermark */}
               <div
-                className="absolute top-4 right-6 text-[80px] font-black leading-none opacity-5 select-none"
-                style={{ color: item.color, fontFamily: "'Clash Grotesk', sans-serif" }}
+                className="absolute top-4 right-6 text-[80px] font-black leading-none select-none"
+                style={{
+                  color: item.color,
+                  fontFamily: "'Clash Grotesk', sans-serif",
+                  opacity: isLight ? 0.18 : 0.15,
+                }}
               >
                 {item.step}
               </div>
 
-              <div className="relative z-10">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-                  style={{ backgroundColor: `${item.color}15`, border: `1px solid ${item.color}30` }}
-                >
-                  <item.icon size={24} style={{ color: item.color }} />
-                </div>
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                <div>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                    style={{ backgroundColor: `${item.color}15`, border: `1px solid ${item.color}30` }}
+                  >
+                    <item.icon size={24} style={{ color: item.color }} />
+                  </div>
 
-                <div
-                  className="inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest mb-4"
-                  style={{ backgroundColor: `${item.color}15`, color: item.color }}
-                >
-                  {item.tag}
-                </div>
+                  <div
+                    className="inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest mb-4"
+                    style={{ backgroundColor: `${item.color}15`, color: item.color }}
+                  >
+                    {item.tag}
+                  </div>
 
-                <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-white/40 font-medium leading-relaxed text-sm">
-                  {item.description}
-                </p>
+                  <h3
+                    className="text-2xl font-black mb-3"
+                    style={{ color: isLight ? "#061209" : "white" }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    className="font-medium leading-relaxed text-sm"
+                    style={{ color: isLight ? "rgba(6,18,9,0.5)" : "rgba(255,255,255,0.4)" }}
+                  >
+                    {item.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         <motion.div
