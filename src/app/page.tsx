@@ -186,6 +186,38 @@ function OnboardingModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── FAQ ACCORDION ─────────────────────────────────────────
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="border border-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all"
+      onClick={() => setOpen(o => !o)}
+    >
+      <div className="flex items-center justify-between px-6 py-5">
+        <p className="font-bold text-slate-800 text-sm pr-4">{q}</p>
+        <div className={`w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
+          <span className="text-primary font-black text-lg leading-none">+</span>
+        </div>
+      </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <p className="px-6 pb-5 text-slate-400 text-sm font-medium leading-relaxed border-t border-slate-50 pt-4">
+              {a}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── MAIN PAGE ─────────────────────────────────────────────
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -211,8 +243,11 @@ export default function LandingPage() {
     <main className="min-h-screen bg-white selection:bg-primary selection:text-white overflow-x-hidden">
       <style jsx global>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Emilys+Candy&display=swap');
         body { font-family: 'Satoshi', sans-serif; }
         h1, h2, h3, .font-clash { font-family: 'Clash Grotesk', sans-serif; }
+        .font-caveat { font-family: 'Caveat', cursive; }
+        .font-emilys { font-family: 'Emilys Candy', cursive; }
       `}</style>
 
       {/* ── ONBOARDING MODAL ── */}
@@ -236,10 +271,14 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.0] tracking-[-0.03em] text-[#061209]"
+              className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-[-0.01em] text-[#061209]"
             >
-              Every lost item has a story.{" "}
-              <span className="text-primary">Back2U writes the ending.</span>
+              <span className="font-caveat" style={{ fontFamily: "'Caveat', cursive", fontWeight: 700 }}>
+                Every lost item has a story.{" "}
+              </span>
+              <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>
+                Back2U writes the ending.
+              </span>
             </motion.h1>
 
             <motion.p
@@ -654,30 +693,59 @@ export default function LandingPage() {
       </section>
 
       {/* ── WHY BACK2U ── */}
-      <section className="py-32 px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-4">
-            Built for <span className="text-primary">Cameroon.</span>
+      <section className="py-20 px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Why people choose <span className="text-primary">Back2U.</span>
           </h2>
           <p className="text-slate-400 font-medium max-w-md mx-auto">
-            Not a copy-paste of a Western platform. Every feature is designed for Cameroonian realities.
+            We built this because losing something in Cameroon used to mean it was gone forever. It doesn't have to be.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DIFFERENTIATORS.map((item, i) => (
+          {[
+            {
+              emoji: "📍",
+              title: "It's built for where you live",
+              desc: "Back2U knows Douala, Yaoundé, Buea, Bamenda and 6 more cities. You're not using a platform designed for London or New York.",
+            },
+            {
+              emoji: "📱",
+              title: "Pay the way you already pay",
+              desc: "No bank card needed. If you have MTN Mobile Money or Orange Money, you can use Back2U. That's it.",
+            },
+            {
+              emoji: "🔒",
+              title: "Your privacy is protected",
+              desc: "You never have to share your phone number with a stranger. Everything happens through a private chat until you're both ready.",
+            },
+            {
+              emoji: "⚡",
+              title: "You'll know within hours",
+              desc: "The moment someone posts something matching your report, you get a notification. No checking back every day — we do the watching for you.",
+            },
+            {
+              emoji: "🤝",
+              title: "Honesty is rewarded",
+              desc: "Found something? Return it through Back2U and earn points, a reputation badge, and a share of the unlock fee. Good deeds shouldn't go unnoticed.",
+            },
+            {
+              emoji: "🆓",
+              title: "Your first recovery is free",
+              desc: "We don't charge you to find out if your item has been found. Post for free, get matched for free, and your first contact is completely free.",
+            },
+          ].map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="p-8 rounded-[2.5rem] border-2 border-slate-100 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all group"
+              className="p-8 rounded-3xl border-2 border-slate-100 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all group"
             >
-              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-all">
-                <item.icon size={22} className="text-primary" />
-              </div>
-              <h3 className="text-lg font-black uppercase tracking-tight mb-2">{item.title}</h3>
+              <div className="text-3xl mb-4">{item.emoji}</div>
+              <h3 className="text-lg font-bold mb-2 text-slate-800">{item.title}</h3>
               <p className="text-slate-400 text-sm font-medium leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
@@ -687,7 +755,7 @@ export default function LandingPage() {
       {/* ── REVIEWS MARQUEE ── */}
       <section className="py-24 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-black tracking-tighter uppercase">
+          <h2 className="text-4xl font-black">
             Trusted by the <span className="text-primary">Community.</span>
           </h2>
         </div>
@@ -717,48 +785,47 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── VS COMPETITOR ── */}
-      <section className="py-32 px-8 max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-4">
-            Back2U vs <span className="text-slate-300">The Rest.</span>
+      {/* ── FAQ ── */}
+      <section className="py-20 px-8 max-w-3xl mx-auto">
+        <div className="text-center mb-14">
+          <h2 className="text-4xl font-black mb-3">
+            Common <span className="text-primary">questions.</span>
           </h2>
+          <p className="text-slate-400 font-medium">Everything you need to know before getting started.</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          {/* Headers */}
-          <div className="col-span-1" />
-          <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center">
-            <p className="font-black uppercase tracking-widest text-primary text-sm">Back2U</p>
-            <p className="text-[9px] text-primary/60 font-bold uppercase tracking-widest mt-0.5">Cameroon-built</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
-            <p className="font-black uppercase tracking-widest text-slate-400 text-sm">Others</p>
-            <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest mt-0.5">Generic global</p>
-          </div>
-
-          {/* Rows */}
+        <div className="space-y-4">
           {[
-            ["Cameroonian cities",         true,  false],
-            ["MTN & Orange Money",         true,  false],
-            ["XAF pricing",                true,  false],
-            ["Smart matching algorithm",   true,  false],
-            ["Guardian reputation system", true,  false],
-            ["Privacy sensitivity levels", true,  false],
-            ["Free first contact",         true,  false],
-            ["Finder reward (40%)",        true,  false],
-          ].map(([label, back2u, other], i) => (
-            <>
-              <div key={`l${i}`} className="flex items-center py-3 border-b border-slate-100">
-                <p className="text-sm font-bold text-slate-600">{label as string}</p>
-              </div>
-              <div key={`b${i}`} className="flex items-center justify-center py-3 border-b border-slate-100">
-                {back2u ? <CheckCircle2 size={18} className="text-primary" /> : <X size={18} className="text-slate-200" />}
-              </div>
-              <div key={`o${i}`} className="flex items-center justify-center py-3 border-b border-slate-100">
-                {other ? <CheckCircle2 size={18} className="text-primary" /> : <X size={18} className="text-slate-300" />}
-              </div>
-            </>
+            {
+              q: "Is it free to use?",
+              a: "Posting a report is completely free. Your first contact with a match is also free. After that, a small fee (300–5,000 XAF depending on item value) unlocks the private chat. 40% of that fee goes to the finder as a reward.",
+            },
+            {
+              q: "What if I lost something but nobody has posted it yet?",
+              a: "Your report stays active for 6 months. The moment someone posts a matching found item, you'll get a notification automatically — even if that's weeks later.",
+            },
+            {
+              q: "Do I have to share my phone number?",
+              a: "Never. All communication happens through Back2U's private chat. You only share personal contact details if you choose to, after both parties confirm the recovery.",
+            },
+            {
+              q: "I found something. What should I do?",
+              a: "Post a 'Found' report with a photo and location. If the owner is on Back2U, we'll match you. You'll earn 10 Guardian points just for posting, and 40% of the unlock fee when the owner contacts you.",
+            },
+            {
+              q: "How does the matching actually work?",
+              a: "When a new report is posted, our system scores it against all active reports using three factors: how similar the descriptions are (keywords), how close the locations are (GPS), and how close the dates are. A score of 60 or above triggers a match notification.",
+            },
+            {
+              q: "What if my item is sensitive — like a passport or bank card?",
+              a: "When posting, mark it as 'Sensitive' or 'High Risk'. Sensitive items have their photos blurred publicly. High Risk items are reviewed by our admin team before going live. Your information is protected.",
+            },
+            {
+              q: "How do I pay? I don't have a bank card.",
+              a: "No bank card needed at all. Back2U works with MTN Mobile Money and Orange Money — the way most Cameroonians already pay.",
+            },
+          ].map((faq, i) => (
+            <FAQItem key={i} q={faq.q} a={faq.a} />
           ))}
         </div>
       </section>
@@ -770,24 +837,24 @@ export default function LandingPage() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full -ml-24 -mb-24 blur-[60px] pointer-events-none" />
 
           <div className="relative z-10 space-y-6">
-            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-              Lost or Found <br /> Something?
+            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
+              Lost or found something?
             </h2>
             <p className="text-white/40 font-medium max-w-sm mx-auto leading-relaxed">
-              Post your first report for free. Our algorithm starts matching immediately.
+              Post for free today. You only pay if we find a match and you want to make contact.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 href="/report"
                 className="bg-primary text-white px-8 py-5 rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
               >
-                Report Now <ArrowRight size={16} />
+                Post for free — pay only if matched <ArrowRight size={16} />
               </Link>
               <Link
                 href="/browse"
                 className="bg-white/5 border border-white/10 text-white px-8 py-5 rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:bg-white/10 transition-all flex items-center gap-3"
               >
-                Browse Reports <Search size={16} />
+                Browse reports <Search size={16} />
               </Link>
             </div>
           </div>
