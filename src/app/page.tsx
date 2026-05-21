@@ -24,18 +24,31 @@ const REVIEWS = [
   { name: "Ibrahim D.",    location: "Maroua",  text: "Reported a found phone, owner confirmed same day. 50 Guardian points!",   stars: 5 },
 ];
 
+// ── CUSTOM ICONS ─────────────────────────────────────────
+const UploadIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill={color} viewBox="0 0 24 24">
+    <path fillRule="evenodd" d="M12 3a1 1 0 0 1 .78.375l4 5a1 1 0 1 1-1.56 1.25L13 6.85V14a1 1 0 1 1-2 0V6.85L8.78 9.626a1 1 0 1 1-1.56-1.25l4-5A1 1 0 0 1 12 3ZM9 14v-1H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4v1a3 3 0 1 1-6 0Zm8 2a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2H17Z" clipRule="evenodd"/>
+  </svg>
+);
+
+const BrainIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
+    <path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18.5A2.493 2.493 0 0 1 7.51 20H7.5a2.468 2.468 0 0 1-2.4-3.154 2.98 2.98 0 0 1-.85-5.274 2.468 2.468 0 0 1 .92-3.182 2.477 2.477 0 0 1 1.876-3.344 2.5 2.5 0 0 1 3.41-1.856A2.5 2.5 0 0 1 12 5.5m0 13v-13m0 13a2.493 2.493 0 0 0 4.49 1.5h.01a2.468 2.468 0 0 0 2.403-3.154 2.98 2.98 0 0 0 .847-5.274 2.468 2.468 0 0 0-.921-3.182 2.477 2.477 0 0 0-1.875-3.344A2.5 2.5 0 0 0 14.5 3 2.5 2.5 0 0 0 12 5.5m-8 5a2.5 2.5 0 0 1 3.48-2.3m-.28 8.551a3 3 0 0 1-2.953-5.185M20 10.5a2.5 2.5 0 0 0-3.481-2.3m.28 8.551a3 3 0 0 0 2.954-5.185"/>
+  </svg>
+);
+
 const HOW_IT_WORKS = [
   {
     step: "01",
-    icon: Plus,
+    icon: UploadIcon,
     color: "#009A49",
     title: "Post Your Report",
-    description: "Lost or found something? Fill in our 3-step form — title, category, estimated value, and pin the exact location on our Cameroon map. Takes under 2 minutes.",
+    description: "Lost or found something? Fill in our 3-step form title, category, estimated value, and pin the exact location on our Cameroon map. Takes under 2 minutes.",
     tag: "Free to post",
   },
   {
     step: "02",
-    icon: Zap,
+    icon: BrainIcon,
     color: "#FCD116",
     title: "AI Matches You",
     description: "Our algorithm instantly scans all active reports and scores them by keyword similarity, GPS proximity, and date. You get a real-time notification when a match is found.",
@@ -69,7 +82,7 @@ const FEES = [
 
 const DIFFERENTIATORS = [
   { icon: MapPin,      title: "Cameroon-First",    desc: "10 cities, all regions. Built for Cameroonian addresses, not foreign postcodes." },
-  { icon: Smartphone,  title: "MTN & Orange Money", desc: "Pay unlock fees and tips via MTN MoMo or Orange Money — no bank card needed." },
+  { icon: Smartphone,  title: "MTN & Orange Money", desc: "Pay unlock fees and tips via MTN MoMo or Orange Money no bank card needed." },
   { icon: Shield,      title: "Privacy Controls",   desc: "3 sensitivity levels. Very sensitive items are blurred and reviewed before going live." },
   { icon: Award,       title: "Guardian System",    desc: "Earn Bronze, Silver, Gold status. Build a verified reputation in your city." },
   { icon: Bell,        title: "Smart Matching",     desc: "Keyword + GPS + date algorithm. You're notified the moment a match scores ≥60 points." },
@@ -102,7 +115,7 @@ function OnboardingModal({ onClose }: { onClose: () => void }) {
       color: "text-secondary",
       bg: "bg-secondary/10",
       title: "How matching works",
-      body: "Every new post triggers our scoring algorithm — keywords, GPS distance, and date proximity. A match notification fires automatically when the score hits 60/100.",
+      body: "Every new post triggers our scoring algorithm using keywords, GPS distance and date proximity. A match notification fires automatically when the score hits 60/100.",
       cta: "Got it",
     },
   ];
@@ -273,9 +286,7 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-[-0.01em] text-[#061209]"
             >
-              <span className="font-caveat" style={{ fontFamily: "'Caveat', cursive", fontWeight: 700 }}>
-                Every lost item has a story.{" "}
-              </span>
+              Every lost item has a story.{" "}
               <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>
                 Back2U writes the ending.
               </span>
@@ -294,19 +305,19 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-4"
+              className="flex flex-row gap-3"
             >
               <Link
                 href="/report"
-                className="bg-primary text-white px-8 py-5 rounded-2xl font-bold text-sm flex items-center gap-3 hover:scale-105 transition-transform shadow-xl shadow-primary/20 uppercase tracking-wider"
+                className="bg-primary text-white px-5 py-3 md:px-8 md:py-5 rounded-2xl font-bold text-xs md:text-sm flex items-center gap-2 hover:scale-105 transition-transform shadow-xl shadow-primary/20 uppercase tracking-wider whitespace-nowrap"
               >
-                Report Item <Plus size={18} />
+                Report Item <Plus size={14} />
               </Link>
               <Link
                 href="/browse"
-                className="bg-white border-2 border-slate-200 px-8 py-5 rounded-2xl font-bold text-sm hover:border-primary transition-colors uppercase tracking-wider flex items-center gap-3"
+                className="bg-white border-2 border-slate-200 px-5 py-3 md:px-8 md:py-5 rounded-2xl font-bold text-xs md:text-sm hover:border-primary transition-colors uppercase tracking-wider flex items-center gap-2 whitespace-nowrap"
               >
-                Browse Reports <Search size={18} />
+                Browse <Search size={14} />
               </Link>
             </motion.div>
 
@@ -318,7 +329,7 @@ export default function LandingPage() {
               className="flex items-center gap-6 pt-4"
             >
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={14} className="text-primary" />
+                <UploadIcon size={14} color="#009A49" />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Free to post</span>
               </div>
               <div className="flex items-center gap-2">
@@ -362,7 +373,7 @@ export default function LandingPage() {
                       <Zap size={20} className="text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-primary mb-1">Match Found — 87 pts</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-primary mb-1">Match Found: 87 pts</p>
                       <p className="text-white font-black text-sm uppercase tracking-tight truncate">iPhone 15 Pro Max</p>
                       <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest mt-1">Found near Molyko, Buea • 2h ago</p>
                     </div>
@@ -416,60 +427,88 @@ export default function LandingPage() {
       </section>
 
       {/* ── WHAT IS BACK2U ── */}
-      <section className="px-8 pb-6 max-w-7xl mx-auto">
+      <section className="px-4 md:px-8 pb-6 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-[1.5rem] overflow-hidden px-10 py-12 md:px-16"
+          className="relative rounded-[1.5rem] overflow-hidden px-8 py-10 md:px-16 md:py-12"
           style={{
-            background: "#061209",
-            border: "1px solid rgba(0,154,73,0.2)",
+            background: "#f8f9fa",
+            border: "1px solid rgba(0,0,0,0.06)",
           }}
         >
-          {/* Subtle green glow */}
-          <div className="absolute top-0 left-0 w-64 h-64 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(0,154,73,0.12) 0%, transparent 70%)" }} />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
-          <div className="relative z-10 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/20 text-[9px] font-black uppercase tracking-[0.3em] text-primary mb-6">
-              What is Back2U?
+            {/* Illustration */}
+            <div className="shrink-0 flex items-center justify-center w-32 md:w-56">
+              <svg width="420" height="568" viewBox="0 0 420 568" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                <path d="M420 210C420 325.98 325.98 420 210 420C94.0202 420 0 325.98 0 210C0 94.0202 94.0202 0 210 0C325.98 0 420 94.0202 420 210Z" fill="url(#paint0_linear_411_1559)"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M399.91 299.749C366.257 370.833 293.87 420 209.999 420C136.23 420 71.345 381.963 33.8867 324.432C57.2858 313.976 89.8328 305.109 122.499 311C124.597 311.378 126.668 311.754 128.714 312.124C186.191 322.54 224.613 329.503 297.999 301.5C328.754 289.765 366.007 292.119 399.91 299.749Z" fill="url(#paint1_linear_411_1559)"/>
+                <path d="M353.721 239.124V238.046C353.749 233.042 354.223 229.061 355.145 226.103C356.095 223.145 357.435 220.767 359.167 218.97C360.898 217.146 363.007 215.473 365.493 213.953C367.196 212.902 368.718 211.755 370.059 210.511C371.427 209.239 372.503 207.829 373.285 206.281C374.067 204.705 374.458 202.95 374.458 201.015C374.458 198.831 373.941 196.937 372.908 195.334C371.874 193.73 370.478 192.486 368.718 191.602C366.987 190.717 365.046 190.275 362.895 190.275C360.912 190.275 359.027 190.703 357.24 191.56C355.48 192.389 354.014 193.661 352.841 195.375C351.696 197.061 351.054 199.204 350.914 201.803H336C336.14 196.55 337.424 192.154 339.854 188.616C342.312 185.077 345.552 182.423 349.573 180.654C353.623 178.885 358.092 178 362.979 178C368.313 178 373.005 178.926 377.055 180.778C381.133 182.631 384.303 185.271 386.565 188.699C388.855 192.099 390 196.135 390 200.807C390 203.959 389.483 206.779 388.45 209.267C387.445 211.755 386.006 213.967 384.135 215.902C382.264 217.837 380.043 219.565 377.474 221.085C375.212 222.468 373.355 223.905 371.902 225.398C370.478 226.891 369.417 228.646 368.718 230.664C368.048 232.655 367.699 235.115 367.671 238.046V239.124H353.721ZM361.01 265C358.497 265 356.332 264.115 354.517 262.346C352.701 260.577 351.794 258.42 351.794 255.877C351.794 253.389 352.701 251.26 354.517 249.491C356.332 247.722 358.497 246.837 361.01 246.837C363.496 246.837 365.646 247.722 367.462 249.491C369.305 251.26 370.227 253.389 370.227 255.877C370.227 257.563 369.794 259.098 368.928 260.48C368.09 261.862 366.973 262.968 365.576 263.797C364.208 264.599 362.686 265 361.01 265Z" fill="#374151"/>
+                <path d="M143.5 551C133.9 555 130.167 559 129.5 560.5L130 565.5L137 566.5L155 564L185.5 558.5L186 553C184 542.6 184.833 529 185.5 523.5H163.5C163 539.5 155.5 546 143.5 551Z" fill="#F9FAFB"/>
+                <path d="M143.5 551C133.9 555 130.167 559 129.5 560.5L130 565.5L137 566.5L155 564L185.5 558.5L186 553C184 542.6 184.833 529 185.5 523.5H163.5C163 539.5 155.5 546 143.5 551Z" fill="url(#paint2_linear_411_1559)"/>
+                <path d="M182.5 568H130C125.2 568 127.667 562.667 129.5 560C129.1 564 133.667 565 136 565C146.5 565 153 559 166 559.5C179 560 187 546.5 188 557C188.8 565.4 184.667 567.833 182.5 568Z" fill="#374151"/>
+                <path d="M292.602 551C302.202 555 305.935 559 306.602 560.5L306.102 565.5L299.102 566.5L281.102 564L250.602 558.5L250.102 553C252.102 542.6 251.268 529 250.602 523.5H272.602C273.102 539.5 280.602 546 292.602 551Z" fill="#F9FAFB"/>
+                <path d="M253.601 568H306.101C310.901 568 308.435 562.667 306.601 560C307.001 564 302.435 565 300.101 565C289.601 565 283.101 559 270.101 559.5C257.101 560 249.101 546.5 248.101 557C247.301 565.4 251.435 567.833 253.601 568Z" fill="#374151"/>
+                <path d="M212.499 101.5V86L226.499 75.5C226.666 81.5 227.3 95.1 228.5 101.5C229.7 107.9 233.667 109.5 235.5 109.5C235.333 111.333 233.299 115.4 226.499 117C217.999 119 206.499 113 209.499 109.5C211.899 106.7 212.499 103 212.499 101.5Z" fill="#FDBA8C"/>
+                <path d="M147.838 522.71L192.502 218.5H258.502L288.287 522.805C288.402 523.981 287.478 525 286.296 525H241.333C240.297 525 239.432 524.208 239.341 523.175L223.002 337.5L197.241 523.275C197.104 524.264 196.258 525 195.26 525H149.817C148.597 525 147.661 523.917 147.838 522.71Z" fill="#059669"/>
+                <path d="M234.5 107.5C221.3 112.7 212.333 109 209.5 106.5C200.333 107.833 178.4 118.4 164 150C149.6 181.6 143 243.167 141.5 270L168 274C170 243.2 180.5 192.5 185.5 171L189.355 220.156C189.437 221.197 190.305 222 191.349 222H260C261.105 222 262 221.105 262 220V166C276 185 303 188 303.5 171C303.9 157.4 278.667 115.333 266 96L247 105.5L249.5 112.5L234.5 107.5Z" fill="#F9FAFB"/>
+                <path d="M203.5 46.5C203.5 50.5 207.833 53.5 210 54.5L211.5 61L224 91.5C227.833 89.1667 237.3 81.5 244.5 69.5C251.7 57.5 245.167 50.1667 241 48C241 42.5 232.5 36 223 36C213.5 36 203.5 41.5 203.5 46.5Z" fill="#374151"/>
+                <defs>
+                  <linearGradient id="paint0_linear_411_1559" x1="210" y1="0" x2="210" y2="420" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#1F2A37"/><stop offset="1" stopColor="#1F2A37" stopOpacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="paint1_linear_411_1559" x1="243.75" y1="414" x2="243.75" y2="138" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#374151" stopOpacity="0"/><stop offset="1" stopColor="#374151"/>
+                  </linearGradient>
+                  <linearGradient id="paint2_linear_411_1559" x1="192" y1="494" x2="113.482" y2="524.556" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#009A49"/><stop offset="1" stopColor="#009A49" stopOpacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="paint3_linear_411_1559" x1="244.102" y1="494" x2="322.619" y2="524.556" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#009A49"/><stop offset="1" stopColor="#009A49" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
-            <p className="text-white text-xl md:text-2xl font-medium leading-relaxed mb-6">
-              Back2U is Cameroon's first lost & found platform. When you lose something —
-              a phone, wallet, ID card, keys — you post a report here.
-            </p>
+            {/* Text content */}
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[9px] font-black uppercase tracking-[0.3em] text-primary mb-5">
+                What is Back2U?
+              </div>
 
-            <p className="text-white/50 text-base font-medium leading-relaxed mb-4">
-              If someone found it and posted it too, our system automatically matches you
-              based on what the item is, where it was lost, and when. It then opens a
-              private chat so you can arrange the return safely — no strangers exchanging
-              phone numbers, no social media guesswork.
-            </p>
+              <h3
+                className="text-2xl md:text-3xl font-black text-slate-900 mb-4 leading-tight"
+                style={{ fontFamily: "'Clash Grotesk', sans-serif" }}
+              >
+                You lost something. Somewhere out there, someone found it. We bring you together.
+              </h3>
 
-            <p className="text-white/50 text-base font-medium leading-relaxed">
-              Finders earn Guardian points and a share of the unlock fee as a reward for
-              their honesty. Everyone benefits from a more trustworthy community.
-            </p>
+              <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed mb-4">
+                Back2U is a lost and found platform. When you lose something like a phone, wallet, ID card or keys, you post a report here. If someone found it and posted it too, our system automatically matches you and opens a private chat so you can arrange the return safely.
+              </p>
 
-            {/* Divider + quick facts */}
-            <div className="mt-8 pt-8 border-t border-white/5 grid grid-cols-3 gap-6">
-              {[
-                { label: "For the person who lost something", desc: "Post a report, get matched, unlock contact, recover your item." },
-                { label: "For the person who found something", desc: "Post what you found, wait for a match, earn points and a reward." },
-                { label: "For everyone", desc: "A safer, more honest Cameroon where lost things come home." },
-              ].map((fact, i) => (
-                <div key={i}>
-                  <p className="text-primary text-[9px] font-black uppercase tracking-widest mb-2">{fact.label}</p>
-                  <p className="text-white/30 text-xs font-medium leading-relaxed">{fact.desc}</p>
-                </div>
-              ))}
+              <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                No strangers exchanging phone numbers. No social media guesswork. Just a simple, trusted system.
+              </p>
+
+              <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
+                {[
+                  { label: "Lost something?", desc: "Post a report, get matched, recover your item." },
+                  { label: "Found something?", desc: "Post it, earn points and a reward when matched." },
+                  { label: "Everyone wins.", desc: "A safer, more honest Cameroon." },
+                ].map((fact, i) => (
+                  <div key={i}>
+                    <p className="text-primary text-[9px] font-black uppercase tracking-widest mb-1">{fact.label}</p>
+                    <p className="text-slate-400 text-xs font-medium leading-relaxed">{fact.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>
       </section>
-
       {/* ── SCROLL REVEAL ── */}
       <ScrollRevealFeature />
 
@@ -556,7 +595,7 @@ export default function LandingPage() {
             How Back2U <span className="text-primary">Works.</span>
           </h2>
           <p className="text-slate-400 font-medium max-w-lg mx-auto">
-            From posting a report to recovering your item — here's exactly what happens at each step.
+            From posting a report to recovering your item, here's exactly what happens at each step.
           </p>
         </div>
 
@@ -596,7 +635,7 @@ export default function LandingPage() {
                     className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
                     style={{ backgroundColor: `${item.color}15`, border: `1px solid ${item.color}30` }}
                   >
-                    <item.icon size={24} style={{ color: item.color }} />
+                    <item.icon size={24} color={item.color} />
                   </div>
 
                   <div
@@ -635,120 +674,95 @@ export default function LandingPage() {
             href="/report"
             className="inline-flex items-center gap-3 bg-primary text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20"
           >
-            Start Now — It's Free <ArrowRight size={16} />
+            Start for Free <ArrowRight size={16} />
           </Link>
         </motion.div>
       </section>
 
-      {/* ── FEE TABLE ── */}
-      <section className="py-24 px-4 bg-[#0a0a0a] rounded-[4rem] mx-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white mb-4">
+      {/* ── PRICING + WHY BACK2U ── */}
+      <section className="py-12 px-4 mx-4">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
+
+          {/* LEFT — Pricing */}
+          <div className="bg-[#0a0a0a] rounded-[2rem] p-8">
+            <h2 className="text-2xl font-black text-white mb-1">
               Transparent <span className="text-primary">Pricing.</span>
             </h2>
-            <p className="text-white/40 font-medium">
-              Contact unlock fees scale with item value. Your first recovery is always free.
+            <p className="text-white/30 text-xs font-medium mb-6">
+              Unlock fees scale with item value. First recovery is always free.
+            </p>
+
+            <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 mb-4 flex items-center gap-3">
+              <CheckCircle2 size={18} className="text-primary shrink-0" />
+              <div>
+                <p className="text-primary font-black text-xs">First Recovery is Always Free</p>
+                <p className="text-white/30 text-[9px] font-medium mt-0.5">No fees on your first contact.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {FEES.map((tier, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className={`bg-white/5 border ${tier.color} rounded-xl px-4 py-3 flex items-center justify-between`}
+                >
+                  <div>
+                    <p className="text-white font-bold text-xs">{tier.range}</p>
+                    <p className="text-white/30 text-[9px] font-medium mt-0.5">{tier.example}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-primary font-black text-sm">{tier.fee}</p>
+                    <p className="text-white/20 text-[8px] font-bold uppercase tracking-widest">unlock fee</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest text-center mt-4">
+              40% to finder · 60% to platform
             </p>
           </div>
 
-          {/* Free badge */}
-          <div className="bg-primary/10 border border-primary/30 rounded-3xl p-6 mb-6 flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center shrink-0">
-              <CheckCircle2 size={24} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-primary font-black uppercase tracking-widest text-sm">First Recovery — Always Free</p>
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-0.5">No fees on your first successful contact. We want you to experience Back2U risk-free.</p>
+          {/* RIGHT — Why Back2U */}
+          <div className="bg-slate-50 rounded-[2rem] p-8">
+            <h2 className="text-2xl font-black text-slate-900 mb-1">
+              Why people choose <span className="text-primary">Back2U.</span>
+            </h2>
+            <p className="text-slate-400 text-xs font-medium mb-6">
+              Built for where you live, not copy-pasted from abroad.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { emoji: "📍", title: "Built for where you live", desc: "Douala, Yaoundé, Buea, Bamenda and 6 more cities. Not designed for London or New York." },
+                { emoji: "📱", title: "Pay the way you already pay", desc: "MTN MoMo or Orange Money. No bank card needed." },
+                { emoji: "🔒", title: "Your privacy is protected", desc: "No phone numbers shared. Everything through private chat until you are ready." },
+                { emoji: "⚡", title: "Know within hours", desc: "We notify you the moment someone posts a matching report. No checking back every day." },
+                { emoji: "🤝", title: "Honesty is rewarded", desc: "Return something through Back2U and earn points, a badge and a share of the fee." },
+                { emoji: "🆓", title: "Your first recovery is free", desc: "Post free, get matched free, first contact free. No risk to try." },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className="flex items-start gap-3"
+                >
+                  <span className="text-lg shrink-0">{item.emoji}</span>
+                  <div>
+                    <p className="font-bold text-slate-800 text-sm">{item.title}</p>
+                    <p className="text-slate-400 text-xs font-medium leading-relaxed">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
 
-          {/* Fee tiers */}
-          <div className="space-y-3">
-            {FEES.map((tier, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className={`bg-white/5 border ${tier.color} rounded-2xl px-6 py-4 flex items-center justify-between`}
-              >
-                <div>
-                  <p className="text-white font-black text-sm uppercase tracking-tight">{tier.range}</p>
-                  <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest mt-0.5">{tier.example}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-primary font-black text-lg">{tier.fee}</p>
-                  <p className="text-white/20 text-[8px] font-bold uppercase tracking-widest">unlock fee</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest text-center mt-6">
-            40% of every fee goes directly to the finder as a reward · 60% supports the platform
-          </p>
-        </div>
-      </section>
-
-      {/* ── WHY BACK2U ── */}
-      <section className="py-20 px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black mb-4">
-            Why people choose <span className="text-primary">Back2U.</span>
-          </h2>
-          <p className="text-slate-400 font-medium max-w-md mx-auto">
-            We built this because losing something in Cameroon used to mean it was gone forever. It doesn't have to be.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              emoji: "📍",
-              title: "It's built for where you live",
-              desc: "Back2U knows Douala, Yaoundé, Buea, Bamenda and 6 more cities. You're not using a platform designed for London or New York.",
-            },
-            {
-              emoji: "📱",
-              title: "Pay the way you already pay",
-              desc: "No bank card needed. If you have MTN Mobile Money or Orange Money, you can use Back2U. That's it.",
-            },
-            {
-              emoji: "🔒",
-              title: "Your privacy is protected",
-              desc: "You never have to share your phone number with a stranger. Everything happens through a private chat until you're both ready.",
-            },
-            {
-              emoji: "⚡",
-              title: "You'll know within hours",
-              desc: "The moment someone posts something matching your report, you get a notification. No checking back every day — we do the watching for you.",
-            },
-            {
-              emoji: "🤝",
-              title: "Honesty is rewarded",
-              desc: "Found something? Return it through Back2U and earn points, a reputation badge, and a share of the unlock fee. Good deeds shouldn't go unnoticed.",
-            },
-            {
-              emoji: "🆓",
-              title: "Your first recovery is free",
-              desc: "We don't charge you to find out if your item has been found. Post for free, get matched for free, and your first contact is completely free.",
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="p-8 rounded-3xl border-2 border-slate-100 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all group"
-            >
-              <div className="text-3xl mb-4">{item.emoji}</div>
-              <h3 className="text-lg font-bold mb-2 text-slate-800">{item.title}</h3>
-              <p className="text-slate-400 text-sm font-medium leading-relaxed">{item.desc}</p>
-            </motion.div>
-          ))}
         </div>
       </section>
 
@@ -802,7 +816,7 @@ export default function LandingPage() {
             },
             {
               q: "What if I lost something but nobody has posted it yet?",
-              a: "Your report stays active for 6 months. The moment someone posts a matching found item, you'll get a notification automatically — even if that's weeks later.",
+              a: "Your report stays active for 6 months. The moment someone posts a matching found item, you'll get a notification automatically, even if that's weeks later.",
             },
             {
               q: "Do I have to share my phone number?",
@@ -817,12 +831,12 @@ export default function LandingPage() {
               a: "When a new report is posted, our system scores it against all active reports using three factors: how similar the descriptions are (keywords), how close the locations are (GPS), and how close the dates are. A score of 60 or above triggers a match notification.",
             },
             {
-              q: "What if my item is sensitive — like a passport or bank card?",
+              q: "What if my item is sensitive, like a passport or bank card?",
               a: "When posting, mark it as 'Sensitive' or 'High Risk'. Sensitive items have their photos blurred publicly. High Risk items are reviewed by our admin team before going live. Your information is protected.",
             },
             {
               q: "How do I pay? I don't have a bank card.",
-              a: "No bank card needed at all. Back2U works with MTN Mobile Money and Orange Money — the way most Cameroonians already pay.",
+              a: "No bank card needed at all. Back2U works with MTN Mobile Money and Orange Money, the way most Cameroonians already pay.",
             },
           ].map((faq, i) => (
             <FAQItem key={i} q={faq.q} a={faq.a} />
@@ -848,7 +862,7 @@ export default function LandingPage() {
                 href="/report"
                 className="bg-primary text-white px-8 py-5 rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
               >
-                Post for free — pay only if matched <ArrowRight size={16} />
+                Post for free, pay only if matched <ArrowRight size={16} />
               </Link>
               <Link
                 href="/browse"
