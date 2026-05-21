@@ -269,9 +269,18 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* ── HERO ── */}
-      <section className="max-w-7xl mx-auto px-8 pt-12 pb-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
+      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-8 pb-8 relative">
+        {/* Mobile background image */}
+        <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none">
+          <img
+            src="/images/hero-illustration.png"
+            alt=""
+            className="absolute right-0 top-0 h-full w-auto object-contain opacity-10"
+          />
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 items-center relative z-10">
+          <div className="space-y-5">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -296,138 +305,70 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-slate-400 font-medium max-w-md leading-relaxed"
+              className="text-base text-slate-400 font-medium max-w-md leading-relaxed"
             >
               Because losing something shouldn't mean losing it forever.
             </motion.p>
 
+            {/* Buttons + trust bar on same line */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-row gap-3"
+              className="flex flex-wrap items-center gap-3"
             >
               <Link
                 href="/report"
-                className="bg-primary text-white px-5 py-3 md:px-8 md:py-5 rounded-2xl font-bold text-xs md:text-sm flex items-center gap-2 hover:scale-105 transition-transform shadow-xl shadow-primary/20 uppercase tracking-wider whitespace-nowrap"
+                className="bg-primary text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 hover:scale-105 transition-transform shadow-xl shadow-primary/20 uppercase tracking-wider whitespace-nowrap"
               >
-                Report Item <Plus size={14} />
+                Report Item <Plus size={13} />
               </Link>
               <Link
                 href="/browse"
-                className="bg-white border-2 border-slate-200 px-5 py-3 md:px-8 md:py-5 rounded-2xl font-bold text-xs md:text-sm hover:border-primary transition-colors uppercase tracking-wider flex items-center gap-2 whitespace-nowrap"
+                className="bg-white border-2 border-slate-200 px-5 py-3 rounded-xl font-bold text-xs hover:border-primary transition-colors uppercase tracking-wider flex items-center gap-2 whitespace-nowrap"
               >
-                Browse <Search size={14} />
+                Browse <Search size={13} />
               </Link>
-            </motion.div>
 
-            {/* Trust bar */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-6 pt-4"
-            >
-              <div className="flex items-center gap-2">
-                <UploadIcon size={14} color="#009A49" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Free to post</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={14} className="text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">First contact free</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={14} className="text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">MTN & Orange Money</span>
+              {/* Divider */}
+              <div className="hidden md:block w-px h-6 bg-slate-200" />
+
+              {/* Trust items inline */}
+              <div className="hidden md:flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <UploadIcon size={12} color="#009A49" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Free to post</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={12} className="text-primary" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">First contact free</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={12} className="text-primary" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">MTN & Orange</span>
+                </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Hero visual */}
+          {/* Hero illustration desktop */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative"
+            className="relative hidden lg:flex items-center justify-center"
           >
-            <div className="bg-[#0a0a0a] rounded-[3rem] p-8 border border-white/5 relative overflow-hidden">
-              {/* Glow */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[80px] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-[60px] pointer-events-none" />
-
-              {/* Mock match notification card */}
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between mb-6">
-                  <p className="text-white/40 text-[9px] font-black uppercase tracking-widest">Live Activity</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                    <span className="text-primary text-[9px] font-black uppercase tracking-widest">3 matches today</span>
-                  </div>
-                </div>
-
-                {/* Match card */}
-                <div className="bg-white/5 border border-primary/20 rounded-2xl p-5 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-transparent" />
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-                      <Zap size={20} className="text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-primary mb-1">Match Found: 87 pts</p>
-                      <p className="text-white font-black text-sm uppercase tracking-tight truncate">iPhone 15 Pro Max</p>
-                      <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest mt-1">Found near Molyko, Buea • 2h ago</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <div className="flex-1 bg-primary/10 rounded-xl py-2 text-center">
-                      <p className="text-primary text-[8px] font-black uppercase tracking-widest">Keyword match</p>
-                      <p className="text-white font-black text-sm">40pts</p>
-                    </div>
-                    <div className="flex-1 bg-white/5 rounded-xl py-2 text-center">
-                      <p className="text-white/30 text-[8px] font-black uppercase tracking-widest">GPS proximity</p>
-                      <p className="text-white font-black text-sm">27pts</p>
-                    </div>
-                    <div className="flex-1 bg-white/5 rounded-xl py-2 text-center">
-                      <p className="text-white/30 text-[8px] font-black uppercase tracking-widest">Date match</p>
-                      <p className="text-white font-black text-sm">20pts</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Unlock fee card */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Unlock size={18} className="text-secondary" />
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Contact Unlock Fee</p>
-                        <p className="text-white font-black text-sm">1,000 XAF</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[8px] font-black uppercase tracking-widest text-primary">40% → Finder</p>
-                      <p className="text-[8px] font-black uppercase tracking-widest text-white/20">= 400 XAF reward</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* City pins */}
-                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center gap-3">
-                  <MapPin size={16} className="text-primary shrink-0" />
-                  <div className="flex gap-2 flex-wrap">
-                    {["Douala", "Yaoundé", "Buea", "Bamenda", "Garoua"].map(city => (
-                      <span key={city} className="text-[8px] font-black uppercase tracking-widest text-white/30 bg-white/5 px-2 py-1 rounded-lg">{city}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <img
+              src="/images/hero-illustration.png"
+              alt="Back2U lost and found illustration"
+              className="w-full max-w-2xl mx-auto drop-shadow-2xl"
+            />
           </motion.div>
         </div>
       </section>
 
       {/* ── WHAT IS BACK2U ── */}
-      <section className="px-4 md:px-8 pb-6 max-w-7xl mx-auto">
+      <section className="px-4 md:px-8 pt-2 pb-2 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -513,7 +454,7 @@ export default function LandingPage() {
       <ScrollRevealFeature />
 
       {/* ── COUNTERS ── */}
-      <section className="py-8 px-4">
+      <section className="py-4 px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-3 gap-4 md:gap-6">
           {[
             { val: 2450,  label: "Items Recovered",  icon: PackageCheck, blob: "#009A49", light: true  },
@@ -581,8 +522,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-16 px-4 max-w-7xl mx-auto" id="how-it-works">
-        <div className="text-center mb-20">
+      <section className="py-8 px-4 max-w-7xl mx-auto" id="how-it-works">
+        <div className="text-center mb-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -680,27 +621,27 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING + WHY BACK2U ── */}
-      <section className="py-12 px-4 mx-4">
+      <section className="py-4 px-4 mx-4">
         <div className="grid md:grid-cols-2 gap-6 items-start">
 
-          {/* LEFT — Pricing */}
-          <div className="bg-[#0a0a0a] rounded-[2rem] p-8">
-            <h2 className="text-2xl font-black text-white mb-1">
+          {/* LEFT Pricing */}
+          <div className="bg-[#0a0a0a] rounded-[2rem] p-4">
+            <p className="text-white font-black text-sm mb-0.5">
               Transparent <span className="text-primary">Pricing.</span>
-            </h2>
-            <p className="text-white/30 text-xs font-medium mb-6">
+            </p>
+            <p className="text-white/30 text-[10px] font-medium mb-3">
               Unlock fees scale with item value. First recovery is always free.
             </p>
 
-            <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 mb-4 flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-primary shrink-0" />
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-2.5 mb-2 flex items-center gap-2">
+              <CheckCircle2 size={13} className="text-primary shrink-0" />
               <div>
-                <p className="text-primary font-black text-xs">First Recovery is Always Free</p>
-                <p className="text-white/30 text-[9px] font-medium mt-0.5">No fees on your first contact.</p>
+                <p className="text-primary font-black text-[10px]">First Recovery is Always Free</p>
+                <p className="text-white/30 text-[9px] font-medium">No fees on your first contact.</p>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {FEES.map((tier, i) => (
                 <motion.div
                   key={i}
@@ -708,58 +649,69 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.06 }}
-                  className={`bg-white/5 border ${tier.color} rounded-xl px-4 py-3 flex items-center justify-between`}
+                  className={`bg-white/5 border ${tier.color} rounded-lg px-3 py-2 flex items-center justify-between`}
                 >
                   <div>
-                    <p className="text-white font-bold text-xs">{tier.range}</p>
-                    <p className="text-white/30 text-[9px] font-medium mt-0.5">{tier.example}</p>
+                    <p className="text-white font-bold text-[10px]">{tier.range}</p>
+                    <p className="text-white/30 text-[9px] font-medium">{tier.example}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-primary font-black text-sm">{tier.fee}</p>
-                    <p className="text-white/20 text-[8px] font-bold uppercase tracking-widest">unlock fee</p>
+                    <p className="text-primary font-black text-xs">{tier.fee}</p>
+                    <p className="text-white/20 text-[8px] uppercase tracking-widest">unlock fee</p>
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest text-center mt-4">
+            <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest text-center mt-2">
               40% to finder · 60% to platform
             </p>
           </div>
 
-          {/* RIGHT — Why Back2U */}
-          <div className="bg-slate-50 rounded-[2rem] p-8">
-            <h2 className="text-2xl font-black text-slate-900 mb-1">
+          {/* RIGHT Why Back2U stepper */}
+          <div className="bg-slate-50 rounded-[2rem] p-6">
+            <p className="font-black text-slate-900 text-sm mb-0.5">
               Why people choose <span className="text-primary">Back2U.</span>
-            </h2>
-            <p className="text-slate-400 text-xs font-medium mb-6">
+            </p>
+            <p className="text-slate-400 text-[10px] font-medium mb-5">
               Built for where you live, not copy-pasted from abroad.
             </p>
 
-            <div className="space-y-4">
-              {[
-                { emoji: "📍", title: "Built for where you live", desc: "Douala, Yaoundé, Buea, Bamenda and 6 more cities. Not designed for London or New York." },
-                { emoji: "📱", title: "Pay the way you already pay", desc: "MTN MoMo or Orange Money. No bank card needed." },
-                { emoji: "🔒", title: "Your privacy is protected", desc: "No phone numbers shared. Everything through private chat until you are ready." },
-                { emoji: "⚡", title: "Know within hours", desc: "We notify you the moment someone posts a matching report. No checking back every day." },
-                { emoji: "🤝", title: "Honesty is rewarded", desc: "Return something through Back2U and earn points, a badge and a share of the fee." },
-                { emoji: "🆓", title: "Your first recovery is free", desc: "Post free, get matched free, first contact free. No risk to try." },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  className="flex items-start gap-3"
-                >
-                  <span className="text-lg shrink-0">{item.emoji}</span>
-                  <div>
-                    <p className="font-bold text-slate-800 text-sm">{item.title}</p>
-                    <p className="text-slate-400 text-xs font-medium leading-relaxed">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
+            {/* Vertical stepper */}
+            <div className="relative">
+              <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200" />
+              <div className="space-y-0">
+                {[
+                  { icon: MapPin,      title: "Built for where you live",   desc: "10 Cameroonian cities." },
+                  { icon: Smartphone,  title: "Pay the way you already pay", desc: "MTN MoMo or Orange Money." },
+                  { icon: Lock,        title: "Your privacy is protected",   desc: "No phone numbers shared." },
+                  { icon: Bell,        title: "Know within hours",           desc: "We notify you instantly." },
+                  { icon: Award,       title: "Honesty is rewarded",         desc: "Earn points and a fee share." },
+                  { icon: CheckCircle2,title: "First recovery is free",      desc: "Post, match, contact. Free." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="relative flex items-center gap-4 py-3"
+                  >
+                    <div className="relative z-10 w-8 h-8 rounded-full bg-white border-2 border-primary/30 flex items-center justify-center shrink-0 shadow-sm">
+                      <item.icon size={14} className="text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 text-xs leading-tight">{item.title}</p>
+                      <p className="text-slate-400 text-[10px] font-medium">{item.desc}</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m4.5 12.75 6 6 9-13.5"/>
+                      </svg>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -767,8 +719,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── REVIEWS MARQUEE ── */}
-      <section className="py-24 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
-        <div className="text-center mb-12">
+      <section className="py-10 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
+        <div className="text-center mb-6">
           <h2 className="text-4xl font-black">
             Trusted by the <span className="text-primary">Community.</span>
           </h2>
@@ -800,43 +752,47 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-20 px-8 max-w-3xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl font-black mb-3">
+      <section className="py-8 px-4 max-w-7xl mx-auto">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-black mb-1">
             Common <span className="text-primary">questions.</span>
           </h2>
-          <p className="text-slate-400 font-medium">Everything you need to know before getting started.</p>
+          <p className="text-slate-400 text-sm font-medium">Everything you need to know before getting started.</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid md:grid-cols-2 gap-3">
           {[
             {
               q: "Is it free to use?",
-              a: "Posting a report is completely free. Your first contact with a match is also free. After that, a small fee (300–5,000 XAF depending on item value) unlocks the private chat. 40% of that fee goes to the finder as a reward.",
+              a: "Posting is free. Your first contact is free. After that, a small fee (300 to 5,000 XAF) unlocks the chat. 40% goes to the finder.",
             },
             {
-              q: "What if I lost something but nobody has posted it yet?",
-              a: "Your report stays active for 6 months. The moment someone posts a matching found item, you'll get a notification automatically, even if that's weeks later.",
+              q: "What if nobody has posted it yet?",
+              a: "Your report stays active for 6 months. You get notified automatically the moment a match appears, even weeks later.",
             },
             {
               q: "Do I have to share my phone number?",
-              a: "Never. All communication happens through Back2U's private chat. You only share personal contact details if you choose to, after both parties confirm the recovery.",
+              a: "Never. Everything happens through Back2U's private chat until both parties confirm the recovery.",
             },
             {
               q: "I found something. What should I do?",
-              a: "Post a 'Found' report with a photo and location. If the owner is on Back2U, we'll match you. You'll earn 10 Guardian points just for posting, and 40% of the unlock fee when the owner contacts you.",
+              a: "Post a Found report with a photo and location. You earn 10 Guardian points just for posting, and 40% of the unlock fee when the owner contacts you.",
             },
             {
-              q: "How does the matching actually work?",
-              a: "When a new report is posted, our system scores it against all active reports using three factors: how similar the descriptions are (keywords), how close the locations are (GPS), and how close the dates are. A score of 60 or above triggers a match notification.",
+              q: "How does the matching work?",
+              a: "Our system scores reports by keyword similarity, GPS proximity, and date. A score of 60 or above triggers a match notification to both users.",
             },
             {
-              q: "What if my item is sensitive, like a passport or bank card?",
-              a: "When posting, mark it as 'Sensitive' or 'High Risk'. Sensitive items have their photos blurred publicly. High Risk items are reviewed by our admin team before going live. Your information is protected.",
+              q: "What if my item is sensitive?",
+              a: "Mark it Sensitive or High Risk when posting. Photos blur publicly. High Risk items are reviewed by admin before going live.",
             },
             {
-              q: "How do I pay? I don't have a bank card.",
-              a: "No bank card needed at all. Back2U works with MTN Mobile Money and Orange Money, the way most Cameroonians already pay.",
+              q: "How do I pay without a bank card?",
+              a: "Back2U works with MTN Mobile Money and Orange Money. No bank card needed.",
+            },
+            {
+              q: "How long does a report stay active?",
+              a: "Reports stay active for 6 months then get archived. You get a 7-day warning email before it expires so you can repost.",
             },
           ].map((faq, i) => (
             <FAQItem key={i} q={faq.q} a={faq.a} />
@@ -845,7 +801,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="max-w-7xl mx-auto px-8 py-24">
+      <section className="max-w-7xl mx-auto px-8 py-10">
         <div className="relative max-w-4xl mx-auto bg-[#0a0a0a] rounded-[3rem] p-12 md:p-16 text-center overflow-hidden border border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-[80px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full -ml-24 -mb-24 blur-[60px] pointer-events-none" />
@@ -874,7 +830,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="mt-16 flex justify-between items-center opacity-20 border-t pt-8">
+        <div className="mt-6 flex justify-between items-center opacity-20 border-t pt-8">
           <p className="text-[9px] font-bold uppercase tracking-[0.5em]">back2u © 2026</p>
           <p className="text-[9px] font-bold uppercase tracking-[0.5em]">Made in Cameroon 🇨🇲</p>
         </div>
