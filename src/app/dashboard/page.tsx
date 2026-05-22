@@ -122,7 +122,7 @@ export default function Dashboard() {
   const progress = Math.min(100, ((profile?.recovery_count ?? 0) / g.nextAt) * 100);
 
   return (
-    <main className="min-h-screen bg-[#f0f4f8]">
+    <main className="min-h-screen" style={{ background: "#F0F4F8" }}>
       <style jsx global>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
         body { font-family: 'Satoshi', sans-serif; }
@@ -138,7 +138,7 @@ export default function Dashboard() {
           className="flex items-center justify-between"
         >
           <div>
-            <p className="text-slate-400 text-sm font-medium">Hello, <span className="font-bold text-slate-700">{firstName}.</span></p>
+            <p className="text-slate-400 text-sm font-medium">Hello, <span className="font-black text-primary">{firstName}.</span></p>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mt-0.5" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
               Here's what's happening{profile?.city ? ` in ${profile.city}` : " today"}.
             </h1>
@@ -169,19 +169,19 @@ export default function Dashboard() {
               ].map((s, i) => (
                 <motion.div key={s.label}
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                  className={`${s.bg} rounded-2xl p-3 md:p-5 shadow-sm relative overflow-hidden`}
+                  className={`${s.bg} rounded-2xl p-2.5 md:p-4 shadow-sm relative overflow-hidden`}
                   style={s.style}
                 >
                   <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
                   <div className="absolute -right-2 -bottom-6 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
                   <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-2 md:mb-4">
-                      <div className="w-8 h-8 md:w-11 md:h-11 bg-white/20 rounded-xl flex items-center justify-center">
+                    <div className="flex items-start justify-between mb-1.5 md:mb-3">
+                      <div className="w-6 h-6 md:w-9 md:h-9 bg-white/20 rounded-xl flex items-center justify-center">
                         <s.icon size={16} className="text-white" />
                       </div>
                       <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/20 text-white">{s.trend}</span>
                     </div>
-                    <p className="text-xl md:text-3xl font-black text-white leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{s.value.toLocaleString()}</p>
+                    <p className="text-base md:text-xl font-black text-white leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{s.value.toLocaleString()}</p>
                     <p className="text-[9px] md:text-[10px] font-medium text-white/70 mt-1">{s.label}</p>
                   </div>
                 </motion.div>
@@ -190,20 +190,20 @@ export default function Dashboard() {
 
             {/* My Items — immediately below stat cards */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-              className="bg-white rounded-2xl shadow-md overflow-hidden border-l-4 border-l-primary"
+              className="rounded-2xl overflow-hidden" style={{ background: "#EDE9FE", border: "1px solid #C4B5FD" }}
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-50">
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-50">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-black text-sm text-slate-900">My Items</h2>
-                  <span className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-[9px] font-black">{stats.active} active</span>
+                  <h2 className="font-black text-xs text-purple-900">My Items</h2>
+                  <span className="px-2.5 py-0.5 bg-purple-200 text-purple-800 rounded-full text-[9px] font-black">{stats.active} active</span>
                 </div>
-                <Link href="/browse" className="text-primary text-[9px] font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
+                <Link href="/browse" className="text-purple-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
                   View all <ChevronRight size={11} />
                 </Link>
               </div>
               {myItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                  <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-3">
+                <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center mb-3">
                     <Package size={24} className="text-slate-300" />
                   </div>
                   <p className="text-sm font-bold text-slate-400 mb-1">No items reported yet</p>
@@ -216,23 +216,23 @@ export default function Dashboard() {
                   {myItems.map((item, i) => (
                     <Link href={`/browse/${item.id}`} key={item.id}>
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 + i * 0.05 }}
-                        className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-all cursor-pointer group"
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-purple-100 transition-all cursor-pointer group"
                       >
-                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 shrink-0">
                           {item.photos?.[0]
                             ? <img src={item.photos[0]} className="w-full h-full object-cover" alt="" />
                             : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-slate-300" /></div>
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-slate-900 truncate">{item.title}</p>
-                          <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+                          <p className="font-bold text-xs text-slate-900 truncate">{item.title}</p>
+                          <p className="text-[8px] text-slate-400 font-medium flex items-center gap-1 mt-0">
                             <MapPin size={9} />{item.location_name ?? item.city ?? "No location"} · {timeAgo(item.created_at)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${item.type === "lost" ? "bg-amber-50 text-amber-500" : "bg-emerald-50 text-emerald-600"}`}>{item.type}</span>
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                          <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase ${item.type === "lost" ? "bg-amber-50 text-amber-500" : "bg-emerald-50 text-emerald-600"}`}>{item.type}</span>
+                          <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase ${
                             item.status === "active" ? "bg-emerald-50 text-emerald-600" :
                             item.status === "matched" ? "bg-amber-50 text-amber-600" :
                             item.status === "recovered" ? "bg-slate-100 text-slate-400" : "bg-red-50 text-red-400"
@@ -244,6 +244,55 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
+            </motion.div>
+
+            {/* Recent Chats */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+              className="rounded-2xl overflow-hidden" style={{ background: "#DBEAFE", border: "1px solid #93C5FD" }}
+            >
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #93C5FD" }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0">
+                    <MessageSquare size={14} className="text-primary" />
+                  </div>
+                  <h2 className="font-bold text-xs text-blue-900">Recent Chats</h2>
+                </div>
+                <span className="bg-blue-200 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full border border-blue-300">{stats.chats} active</span>
+              </div>
+              {recentChats.length === 0 ? (
+                <div className="flex flex-col items-center py-5 gap-1">
+                  <MessageSquare size={20} className="text-slate-200" />
+                  <p className="text-[9px] font-bold text-slate-300">No chats yet</p>
+                </div>
+              ) : (
+                <div>
+                  {recentChats.map((chat, i) => (
+                    <Link href={`/messages?id=${chat.id}`} key={chat.id}>
+                      <div className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-100 transition-all cursor-pointer ${i < recentChats.length - 1 ? "border-b border-blue-100" : ""}`}>
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                          {chat.other_user?.avatar_url
+                            ? <img src={chat.other_user.avatar_url} className="w-full h-full object-cover" alt="" />
+                            : <span className="text-slate-500 font-bold text-xs">{chat.other_user?.full_name?.[0] ?? "?"}</span>
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs text-blue-900 truncate">{chat.item?.title ?? "Chat"}</p>
+                          <p className="text-[9px] text-blue-500">with {chat.other_user?.full_name ?? "Unknown"}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">{chat.status}</span>
+                          <ChevronRight size={13} className="text-slate-300" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              <div className="px-4 py-2 border-t border-slate-100">
+                <Link href="/messages" className="flex items-center justify-center gap-1 text-blue-700 text-[9px] font-bold hover:underline">
+                  View all chats <ChevronRight size={11} />
+                </Link>
+              </div>
             </motion.div>
 
           </div>{/* end left column */}
@@ -258,14 +307,14 @@ export default function Dashboard() {
             >
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-[60px] pointer-events-none" style={{ background: `${g.color}30` }} />
               <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full blur-[40px] pointer-events-none" style={{ background: `${g.color}15` }} />
-              <div className="relative z-10 space-y-4">
+              <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${g.color}25` }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${g.color}25` }}>
                     <Shield size={22} style={{ color: g.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-black text-white text-sm leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{g.label}</p>
+                      <p className="font-black text-white text-xs leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{g.label}</p>
                       <span className="text-white font-black text-sm" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
                         {profile?.recovery_count ?? 0}
                         <span className="text-white/30 text-[9px] font-medium ml-1">recoveries</span>
@@ -301,143 +350,96 @@ export default function Dashboard() {
 
             {/* Recent Activity */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-50"
+              className="rounded-2xl overflow-hidden border border-green-100"
+              style={{ background: "#F0FDF4" }}
             >
-              <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-blue-400" />
-              <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-50">
-                <h2 className="font-black text-sm text-slate-900">Recent Activity</h2>
-                <Link href="/browse"><ArrowUpRight size={15} className="text-slate-300 hover:text-primary transition-colors" /></Link>
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-green-100">
+                <h2 className="font-black text-sm" style={{ color: "rgb(22 101 52)" }}>Recent Activity</h2>
+                <Link href="/browse"><ArrowUpRight size={15} style={{ color: "rgb(74 222 128)" }} /></Link>
               </div>
               {nearbyItems.length === 0 ? (
-                <p className="text-[10px] font-bold text-slate-300 text-center py-8">No activity yet</p>
+                <p className="text-[10px] font-bold text-center py-8" style={{ color: "rgb(21 128 61)" }}>No activity yet</p>
               ) : (
-                <div className="divide-y divide-slate-50">
+                <div className="divide-y divide-green-100">
                   {nearbyItems.map(item => (
                     <Link href={`/browse/${item.id}`} key={item.id}>
-                      <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all cursor-pointer">
-                        <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                      <div className="flex items-center gap-3 px-3 py-2 hover:bg-green-100 transition-all cursor-pointer">
+                        <div className="w-7 h-7 rounded-lg overflow-hidden bg-green-100 shrink-0">
                           {item.photos?.[0]
                             ? <img src={item.photos[0]} className="w-full h-full object-cover" alt="" />
-                            : <Package size={13} className="text-slate-300 m-auto mt-2.5" />
+                            : <Package size={13} className="m-auto mt-2.5" style={{ color: "rgb(21 128 61)" }} />
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs text-slate-900 truncate">{item.title}</p>
-                          <p className="text-[9px] text-slate-400">{timeAgo(item.created_at)}</p>
+                          <p className="font-bold text-xs truncate" style={{ color: "rgb(22 101 52)" }}>{item.title}</p>
+                          <p className="text-[9px] mt-0.5" style={{ color: "rgb(21 128 61)" }}>{timeAgo(item.created_at)}</p>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase shrink-0 ${item.type === "lost" ? "bg-red-50 text-red-400" : "bg-emerald-50 text-emerald-600"}`}>{item.type}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase shrink-0 ${
+                          item.type === "lost" ? "bg-red-50 text-red-400" : "bg-green-200 text-green-800"
+                        }`}>{item.type}</span>
                       </div>
                     </Link>
                   ))}
                 </div>
               )}
-              <div className="px-4 py-3 border-t border-slate-50">
-                <Link href="/browse" className="text-primary text-[9px] font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all justify-end">
+              <div className="px-4 py-2 border-t border-green-100">
+                <Link href="/browse" className="flex items-center gap-1 justify-end text-[9px] font-black uppercase tracking-widest" style={{ color: "rgb(22 101 52)" }}>
                   View all <ChevronRight size={11} />
                 </Link>
+              </div>
+            </motion.div>
+
+            {/* Mini Map */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+              className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                    <MapPin size={14} className="text-blue-500" />
+                  </div>
+                  <h2 className="font-bold text-xs text-slate-900">
+                    Activity near {profile?.city ?? "your city"}
+                  </h2>
+                </div>
+              </div>
+              <div className="relative w-full overflow-hidden" style={{ height: "160px" }}>
+                <iframe
+                  title="activity-map"
+                  width="100%"
+                  height="160"
+                  style={{ border: 0, display: "block" }}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=8.4,3.8,16.2,12.8&layer=mapnik&marker=${
+                    profile?.city === "Douala" ? "4.0511,9.7679" :
+                    profile?.city === "Yaoundé" ? "3.8480,11.5021" :
+                    profile?.city === "Buea" ? "4.1597,9.2430" :
+                    profile?.city === "Bamenda" ? "5.9597,10.1459" :
+                    profile?.city === "Garoua" ? "9.3011,13.3921" :
+                    profile?.city === "Bafoussam" ? "5.4760,10.4175" :
+                    "3.8480,11.5021"
+                  }`}
+                  loading="lazy"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                  style={{ background: "linear-gradient(to top, white, transparent)" }} />
+              </div>
+              <div className="px-4 py-2 border-t border-slate-100 flex items-center justify-between">
+                <p className="text-[9px] text-slate-400 font-medium">OpenStreetMap</p>
+                <a href={`https://www.openstreetmap.org/#map=12/${
+                    profile?.city === "Douala" ? "4.0511/9.7679" :
+                    profile?.city === "Yaoundé" ? "3.8480/11.5021" :
+                    profile?.city === "Buea" ? "4.1597/9.2430" :
+                    "3.8480/11.5021"
+                  }`} target="_blank" rel="noreferrer"
+                  className="text-[9px] text-primary font-bold hover:underline flex items-center gap-1">
+                  Open full map <ArrowUpRight size={10} />
+                </a>
               </div>
             </motion.div>
 
           </div>{/* end right column */}
 
         </div>{/* end main grid */}
-
-        {/* ── ROW 3: RECENT CHATS + QUICK ACTIONS ── */}
-        <div className="grid lg:grid-cols-3 gap-5">
-
-          {/* Recent Chats */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-            className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="font-bold text-base text-slate-900">Recent Chats</h2>
-            </div>
-            {recentChats.length === 0 ? (
-              <div className="flex flex-col items-center py-10 gap-2">
-                <MessageSquare size={24} className="text-slate-200" />
-                <p className="text-xs font-bold text-slate-300">No chats yet</p>
-              </div>
-            ) : (
-              <div>
-                {recentChats.map((chat, i) => (
-                  <Link href={`/messages?id=${chat.id}`} key={chat.id}>
-                    <div className={`flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-all cursor-pointer ${i < recentChats.length - 1 ? "border-b border-slate-50" : ""}`}>
-                      {/* Avatar */}
-                      <div className="w-11 h-11 rounded-full bg-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
-                        {chat.other_user?.avatar_url
-                          ? <img src={chat.other_user.avatar_url} className="w-full h-full object-cover" alt="" />
-                          : <span className="text-slate-500 font-bold text-sm">{chat.other_user?.full_name?.[0] ?? "?"}</span>
-                        }
-                      </div>
-                      {/* Text */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm text-slate-900 truncate">{chat.item?.title ?? "Chat"}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">with {chat.other_user?.full_name ?? "Unknown"}</p>
-                      </div>
-                      {/* Badge + arrow */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          {chat.status}
-                        </span>
-                        <ChevronRight size={16} className="text-slate-300" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-            {/* View all chats */}
-            <div className="px-5 py-4 border-t border-slate-100">
-              <Link href="/messages" className="flex items-center justify-center gap-2 text-primary text-sm font-bold hover:underline">
-                View all chats <ChevronRight size={14} />
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}
-            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="font-bold text-base text-slate-900">Quick Actions</h2>
-            </div>
-            <div className="p-4 space-y-3">
-              {/* 2x2 grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { href: "/report",   icon: Flag,          label: "Report Lost Item",  sub: "Post in 2 minutes",   iconBg: "bg-emerald-100" },
-                  { href: "/report",   icon: Navigation,    label: "Report Found Item", sub: "Help someone recover", iconBg: "bg-emerald-100" },
-                  { href: "/browse",   icon: Search,        label: "Browse Feed",       sub: "See all reports",      iconBg: "bg-emerald-100" },
-                  { href: "/messages", icon: MessageSquare, label: "My Messages",       sub: `${stats.chats} active`,iconBg: "bg-emerald-100" },
-                ].map((a, i) => (
-                  <Link href={a.href} key={i}>
-                    <div className="bg-emerald-50 hover:bg-emerald-100 transition-all rounded-xl p-3 cursor-pointer flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className={`w-8 h-8 ${a.iconBg} rounded-lg flex items-center justify-center shrink-0`}>
-                          <a.icon size={15} className="text-primary" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-[11px] text-slate-800 leading-tight truncate">{a.label}</p>
-                          <p className="text-[9px] text-slate-500 mt-0.5">{a.sub}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={14} className="text-primary/50 shrink-0" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Report Item CTA */}
-              <Link href="/report">
-                <div className="bg-[#061209] hover:bg-primary transition-all rounded-xl px-5 py-4 flex items-center justify-between cursor-pointer group">
-                  <span className="text-white font-bold text-sm group-hover:text-[#061209]">Report Item</span>
-                  <ChevronRight size={18} className="text-white group-hover:text-[#061209]" />
-                </div>
-              </Link>
-            </div>
-          </motion.div>
-
-        </div>{/* end row 3 */}
 
       </div>{/* end max-w-7xl */}
 
