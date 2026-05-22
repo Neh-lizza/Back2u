@@ -532,8 +532,9 @@ export default function LandingPage() {
           >
             Simple 4-step process
           </motion.div>
-          <h2 className="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-4">
-            How Back2U <span className="text-primary">Works.</span>
+          <h2 className="text-3xl md:text-4xl font-black mb-4">
+            How Back2U{" "}
+            <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>Works.</span>
           </h2>
           <p className="text-slate-400 font-medium max-w-lg mx-auto">
             From posting a report to recovering your item, here's exactly what happens at each step.
@@ -801,36 +802,27 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="max-w-7xl mx-auto px-8 py-10">
-        <div className="relative max-w-4xl mx-auto bg-[#0a0a0a] rounded-[3rem] p-12 md:p-16 text-center overflow-hidden border border-white/5">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full -ml-24 -mb-24 blur-[60px] pointer-events-none" />
-
-          <div className="relative z-10 space-y-6">
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
+      <section className="max-w-7xl mx-auto px-4 py-4">
+        <div className="relative max-w-lg mx-auto bg-[#0a0a0a] rounded-[1.5rem] p-6 text-center overflow-hidden border border-white/5">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-[50px] pointer-events-none" />
+          <div className="relative z-10 space-y-2">
+            <h2 className="text-base font-black text-white">
               Lost or found something?
             </h2>
-            <p className="text-white/40 font-medium max-w-sm mx-auto leading-relaxed">
-              Post for free today. You only pay if we find a match and you want to make contact.
+            <p className="text-white/40 text-[10px] font-medium max-w-xs mx-auto leading-relaxed">
+              Post free. Pay only if matched and you want contact.
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link
-                href="/report"
-                className="bg-primary text-white px-8 py-5 rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
-              >
-                Post for free, pay only if matched <ArrowRight size={16} />
+            <div className="flex gap-2 justify-center pt-1">
+              <Link href="/report" className="bg-primary text-white px-4 py-2 rounded-lg font-black text-[9px] tracking-widest uppercase hover:scale-105 transition-all flex items-center gap-1.5">
+                Post free <ArrowRight size={11} />
               </Link>
-              <Link
-                href="/browse"
-                className="bg-white/5 border border-white/10 text-white px-8 py-5 rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:bg-white/10 transition-all flex items-center gap-3"
-              >
-                Browse reports <Search size={16} />
+              <Link href="/browse" className="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-lg font-black text-[9px] tracking-widest uppercase hover:bg-white/10 transition-all flex items-center gap-1.5">
+                Browse <Search size={11} />
               </Link>
             </div>
           </div>
         </div>
-
-        <div className="mt-6 flex justify-between items-center opacity-20 border-t pt-8">
+        <div className="mt-3 flex justify-between items-center opacity-20 border-t pt-3">
           <p className="text-[9px] font-bold uppercase tracking-[0.5em]">back2u © 2026</p>
           <p className="text-[9px] font-bold uppercase tracking-[0.5em]">Made in Cameroon 🇨🇲</p>
         </div>
