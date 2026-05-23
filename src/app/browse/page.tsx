@@ -269,8 +269,8 @@ export default function BrowseMarketplace() {
 
   return (
     <main className="min-h-screen" style={{
-      backgroundColor: "#f0f4f0",
-      backgroundImage: "radial-gradient(#009A49 10%, transparent 10%), radial-gradient(#009A49 10%, transparent 10%)",
+      backgroundColor: "#f5f7f5",
+      backgroundImage: "radial-gradient(rgba(0,154,73,0.15) 10%, transparent 10%), radial-gradient(rgba(0,154,73,0.15) 10%, transparent 10%)",
       backgroundSize: "60px 60px",
       backgroundPosition: "0 0, 30px 30px",
     }}>
