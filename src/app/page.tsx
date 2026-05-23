@@ -208,7 +208,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       onClick={() => setOpen(o => !o)}
     >
       <div className="flex items-center justify-between px-6 py-5">
-        <p className="font-bold text-slate-800 text-sm pr-4">{q}</p>
+        <p className="font-bold text-slate-800 text-xs pr-3">{q}</p>
         <div className={`w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
           <span className="text-primary font-black text-lg leading-none">+</span>
         </div>
@@ -221,7 +221,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <p className="px-6 pb-5 text-slate-400 text-sm font-medium leading-relaxed border-t border-slate-50 pt-4">
+            <p className="px-4 pb-3 text-slate-400 text-xs font-medium leading-relaxed border-t border-slate-50 pt-4">
               {a}
             </p>
           </motion.div>
@@ -269,7 +269,7 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* ── HERO ── */}
-      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-8 pb-8 relative">
+      <section className="max-w-7xl mx-auto px-6 md:px-8 pt-4 pb-4 relative">
         {/* Mobile background image */}
         <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none">
           <img
@@ -279,8 +279,8 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 items-center relative z-10">
-          <div className="space-y-5">
+        <div className="grid lg:grid-cols-2 gap-6 items-center relative z-10">
+          <div className="space-y-3">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -293,7 +293,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-[-0.01em] text-[#061209]"
+              className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-[-0.01em] text-[#061209]"
             >
               Every lost item has a story.{" "}
               <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>
@@ -305,7 +305,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-base text-slate-400 font-medium max-w-md leading-relaxed"
+              className="text-sm text-slate-400 font-medium max-w-md leading-relaxed"
             >
               Because losing something shouldn't mean losing it forever.
             </motion.p>
@@ -368,21 +368,21 @@ export default function LandingPage() {
       </section>
 
       {/* ── WHAT IS BACK2U ── */}
-      <section className="px-4 md:px-8 pt-2 pb-2 max-w-7xl mx-auto">
+      <section className="px-4 md:px-8 pt-1 pb-1 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-[1.5rem] overflow-hidden px-8 py-10 md:px-16 md:py-12"
+          className="relative rounded-[1.5rem] overflow-hidden px-6 py-6 md:px-10 md:py-8"
           style={{
             background: "#f8f9fa",
             border: "1px solid rgba(0,0,0,0.06)",
           }}
         >
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
 
             {/* Illustration */}
-            <div className="shrink-0 flex items-center justify-center w-32 md:w-56">
+            <div className="shrink-0 flex items-center justify-center w-24 md:w-40">
               <svg width="420" height="568" viewBox="0 0 420 568" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
                 <path d="M420 210C420 325.98 325.98 420 210 420C94.0202 420 0 325.98 0 210C0 94.0202 94.0202 0 210 0C325.98 0 420 94.0202 420 210Z" fill="url(#paint0_linear_411_1559)"/>
                 <path fillRule="evenodd" clipRule="evenodd" d="M399.91 299.749C366.257 370.833 293.87 420 209.999 420C136.23 420 71.345 381.963 33.8867 324.432C57.2858 313.976 89.8328 305.109 122.499 311C124.597 311.378 126.668 311.754 128.714 312.124C186.191 322.54 224.613 329.503 297.999 301.5C328.754 289.765 366.007 292.119 399.91 299.749Z" fill="url(#paint1_linear_411_1559)"/>
@@ -420,13 +420,13 @@ export default function LandingPage() {
               </div>
 
               <h3
-                className="text-2xl md:text-3xl font-black text-slate-900 mb-4 leading-tight"
+                className="text-xl md:text-2xl font-black text-slate-900 mb-2 leading-tight"
                 style={{ fontFamily: "'Clash Grotesk', sans-serif" }}
               >
                 You lost something. Somewhere out there, someone found it. We bring you together.
               </h3>
 
-              <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed mb-4">
+              <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed mb-2">
                 Back2U is a lost and found platform. When you lose something like a phone, wallet, ID card or keys, you post a report here. If someone found it and posted it too, our system automatically matches you and opens a private chat so you can arrange the return safely.
               </p>
 
@@ -434,7 +434,7 @@ export default function LandingPage() {
                 No strangers exchanging phone numbers. No social media guesswork. Just a simple, trusted system.
               </p>
 
-              <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
+              <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
                 {[
                   { label: "Lost something?", desc: "Post a report, get matched, recover your item." },
                   { label: "Found something?", desc: "Post it, earn points and a reward when matched." },
@@ -455,7 +455,7 @@ export default function LandingPage() {
 
       {/* ── COUNTERS ── */}
       <section className="py-4 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-3 gap-4 md:gap-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-3 gap-3 md:gap-4">
           {[
             { val: 2450,  label: "Items Recovered",  icon: PackageCheck, blob: "#009A49", light: true  },
             { val: 12000, label: "Community Members", icon: Users,        blob: "#FCD116", light: false },
@@ -471,7 +471,7 @@ export default function LandingPage() {
               style={{
                 borderRadius: "1rem",
                 aspectRatio: "1 / 1",
-                maxWidth: "220px",
+                maxWidth: "160px",
                 width: "100%",
                 margin: "0 auto",
                 background: item.light ? "#f0faf4" : "#0a0a0a",
@@ -522,7 +522,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-8 px-4 max-w-7xl mx-auto" id="how-it-works">
+      <section className="py-4 px-4 max-w-7xl mx-auto" id="how-it-works">
         <div className="text-center mb-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -532,7 +532,7 @@ export default function LandingPage() {
           >
             Simple 4-step process
           </motion.div>
-          <h2 className="text-3xl md:text-4xl font-black mb-4">
+          <h2 className="text-2xl md:text-3xl font-black mb-2">
             How Back2U{" "}
             <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>Works.</span>
           </h2>
@@ -556,12 +556,12 @@ export default function LandingPage() {
                 borderRadius: "2rem",
                 background: isLight ? "#f0faf4" : "#0a0a0a",
                 border: isLight ? "1px solid rgba(0,154,73,0.15)" : "1px solid rgba(255,255,255,0.05)",
-                padding: "2rem",
+                padding: "1.25rem",
               }}
             >
               {/* Step number watermark */}
               <div
-                className="absolute top-4 right-6 text-[80px] font-black leading-none select-none"
+                className="absolute top-4 right-6 text-[60px] font-black leading-none select-none"
                 style={{
                   color: item.color,
                   fontFamily: "'Clash Grotesk', sans-serif",
@@ -574,7 +574,7 @@ export default function LandingPage() {
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div>
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                     style={{ backgroundColor: `${item.color}15`, border: `1px solid ${item.color}30` }}
                   >
                     <item.icon size={24} color={item.color} />
@@ -588,13 +588,13 @@ export default function LandingPage() {
                   </div>
 
                   <h3
-                    className="text-2xl font-black mb-3"
+                    className="text-lg font-black mb-2"
                     style={{ color: isLight ? "#061209" : "white" }}
                   >
                     {item.title}
                   </h3>
                   <p
-                    className="font-medium leading-relaxed text-sm"
+                    className="font-medium leading-relaxed text-xs"
                     style={{ color: isLight ? "rgba(6,18,9,0.5)" : "rgba(255,255,255,0.4)" }}
                   >
                     {item.description}
@@ -614,7 +614,7 @@ export default function LandingPage() {
         >
           <Link
             href="/report"
-            className="inline-flex items-center gap-3 bg-primary text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20"
+            className="inline-flex items-center gap-3 bg-primary text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20"
           >
             Start for Free <ArrowRight size={16} />
           </Link>
@@ -622,11 +622,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING + WHY BACK2U ── */}
-      <section className="py-4 px-4 mx-4">
+      <section className="py-3 px-4 mx-2">
         <div className="grid md:grid-cols-2 gap-6 items-start">
 
           {/* LEFT Pricing */}
-          <div className="bg-[#0a0a0a] rounded-[2rem] p-4">
+          <div className="bg-[#0a0a0a] rounded-[1.5rem] p-3">
             <p className="text-white font-black text-sm mb-0.5">
               Transparent <span className="text-primary">Pricing.</span>
             </p>
@@ -670,7 +670,7 @@ export default function LandingPage() {
           </div>
 
           {/* RIGHT Why Back2U stepper */}
-          <div className="bg-slate-50 rounded-[2rem] p-6">
+          <div className="bg-slate-50 rounded-[1.5rem] p-4">
             <p className="font-black text-slate-900 text-sm mb-0.5">
               Why people choose <span className="text-primary">Back2U.</span>
             </p>
@@ -720,7 +720,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── REVIEWS MARQUEE ── */}
-      <section className="py-10 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
+      <section className="py-6 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
         <div className="text-center mb-6">
           <h2 className="text-4xl font-black">
             Trusted by the <span className="text-primary">Community.</span>
@@ -733,13 +733,13 @@ export default function LandingPage() {
             transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
           >
             {[...REVIEWS, ...REVIEWS].map((review, i) => (
-              <div key={i} className="inline-block w-[350px] bg-white p-8 rounded-[2rem] border border-slate-100 group shrink-0">
+              <div key={i} className="inline-block w-[280px] bg-white p-5 rounded-[1.5rem] border border-slate-100 group shrink-0">
                 <div className="flex gap-1 mb-4">
                   {[...Array(review.stars)].map((_, s) => (
                     <Star key={s} size={14} className="fill-secondary text-secondary" />
                   ))}
                 </div>
-                <p className="text-dark font-bold italic text-sm whitespace-normal mb-6">"{review.text}"</p>
+                <p className="text-dark font-bold italic text-xs whitespace-normal mb-3">"{review.text}"</p>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-white font-black text-[8px]">{review.name[0]}</span>
