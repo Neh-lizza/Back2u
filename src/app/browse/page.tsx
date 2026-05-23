@@ -15,7 +15,6 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import MatchSystem from "@/components/MatchAndChat";
 import Map, { Marker, Popup, NavigationControl } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const PAGE_SIZE = 12;
@@ -46,47 +45,17 @@ type ItemWithUser = {
   user: { id: string; full_name: string; avatar_url: string | null } | null;
 };
 
-function timeAgo(d: string) {
-  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+function formatDate(d: string) {
+  const date = new Date(d);
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) +
+    " · " + date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
 function getItemCoords(item: ItemWithUser) {
   return CITY_COORDS[item.city ?? ""] ?? { lng: 11.5021, lat: 3.8480 };
 }
 
-// ── TICKER ──────────────────────────────────────────────
-const TICKER_ITEMS = [
-  "Samsung Galaxy S22 returned to owner in Yaoundé just now!",
-  "Blue Backpack found in Buea claimed 15 mins ago.",
-  "National ID card reunited with owner in Douala.",
-  "Toyota keys recovered in Bamenda today.",
-];
 
-function Ticker() {
-  return (
-    <div className="bg-emerald-50 border-b border-emerald-100 py-2 px-4 flex items-center gap-3 overflow-hidden">
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Recent Reunion:</span>
-      </div>
-      <div className="overflow-hidden flex-1">
-        <motion.div
-          className="flex gap-8 whitespace-nowrap"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        >
-          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((t, i) => (
-            <span key={i} className="text-[10px] font-medium text-emerald-700">{t} •</span>
-          ))}
-        </motion.div>
-      </div>
-    </div>
-  );
-}
 
 // ── DROPDOWN ─────────────────────────────────────────────
 function Dropdown({ label, options, value, onChange }: {
@@ -104,7 +73,7 @@ function Dropdown({ label, options, value, onChange }: {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition-all whitespace-nowrap"
+        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
       >
         {label}: <span className="font-bold">{value}</span>
         <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
@@ -115,11 +84,11 @@ function Dropdown({ label, options, value, onChange }: {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
-            className="absolute top-full mt-1 left-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 py-1 min-w-[140px]"
+            className="absolute top-full mt-1 left-0 rounded-2xl shadow-xl z-50 py-1 min-w-[140px]" style={{ background: "#0d1f12", border: "1px solid rgba(255,255,255,0.1)" }}
           >
             {options.map(o => (
               <button key={o} onClick={() => { onChange(o); setOpen(false); }}
-                className={`w-full text-left px-4 py-2 text-xs font-medium hover:bg-slate-50 transition-colors flex items-center gap-2 ${value === o ? "text-primary font-bold" : "text-slate-600"}`}>
+                className={`w-full text-left px-4 py-2 text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2 ${value === o ? "text-primary font-bold" : "text-white/60"}`}>
                 {value === o && <CheckCircle size={11} className="text-primary" />}
                 {value !== o && <span className="w-3" />}
                 {o}
@@ -139,61 +108,78 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
   const isSensitive = item.sensitivity === "sensitive" || item.sensitivity === "very_sensitive";
   const firstPhoto = item.photos?.[0];
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/browse/${item.id}`;
+    if (navigator.share) {
+      navigator.share({ title: item.title, text: `Check this ${item.type} item on Back2U`, url });
+    } else {
+      navigator.clipboard.writeText(url);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.08)" }}
+      whileHover={{ y: -4 }}
       onClick={() => router.push(`/browse/${item.id}`)}
-      className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer group"
-      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+      className="rounded-2xl overflow-hidden cursor-pointer group"
+      style={{ background: "#0d1f12", border: "1px solid rgba(0,154,73,0.2)" }}
     >
       {/* Photo */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
+      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: "rgba(0,154,73,0.1)" }}>
         {firstPhoto ? (
           <Image src={firstPhoto} alt={item.title} fill sizes="33vw"
             className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isSensitive ? "blur-xl scale-110" : ""}`}
           />
         ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-            <MapPin size={28} className="text-slate-300" />
+          <div className="w-full h-full flex items-center justify-center">
+            <MapPin size={28} style={{ color: "rgba(0,154,73,0.4)" }} />
           </div>
         )}
 
         {/* Found/Lost badge */}
-        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide shadow-md ${
-          isFound ? "bg-primary text-white" : "bg-orange-400 text-white"
-        }`}>
+        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
+          isFound ? "text-[#061209]" : "bg-red-500 text-white"
+        }`} style={isFound ? { background: "#FCD116" } : {}}>
           {isFound ? <CheckCircle size={11} /> : <Search size={11} />}
           {item.type}
         </div>
 
-        {/* Flag button */}
-        <button
-          onClick={e => { e.stopPropagation(); onFlag(item.id); }}
-          className="absolute top-3 right-3 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+        {/* Flag */}
+        <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
+          className="absolute bottom-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+          style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.6)" }}
         >
           <Flag size={11} />
         </button>
 
-        {/* Sensitive overlay */}
         {isSensitive && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <span className="px-3 py-1 bg-black/60 text-white rounded-full text-[9px] font-black uppercase tracking-widest">Sensitive</span>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+            <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white" style={{ background: "rgba(0,0,0,0.6)" }}>Sensitive</span>
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="p-4">
-        <h3 className="font-bold text-slate-900 text-sm mb-2 truncate group-hover:text-primary transition-colors">{item.title}</h3>
-        <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-1">
-          <MapPin size={11} className="text-primary shrink-0" />
-          <span className="truncate">{item.location_name || item.city || "Unknown location"}</span>
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="font-bold text-sm truncate" style={{ color: "white" }}>{item.title}</h3>
+          <button onClick={handleShare}
+            className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg transition-all"
+            style={{ border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)" }}
+          >
+            Share
+          </button>
         </div>
-        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-          <Clock size={11} className="text-slate-300 shrink-0" />
-          <span>Reported {timeAgo(item.created_at)}</span>
+        <div className="flex items-center gap-1 text-[11px] mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <MapPin size={11} style={{ color: "#009A49" }} className="shrink-0" />
+          <span className="truncate">{item.location_name || item.city || "Unknown"}</span>
+        </div>
+        <div className="flex items-center gap-1 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <Clock size={11} className="shrink-0" />
+          <span>{formatDate(item.created_at)}</span>
         </div>
       </div>
     </motion.div>
@@ -268,11 +254,10 @@ export default function BrowseMarketplace() {
   }, [hasMore, loadingMore, page, fetchItems]);
 
   return (
-    <main className="min-h-screen" style={{
-      backgroundColor: "#f5f7f5",
-      backgroundImage: "radial-gradient(rgba(0,154,73,0.15) 10%, transparent 10%), radial-gradient(rgba(0,154,73,0.15) 10%, transparent 10%)",
-      backgroundSize: "60px 60px",
-      backgroundPosition: "0 0, 30px 30px",
+    <main style={{
+      background: "#061209",
+      backgroundImage: "linear-gradient(rgba(0,154,73,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.08) 1px,transparent 1px)",
+      backgroundSize: "24px 24px",
     }}>
       <style jsx global>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
@@ -280,10 +265,10 @@ export default function BrowseMarketplace() {
         .back2u-popup .mapboxgl-popup-content { background: transparent; padding: 0; box-shadow: none; }
         .back2u-popup .mapboxgl-popup-tip { display: none; }
         .mapboxgl-ctrl-attrib { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* Ticker */}
-      <Ticker />
 
       {/* Flag modal */}
       <AnimatePresence>
@@ -311,54 +296,55 @@ export default function BrowseMarketplace() {
         <MatchSystem itemId={matchItemId} currentUserId={currentUserId} onClose={() => setMatchItemId(null)} />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-0">
 
         {/* Heading + view toggle */}
-        <div className="flex items-start justify-between mb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-3">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+            <h1 className="text-3xl md:text-4xl font-black text-white leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
               Help us get it <span className="text-primary">Back2U</span>
             </h1>
-            <p className="text-slate-400 text-sm font-medium mt-1">
+            <p className="text-white/50 text-sm font-medium mt-1 md:whitespace-nowrap">
               Browse items reported in your area or search specifically for what you've lost.
             </p>
           </div>
-
-          {/* View toggle */}
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shrink-0">
+          <div className="flex items-center gap-1 rounded-xl p-1 shrink-0" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
             <button onClick={() => setView("grid")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-white text-slate-900" : "text-white/50 hover:text-white"}`}>
               <LayoutGrid size={14} /> List View
             </button>
             <button onClick={() => setView("map")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-white text-slate-900" : "text-white/50 hover:text-white"}`}>
               <MapIcon size={14} /> Map View
             </button>
           </div>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-2 mb-8">
-          {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
-            <input
-              type="text"
-              placeholder="Search for phones, IDs, keys..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-600 placeholder:text-slate-300 focus:outline-none focus:border-primary transition-all"
-            />
+
+        {/* Filter bar — 2 rows on mobile */}
+        <div className="flex flex-col gap-2 mb-4">
+          {/* Row 1: Search + Status */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }} />
+              <input type="text" placeholder="Search for phones, IDs, keys..."
+                value={search} onChange={e => setSearch(e.target.value)}
+                className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium focus:outline-none transition-all"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
+              />
+            </div>
+            <Dropdown label="Status" options={STATUS_OPTIONS} value={status} onChange={setStatus} />
           </div>
-
-          <Dropdown label="Status"   options={STATUS_OPTIONS}   value={status}   onChange={setStatus}   />
-          <Dropdown label="Category" options={CATEGORIES}        value={category} onChange={setCategory} />
-          <Dropdown label="Date"     options={DATE_OPTIONS}      value={date}     onChange={setDate}     />
-          <Dropdown label="Location" options={CAMEROON_CITIES}   value={location} onChange={setLocation} />
-
-          <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
-            <SlidersHorizontal size={16} />
-          </button>
+          {/* Row 2: Category + Date + Location + Filter — scrollable */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <Dropdown label="Category" options={CATEGORIES}      value={category} onChange={setCategory} />
+            <Dropdown label="Date"     options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
+            <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+              <SlidersHorizontal size={16} />
+            </button>
+          </div>
         </div>
 
         {/* ── GRID VIEW ── */}
@@ -383,8 +369,20 @@ export default function BrowseMarketplace() {
                     <ItemCard key={item.id} item={item} onFlag={setFlaggedId} />
                   ))}
                 </div>
-                <div ref={sentinelRef} className="h-8 flex items-center justify-center mt-6">
-                  {loadingMore && <Loader2 size={20} className="animate-spin text-primary" />}
+                <div ref={sentinelRef} className="flex items-center justify-center mt-2 pb-2">
+                  {loadingMore ? (
+                    <Loader2 size={20} className="animate-spin text-primary" />
+                  ) : !hasMore && items.length > 0 ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-3 px-6 py-2">
+                        <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
+                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.2)" }}>
+                          No more items
+                        </span>
+                        <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </>
             )}

@@ -1,47 +1,41 @@
 // src/components/shared/Navbar.tsx
+// ♻️ REPLACE
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Search, PlusCircle, User, LogOut, Loader2 } from "lucide-react";
+import { X, Search, PlusCircle, User, LogOut, Loader2, Home, MessageSquare, LayoutDashboard, Menu } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/shared/NotificationBell";
 
+const PILL_STYLE = {
+  background: "rgba(0,154,73,0.18)",
+  backdropFilter: "blur(12px) saturate(180%) contrast(200%)",
+  WebkitBackdropFilter: "blur(12px) saturate(180%) contrast(200%)",
+  border: "1px solid rgba(0,154,73,0.35)",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.15), inset 2px 2px 5px -2px rgba(255,255,255,0.15), inset -2px -2px 5px 2px rgba(255,255,255,0.08)",
+};
+
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // ── Scroll handler — unchanged ──
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // ── Get current session + listen for auth changes ──
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // ── Logout handler ──
   const handleLogout = async () => {
     setLoggingOut(true);
     await supabase.auth.signOut();
@@ -51,123 +45,126 @@ export default function Navbar() {
     router.refresh();
   };
 
-  const navLinks = [
-    { name: "Browse", href: "/browse", icon: Search },
-    { name: "Dashboard", href: "/dashboard", icon: User },
-    { name: "Messages", href: "/chat", icon: Search },
+  const navItems = [
+    { name: "Home",      href: "/",          icon: Home },
+    { name: "Browse",    href: "/browse",     icon: Search },
+    { name: "Report",    href: "/report",     icon: PlusCircle },
+    { name: "Dashboard", href: "/dashboard",  icon: LayoutDashboard },
+    { name: "Messages",  href: "/messages",   icon: MessageSquare },
   ];
 
-  return (
-    <nav className={`fixed top-0 w-full z-[100] transition-all duration-500 ${scrolled ? "py-4" : "py-6"}`}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className={`glass-card rounded-full px-6 py-3 flex items-center justify-between border border-white/10 shadow-2xl transition-all ${scrolled ? "bg-black/60 backdrop-blur-xl" : "bg-transparent"}`}>
+  const NavItem = ({ item }: { item: typeof navItems[0] }) => {
+    const isActive = pathname === item.href;
+    const isReport = item.href === "/report";
+    return (
+      <Link href={item.href}
+        onClick={() => setIsOpen(false)}
+        className="flex flex-col items-center px-3 py-2 rounded-full transition-all"
+        style={{
+          background: isActive ? "rgba(255,255,255,0.18)" : "transparent",
+          color: isActive ? "#009A49" : isReport ? "#FCD116" : "rgba(255,255,255,0.75)",
+          boxShadow: isActive ? "inset 2px 2px 5px -2px rgba(255,255,255,0.3), inset -2px -1px 5px 0 rgba(255,255,255,0.15)" : "none",
+          minWidth: "52px",
+        }}
+      >
+        <item.icon size={18} strokeWidth={isActive ? 2.5 : 1.8} />
+        <span style={{ fontSize: "0.6rem", fontWeight: 700, lineHeight: 1, marginTop: 3, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+          {item.name}
+        </span>
+      </Link>
+    );
+  };
 
-          {/* Logo — unchanged */}
-          <Link href="/" className="font-clash text-2xl font-black tracking-tighter text-white flex items-center gap-1">
-            back2u<span className="text-primary text-4xl leading-none">.</span>
+  return (
+    <>
+      {/* ── MOBILE NAVBAR ── logo + hamburger only */}
+      <nav className="fixed top-0 w-full z-[100] flex justify-center pt-3 md:hidden">
+        <div className="flex items-center justify-between px-4 py-2.5 w-[calc(100%-24px)] rounded-full" style={PILL_STYLE}>
+          <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5">
+            back2u<span className="text-primary text-3xl leading-none">.</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {user && <NotificationBell userId={user.id} />}
+            <button onClick={() => setIsOpen(!isOpen)} style={{ color: "rgba(255,255,255,0.8)" }}>
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── DESKTOP NAVBAR ── full pill with icons */}
+      <nav className="fixed top-0 w-full z-[100] hidden md:flex justify-center pt-3">
+        <div className="flex items-center gap-1 px-3 py-2 rounded-full" style={{ ...PILL_STYLE, maxWidth: "720px", width: "calc(100% - 48px)" }}>
+          {/* Logo */}
+          <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5 shrink-0 px-3 mr-2">
+            back2u<span className="text-primary text-3xl leading-none">.</span>
           </Link>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-primary transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Nav items */}
+          <div className="flex items-center gap-1 flex-1 justify-center">
+            {navItems.map(item => <NavItem key={item.name} item={item} />)}
+          </div>
 
-            {/* Notification bell — only when logged in */}
+          {/* Auth */}
+          <div className="flex items-center gap-1 ml-2">
             {user && <NotificationBell userId={user.id} />}
-
-            {/* Report button — unchanged */}
-            <Link
-              href="/report"
-              className="bg-primary text-black px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
-            >
-              <PlusCircle size={14} /> Report
-            </Link>
-
-            {/* Auth: Login or Logout */}
             {user ? (
-              <button
-                onClick={handleLogout}
-                disabled={loggingOut}
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-red-400 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {loggingOut
-                  ? <Loader2 size={14} className="animate-spin" />
-                  : <LogOut size={14} />
-                }
-                {loggingOut ? "..." : "Logout"}
+              <button onClick={handleLogout} disabled={loggingOut}
+                className="flex flex-col items-center px-3 py-2 rounded-full transition-all"
+                style={{ color: "rgba(255,255,255,0.5)", minWidth: "52px" }}>
+                {loggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} strokeWidth={1.8} />}
+                <span style={{ fontSize: "0.6rem", fontWeight: 700, lineHeight: 1, marginTop: 3, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  {loggingOut ? "..." : "Logout"}
+                </span>
               </button>
             ) : (
-              <Link
-                href="/auth"
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-primary transition-colors"
-              >
-                Login
+              <Link href="/auth" className="flex flex-col items-center px-3 py-2 rounded-full transition-all"
+                style={{ color: "rgba(255,255,255,0.5)", minWidth: "52px" }}>
+                <User size={18} strokeWidth={1.8} />
+                <span style={{ fontSize: "0.6rem", fontWeight: 700, lineHeight: 1, marginTop: 3, letterSpacing: "0.05em", textTransform: "uppercase" }}>Login</span>
               </Link>
             )}
           </div>
-
-          {/* Mobile Toggle — unchanged */}
-          <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu — unchanged layout */}
+      {/* ── MOBILE FULL SCREEN MENU ── */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[-1] flex flex-col items-center justify-center gap-8 md:hidden"
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className="fixed inset-0 z-[99] flex flex-col items-center justify-center gap-6 md:hidden"
+            style={{ background: "rgba(6,18,9,0.97)", backdropFilter: "blur(20px)" }}
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className="text-4xl font-clash font-black uppercase italic text-white hover:text-primary transition-all"
-              >
-                {link.name}
+            {navItems.map((item) => (
+              <Link key={item.name} href={item.href} onClick={() => setIsOpen(false)}
+                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 transition-all"
+                style={{
+                  background: pathname === item.href ? "rgba(0,154,73,0.2)" : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${pathname === item.href ? "rgba(0,154,73,0.4)" : "rgba(255,255,255,0.08)"}`,
+                  color: pathname === item.href ? "#009A49" : item.href === "/report" ? "#FCD116" : "rgba(255,255,255,0.8)",
+                }}>
+                <item.icon size={22} />
+                <span className="font-black uppercase tracking-widest text-sm">{item.name}</span>
               </Link>
             ))}
-
-            <Link
-              href="/report"
-              onClick={() => setIsOpen(false)}
-              className="mt-4 bg-primary text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest"
-            >
-              Report Item
-            </Link>
-
-            {/* Mobile auth */}
             {user ? (
-              <button
-                onClick={() => { handleLogout(); setIsOpen(false); }}
-                className="text-white/40 font-black uppercase tracking-widest text-sm flex items-center gap-2 hover:text-red-400 transition-colors"
-              >
-                <LogOut size={16} /> Logout
+              <button onClick={() => { handleLogout(); setIsOpen(false); }}
+                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 mt-2"
+                style={{ background: "rgba(255,77,77,0.08)", border: "1px solid rgba(255,77,77,0.15)", color: "rgba(255,100,100,0.8)" }}>
+                <LogOut size={22} />
+                <span className="font-black uppercase tracking-widest text-sm">Logout</span>
               </button>
             ) : (
-              <Link
-                href="/auth"
-                onClick={() => setIsOpen(false)}
-                className="text-white/40 font-black uppercase tracking-widest text-sm hover:text-primary transition-colors"
-              >
-                Login
+              <Link href="/auth" onClick={() => setIsOpen(false)}
+                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 mt-2"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                <User size={22} />
+                <span className="font-black uppercase tracking-widest text-sm">Login</span>
               </Link>
             )}
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 }
