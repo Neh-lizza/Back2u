@@ -139,12 +139,15 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
           </div>
         )}
 
-        {/* Found/Lost badge */}
+        {/* Found/Lost/Missing badge */}
         <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
-          isFound ? "text-[#061209]" : "bg-red-500 text-white"
-        }`} style={isFound ? { background: "#FCD116" } : {}}>
-          {isFound ? <CheckCircle size={11} /> : <Search size={11} />}
-          {item.type}
+          (item as any).is_missing_person ? "text-white" :
+          isFound ? "text-[#061209]" : "text-white"
+        }`} style={
+          (item as any).is_missing_person ? { background: "#CE1126" } :
+          isFound ? { background: "#FCD116" } : { background: "#FF4D4D" }
+        }>
+          {(item as any).is_missing_person ? "🚨 Missing" : isFound ? <><CheckCircle size={11} />&nbsp;Found</> : <><Search size={11} />&nbsp;Lost</>}
         </div>
 
         {/* Flag */}
@@ -221,7 +224,8 @@ export default function BrowseMarketplace() {
       .order("created_at", { ascending: false })
       .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
-    if (status !== "All") q = q.eq("type", status.toLowerCase());
+    if (status === "missing") q = q.eq("is_missing_person", true);
+    else if (status !== "All") q = q.eq("type", status.toLowerCase());
     if (category !== "All") q = q.eq("category", category.toLowerCase());
     if (location !== "All Cities") q = q.eq("city", location);
     if (search) q = q.ilike("title", `%${search}%`);
@@ -305,7 +309,7 @@ export default function BrowseMarketplace() {
               Help us get it <span className="text-primary">Back2U</span>
             </h1>
             <p className="text-white/50 text-sm font-medium mt-1 md:whitespace-nowrap">
-              Browse items reported in your area or search specifically for what you've lost.
+              Browse reports in your area or search specifically for what you've lost.
             </p>
           </div>
           <div className="flex items-center gap-1 rounded-xl p-1 shrink-0" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -320,6 +324,24 @@ export default function BrowseMarketplace() {
           </div>
         </div>
 
+
+        {/* Missing Persons urgent banner tab */}
+        <div className="flex items-center gap-2 mb-3">
+          <button
+            onClick={() => setStatus(status === "missing" ? "All" : "missing")}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+            style={{
+              background: status === "missing" ? "#CE1126" : "rgba(206,17,38,0.12)",
+              color: status === "missing" ? "white" : "#CE1126",
+              border: "1px solid rgba(206,17,38,0.3)",
+            }}
+          >
+            🚨 Missing Persons {status === "missing" ? "— Tap to clear" : ""}
+          </button>
+          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
+            Free to post · Free to contact
+          </span>
+        </div>
 
         {/* Filter bar — 2 rows on mobile */}
         <div className="flex flex-col gap-2 mb-4">

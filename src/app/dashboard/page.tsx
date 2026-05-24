@@ -127,8 +127,6 @@ export default function Dashboard() {
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
         body { font-family: 'Satoshi', sans-serif; }
         .font-clash { font-family: 'Clash Grotesk', sans-serif; }
-        nav { background: white !important; border-bottom: 1px solid #e2e8f0 !important; }
-        nav a, nav button, nav span { color: #1e293b !important; }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-5">
@@ -194,7 +192,7 @@ export default function Dashboard() {
             >
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-50">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-black text-xs text-purple-900">My Items</h2>
+                  <h2 className="font-black text-xs text-purple-900">My Reports</h2>
                   <span className="px-2.5 py-0.5 bg-purple-200 text-purple-800 rounded-full text-[9px] font-black">{stats.active} active</span>
                 </div>
                 <Link href="/browse" className="text-purple-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
@@ -289,7 +287,7 @@ export default function Dashboard() {
                 </div>
               )}
               <div className="px-4 py-2 border-t border-slate-100">
-                <Link href="/messages" className="flex items-center justify-center gap-1 text-blue-700 text-[9px] font-bold hover:underline">
+                <Link href="/chat" className="flex items-center justify-center gap-1 text-blue-700 text-[9px] font-bold hover:underline">
                   View all chats <ChevronRight size={11} />
                 </Link>
               </div>

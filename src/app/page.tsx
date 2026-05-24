@@ -43,7 +43,7 @@ const HOW_IT_WORKS = [
     icon: UploadIcon,
     color: "#009A49",
     title: "Post Your Report",
-    description: "Lost or found something? Fill in our 3-step form title, category, estimated value, and pin the exact location on our Cameroon map. Takes under 2 minutes.",
+    description: "Lost something or someone? Fill in our 3-step form title, category, estimated value, and pin the exact location on our Cameroon map. Takes under 2 minutes.",
     tag: "Free to post",
   },
   {
@@ -295,7 +295,7 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-[-0.01em] text-[#061209]"
             >
-              Every lost item has a story.{" "}
+              Every loss has a story.{" "}
               <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>
                 Back2U writes the ending.
               </span>
@@ -307,7 +307,7 @@ export default function LandingPage() {
               transition={{ delay: 0.2 }}
               className="text-sm text-slate-400 font-medium max-w-md leading-relaxed"
             >
-              Because losing something shouldn't mean losing it forever.
+              Whether it's a phone, a wallet, or a loved one we help bring them back.
             </motion.p>
 
             {/* Buttons + trust bar on same line */}
@@ -345,7 +345,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 size={12} className="text-primary" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">MTN & Orange</span>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Missing persons free</span>
                 </div>
               </div>
             </motion.div>
@@ -423,11 +423,11 @@ export default function LandingPage() {
                 className="text-xl md:text-2xl font-black text-slate-900 mb-2 leading-tight"
                 style={{ fontFamily: "'Clash Grotesk', sans-serif" }}
               >
-                You lost something. Somewhere out there, someone found it. We bring you together.
+                You lost something or someone. Somewhere out there, someone has answers. We bring you together.
               </h3>
 
               <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed mb-2">
-                Back2U is a lost and found platform. When you lose something like a phone, wallet, ID card or keys, you post a report here. If someone found it and posted it too, our system automatically matches you and opens a private chat so you can arrange the return safely.
+                Back2U is a recovery platform. When you lose something a phone, wallet, ID card, keys or when a loved one goes missing, you post a report here. If someone has information or found them, our system automatically matches you and opens a private chat so you can reconnect safely.
               </p>
 
               <p className="text-slate-400 text-sm font-medium leading-relaxed">
@@ -436,9 +436,9 @@ export default function LandingPage() {
 
               <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
                 {[
-                  { label: "Lost something?", desc: "Post a report, get matched, recover your item." },
+                  { label: "Lost something?", desc: "Post a report, get matched, recover it." },
                   { label: "Found something?", desc: "Post it, earn points and a reward when matched." },
-                  { label: "Everyone wins.", desc: "A safer, more honest Cameroon." },
+                  { label: "Missing person?", desc: "Post for free. No fees ever. Help find them." },
                 ].map((fact, i) => (
                   <div key={i}>
                     <p className="text-primary text-[9px] font-black uppercase tracking-widest mb-1">{fact.label}</p>
@@ -457,7 +457,7 @@ export default function LandingPage() {
       <section className="py-4 px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-3 gap-3 md:gap-4">
           {[
-            { val: 2450,  label: "Items Recovered",  icon: PackageCheck, blob: "#009A49", light: true  },
+            { val: 2450,  label: "Cases Resolved",   icon: PackageCheck, blob: "#009A49", light: true  },
             { val: 12000, label: "Community Members", icon: Users,        blob: "#FCD116", light: false },
             { val: 10,    label: "Regions Covered",   icon: MapPin,       blob: "#009A49", light: true  },
           ].map((item, i) => (
@@ -537,7 +537,7 @@ export default function LandingPage() {
             <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>Works.</span>
           </h2>
           <p className="text-slate-400 font-medium max-w-lg mx-auto">
-            From posting a report to recovering your item, here's exactly what happens at each step.
+            From posting a report to recovering your item or finding a loved one here's exactly what happens at each step.
           </p>
         </div>
 
@@ -807,10 +807,10 @@ export default function LandingPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-[50px] pointer-events-none" />
           <div className="relative z-10 space-y-2">
             <h2 className="text-base font-black text-white">
-              Lost or found something?
+              Lost something or someone?
             </h2>
             <p className="text-white/40 text-[10px] font-medium max-w-xs mx-auto leading-relaxed">
-              Post free. Pay only if matched and you want contact.
+              Post free. Missing persons are always free to post and contact.
             </p>
             <div className="flex gap-2 justify-center pt-1">
               <Link href="/report" className="bg-primary text-white px-4 py-2 rounded-lg font-black text-[9px] tracking-widest uppercase hover:scale-105 transition-all flex items-center gap-1.5">

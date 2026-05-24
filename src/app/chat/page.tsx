@@ -246,7 +246,7 @@ function ChatPage() {
   );
 
   return (
-    <main className="h-[calc(100vh-80px)] bg-white flex overflow-hidden mt-20">
+    <main className="h-[calc(100vh-56px)] bg-white flex overflow-hidden">
 
       {/* SIDEBAR */}
       <aside className={`${showMobileChat ? "hidden md:flex" : "flex"} w-full md:w-[380px] flex-col border-r border-slate-100 shrink-0`}>

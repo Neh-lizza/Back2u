@@ -12,11 +12,9 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/shared/NotificationBell";
 
 const PILL_STYLE = {
-  background: "rgba(0,154,73,0.18)",
-  backdropFilter: "blur(12px) saturate(180%) contrast(200%)",
-  WebkitBackdropFilter: "blur(12px) saturate(180%) contrast(200%)",
-  border: "1px solid rgba(0,154,73,0.35)",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.15), inset 2px 2px 5px -2px rgba(255,255,255,0.15), inset -2px -2px 5px 2px rgba(255,255,255,0.08)",
+  background: "#061209",
+  borderBottom: "1px solid rgba(0,154,73,0.25)",
+  boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
 };
 
 export default function Navbar() {
@@ -50,7 +48,7 @@ export default function Navbar() {
     { name: "Browse",    href: "/browse",     icon: Search },
     { name: "Report",    href: "/report",     icon: PlusCircle },
     { name: "Dashboard", href: "/dashboard",  icon: LayoutDashboard },
-    { name: "Messages",  href: "/messages",   icon: MessageSquare },
+    { name: "Messages",  href: "/chat",      icon: MessageSquare },
   ];
 
   const NavItem = ({ item }: { item: typeof navItems[0] }) => {
@@ -78,8 +76,8 @@ export default function Navbar() {
   return (
     <>
       {/* ── MOBILE NAVBAR ── logo + hamburger only */}
-      <nav className="fixed top-0 w-full z-[100] flex justify-center pt-3 md:hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 w-[calc(100%-24px)] rounded-full" style={PILL_STYLE}>
+      <nav className="fixed top-0 w-full z-[100] md:hidden">
+        <div className="flex items-center justify-between px-5 py-3 w-full" style={PILL_STYLE}>
           <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5">
             back2u<span className="text-primary text-3xl leading-none">.</span>
           </Link>
@@ -93,8 +91,8 @@ export default function Navbar() {
       </nav>
 
       {/* ── DESKTOP NAVBAR ── full pill with icons */}
-      <nav className="fixed top-0 w-full z-[100] hidden md:flex justify-center pt-3">
-        <div className="flex items-center gap-1 px-3 py-2 rounded-full" style={{ ...PILL_STYLE, maxWidth: "720px", width: "calc(100% - 48px)" }}>
+      <nav className="fixed top-0 w-full z-[100] hidden md:flex">
+        <div className="flex items-center gap-1 px-6 py-2 w-full" style={PILL_STYLE}>
           {/* Logo */}
           <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5 shrink-0 px-3 mr-2">
             back2u<span className="text-primary text-3xl leading-none">.</span>
