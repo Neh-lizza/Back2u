@@ -161,7 +161,24 @@ const fileInputRef = useRef<HTMLInputElement>(null);
 
       if (insertError) throw new Error(insertError.message);
 
-      // 6. If very_sensitive → notify admins (insert admin notification)
+      // 6. Trigger AI image matching in background (non-blocking)
+      const { data: newItem } = await db
+        .from("items")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (newItem?.id && photos.length > 0) {
+        fetch("/api/match-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item_id: newItem.id }),
+        }).catch(() => {}); // fire and forget
+      }
+
+      // 7. If very_sensitive → notify admins (insert admin notification)
       if (formData.sensitivity === "very_sensitive") {
         // Get all admin user IDs
         const { data: admins } = await db
