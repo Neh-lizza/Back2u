@@ -13,7 +13,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import MatchSystem from "@/components/MatchAndChat";
 import Map, { Marker, Popup, NavigationControl } from "react-map-gl/mapbox";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
@@ -207,14 +206,8 @@ export default function BrowseMarketplace() {
   const [selectedMapItem, setSelectedMapItem] = useState<ItemWithUser | null>(null);
   const [mapViewport, setMapViewport] = useState({ longitude: 12.35, latitude: 5.96, zoom: 5.5 });
   const [flaggedId, setFlaggedId] = useState<string | null>(null);
-  const [matchItemId, setMatchItemId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
-  }, []);
 
   const fetchItems = useCallback(async (pageNum: number, reset = false) => {
     if (reset) setLoading(true); else setLoadingMore(true);
@@ -296,9 +289,6 @@ export default function BrowseMarketplace() {
       </AnimatePresence>
 
       {/* Match system */}
-      {matchItemId && currentUserId && (
-        <MatchSystem itemId={matchItemId} currentUserId={currentUserId} onClose={() => setMatchItemId(null)} />
-      )}
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-0">
 
