@@ -65,6 +65,15 @@ export default function ItemDetailPage() {
     if (!item) return;
     setClaiming(true); setClaimError(null);
     try {
+      // R5: Check for suspicious unlock attempts
+      const { data: unlockAllowed } = await (supabase as any).rpc('check_suspicious_unlocks', {
+        p_user_id: currentUser.id,
+        p_item_id: item.id,
+      });
+      if (unlockAllowed === false) {
+        throw new Error('Too many contact attempts on this report. Our fraud detection has flagged this activity.');
+      }
+
       const { data: existingChat } = await (supabase.from("chats") as any)
         .select("id").eq("item_id", item.id)
         .or(`participant_a.eq.${currentUser.id},participant_b.eq.${currentUser.id}`)

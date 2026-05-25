@@ -1,10 +1,8 @@
-// src/proxy.ts
-// Protects routes, refreshes sessions, handles redirects
-
+// src/middleware.ts
+// ♻️ REPLACE
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Routes that require login
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/report',
@@ -14,15 +12,18 @@ const PROTECTED_ROUTES = [
   '/recovery',
 ]
 
-// Routes that logged-in users should NOT access
-// NOTE: /auth/reset is intentionally excluded — a logged-in user
-// clicking their reset email link must be allowed through to update their password.
 const AUTH_ROUTES = [
   '/auth',
 ]
 
-// Routes always accessible regardless of auth state
 const PUBLIC_OVERRIDES = [
+  '/auth/reset',
+]
+
+const BANNED_ALLOWED_ROUTES = [
+  '/',
+  '/banned',
+  '/auth',
   '/auth/reset',
 ]
 
@@ -52,18 +53,14 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // Refresh session — IMPORTANT: do not remove
   const { data: { user } } = await supabase.auth.getUser()
-
   const path = request.nextUrl.pathname
 
-  // Always allow public overrides (e.g. password reset page)
+  // Always allow public overrides
   const isPublicOverride = PUBLIC_OVERRIDES.some(route => path.startsWith(route))
-  if (isPublicOverride) {
-    return supabaseResponse
-  }
+  if (isPublicOverride) return supabaseResponse
 
-  // If user is not logged in and tries to access protected route → redirect to /auth
+  // Not logged in → redirect to /auth
   const isProtected = PROTECTED_ROUTES.some(route => path.startsWith(route))
   if (isProtected && !user) {
     const redirectUrl = request.nextUrl.clone()
@@ -72,7 +69,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If user IS logged in and tries to access /auth → redirect to /dashboard
+  // Logged in → redirect away from /auth
   const isAuthRoute = AUTH_ROUTES.some(route => path.startsWith(route))
   if (isAuthRoute && user) {
     const redirectUrl = request.nextUrl.clone()
@@ -80,18 +77,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // ── BANNED USER CHECK ──────────────────────────────────
+  if (user) {
+    const isBannedAllowed = BANNED_ALLOWED_ROUTES.some(route => path.startsWith(route))
+    if (!isBannedAllowed) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('is_banned')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.is_banned) {
+        const redirectUrl = request.nextUrl.clone()
+        redirectUrl.pathname = '/banned'
+        return NextResponse.redirect(redirectUrl)
+      }
+    }
+  }
+
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     * - public folder files
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

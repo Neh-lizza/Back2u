@@ -34,6 +34,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittedItemId, setSubmittedItemId] = useState<string | null>(null);
 
   // Photo state
   const [photos, setPhotos] = useState<File[]>([]);
@@ -134,7 +135,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
       }
 
       // 5. Insert item into DB
-      const { error: insertError } = await db
+      const { data: insertedItem, error: insertError } = await db
         .from("items")
         .insert({
           user_id:       user.id,
@@ -159,7 +160,12 @@ const fileInputRef = useRef<HTMLInputElement>(null);
           // matching algorithm triggers automatically via DB trigger
         });
 
-      if (insertError) throw new Error(insertError.message);
+      if (insertError) {
+        if (insertError.message?.includes('DUPLICATE_REPORT')) {
+          throw new Error('You already posted a report with this title in the last 7 days.');
+        }
+        throw new Error(insertError.message);
+      }
 
       // 6. Trigger AI image matching in background (non-blocking)
       const { data: newItem } = await db
@@ -200,6 +206,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
       }
 
       // 7. Success
+      setSubmittedItemId(newItem?.id ?? null);
       setIsSubmitted(true);
       triggerConfetti();
 
@@ -213,7 +220,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   // ── STEP VALIDATION ──
   const canProceedToStep3 = formData.title.trim().length > 0;
 
-  if (isSubmitted) return <SuccessState sensitivity={formData.sensitivity} />;
+  if (isSubmitted) return <SuccessState sensitivity={formData.sensitivity} itemId={submittedItemId} />;
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-12">
@@ -606,26 +613,53 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   );
 }
 
-// ── SUCCESS STATE — unchanged design ──
-function SuccessState({ sensitivity }: { sensitivity: string }) {
+// ── SUCCESS STATE ──
+function SuccessState({ sensitivity, itemId }: { sensitivity: string; itemId: string | null }) {
+  const supabase = createClient();
+  const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "done" | "exists">("idle");
+
+  const requestFacebookShare = async () => {
+    if (!itemId) return;
+    setShareStatus("loading");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setShareStatus("idle"); return; }
+
+    const { error } = await (supabase as any).from("facebook_share_requests").insert({
+      item_id: itemId,
+      user_id: user.id,
+      note: null,
+    });
+
+    if (error?.code === "23505") {
+      setShareStatus("exists"); // already requested
+    } else if (error) {
+      setShareStatus("idle");
+    } else {
+      // Notify admin
+      await (supabase as any).from("notifications").insert({
+        user_id: null, // will be picked up by admin query
+        type: "facebook_share_request",
+        title: "New Facebook Share Request",
+        body: `A user has requested their report to be shared on the Back2U Facebook account.`,
+        data: { item_id: itemId },
+      });
+      setShareStatus("done");
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center"
     >
       <div className="relative mb-12">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-          transition={{ repeat: Infinity, duration: 4 }}
-          className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center"
-        >
+        <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }}
+          className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center">
           <Heart size={60} className="text-primary fill-primary" />
         </motion.div>
       </div>
 
       <h1 className="text-6xl font-black font-clash uppercase tracking-tighter text-white mb-4">
-        Report <br /> <span className="text-primary">Received!</span>
+        Report <br /><span className="text-primary">Received!</span>
       </h1>
 
       {sensitivity === "very_sensitive" ? (
@@ -638,10 +672,38 @@ function SuccessState({ sensitivity }: { sensitivity: string }) {
         </p>
       )}
 
-      <Link
-        href="/dashboard"
-        className="bg-white text-black px-12 py-5 rounded-2xl font-black tracking-widest text-xs uppercase hover:bg-primary transition-all"
-      >
+      {/* Facebook share request */}
+      {itemId && (
+        <div className="mt-4 mb-6 max-w-sm w-full">
+          <div className="rounded-2xl p-5 text-left" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Reach more people</p>
+            <p className="text-xs font-medium mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Request the Back2U team to share your report on the official Back2U Facebook account. Our admin will review and post it.
+            </p>
+            {shareStatus === "done" ? (
+              <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest">
+                <CheckCircle2 size={14} /> Request sent! Admin will review it.
+              </div>
+            ) : shareStatus === "exists" ? (
+              <div className="flex items-center gap-2 text-white/40 text-xs font-bold uppercase tracking-widest">
+                <CheckCircle2 size={14} /> Already requested
+              </div>
+            ) : (
+              <button onClick={requestFacebookShare} disabled={shareStatus === "loading"}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 hover:scale-[1.02]"
+                style={{ background: "#1877F2", color: "white" }}>
+                {shareStatus === "loading"
+                  ? <><Loader2 size={14} className="animate-spin" /> Sending request...</>
+                  : <><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Request Facebook Share</>
+                }
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Link href="/dashboard"
+        className="bg-white text-black px-12 py-5 rounded-2xl font-black tracking-widest text-xs uppercase hover:bg-primary transition-all">
         Go to Dashboard
       </Link>
     </motion.div>
