@@ -62,7 +62,20 @@ export default function Dashboard() {
       if (!user) { router.push("/auth"); return; }
 
       const { data: p } = await db.from("users").select("*").eq("id", user.id).single();
-      if (p) setProfile(p);
+      if (p) {
+        setProfile(p);
+      } else {
+        // Profile missing — create it from auth metadata
+        const meta = user.user_metadata ?? {};
+        const { data: newProfile } = await db.from("users").insert({
+          id:        user.id,
+          full_name: meta.full_name || meta.name || user.email?.split("@")[0] || "User",
+          email:     user.email,
+          city:      meta.city || null,
+          region:    meta.region || null,
+        }).select().single();
+        if (newProfile) setProfile(newProfile);
+      }
 
       const { data: items } = await db.from("items").select("*").eq("user_id", user.id)
         .order("created_at", { ascending: false }).limit(5);
@@ -265,7 +278,7 @@ export default function Dashboard() {
               ) : (
                 <div>
                   {recentChats.map((chat, i) => (
-                    <Link href={`/messages?id=${chat.id}`} key={chat.id}>
+                    <Link href={`/chat?id=${chat.id}`} key={chat.id}>
                       <div className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-100 transition-all cursor-pointer ${i < recentChats.length - 1 ? "border-b border-blue-100" : ""}`}>
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
                           {chat.other_user?.avatar_url
@@ -342,6 +355,30 @@ export default function Dashboard() {
                       fill={i < Math.min(5, profile?.recovery_count ?? 0) ? g.color : "rgba(255,255,255,0.1)"}
                     />
                   ))}
+                </div>
+
+                {/* Subscription status */}
+                <div className="pt-2 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                  {profile?.is_subscribed && profile?.subscription_end && new Date(profile.subscription_end) > new Date() ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary">Annual Pass Active</p>
+                        <p className="text-[8px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                          Expires {new Date(profile.subscription_end).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      </div>
+                      <CheckCircle2 size={14} className="text-primary" />
+                    </div>
+                  ) : (
+                    <Link href="/subscribe"
+                      className="flex items-center justify-between w-full py-2 px-3 rounded-xl transition-all hover:opacity-90"
+                      style={{ background: "rgba(252,209,22,0.12)", border: "1px solid rgba(252,209,22,0.25)" }}>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: "#FCD116" }}>Get Annual Pass</p>
+                        <p className="text-[8px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>300 XAF/year</p>
+                      </div>
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

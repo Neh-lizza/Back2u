@@ -55,8 +55,11 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     missingPersonGender: "",
   });
 
+  const [detectingCategory, setDetectingCategory] = useState(false);
+  const [detectedConfidence, setDetectedConfidence] = useState<number | null>(null);
+
   // ── PHOTO HANDLER ──
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (photos.length + files.length > 5) {
       alert("Maximum 5 photos allowed.");
@@ -65,6 +68,35 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     const newFiles = [...photos, ...files].slice(0, 5);
     setPhotos(newFiles);
     setPhotoPreviews(newFiles.map(f => URL.createObjectURL(f)));
+
+    // Auto-detect category from first photo
+    if (newFiles.length > 0 && !formData.itemCategory) {
+      setDetectingCategory(true);
+      try {
+        // Upload first photo temporarily to get a URL for the API
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const file = newFiles[0];
+          const ext = file.name.split(".").pop();
+          const path = `${user.id}/preview-${Date.now()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from("item-photos").upload(path, file, { upsert: true });
+          if (!uploadErr) {
+            const { data: { publicUrl } } = supabase.storage.from("item-photos").getPublicUrl(path);
+            const res = await fetch("/api/detect-category", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageUrl: publicUrl }),
+            });
+            const data = await res.json();
+            if (data.category && data.category !== "other") {
+              setFormData(f => ({ ...f, itemCategory: data.category }));
+              setDetectedConfidence(data.confidence);
+            }
+          }
+        }
+      } catch (_) {}
+      setDetectingCategory(false);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -96,7 +128,16 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         return;
       }
 
-      // 2. Rate limit check — max 3 active reports
+      // 2. Check subscription for lost items (found and missing persons always free)
+      if (formData.type === "lost" && !formData.isMissingPerson) {
+        const { data: canPost } = await (supabase as any).rpc("can_user_post", { p_user_id: user.id });
+        if (!canPost) {
+          router.push("/subscribe?reason=post_limit");
+          return;
+        }
+      }
+
+      // 3. Rate limit check — max 3 active reports
       const { count } = await db
         .from("items")
         .select("*", { count: "exact", head: true })
@@ -427,7 +468,22 @@ const fileInputRef = useRef<HTMLInputElement>(null);
 
                 {/* NEW: Item Category */}
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Item Category</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Item Category</p>
+                    {detectingCategory && (
+                      <div className="flex items-center gap-1.5">
+                        <Loader2 size={11} className="animate-spin text-primary" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-primary">AI detecting...</span>
+                      </div>
+                    )}
+                    {detectedConfidence && !detectingCategory && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(0,154,73,0.7)" }}>
+                          AI detected · {detectedConfidence}% confidence
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid grid-cols-4 gap-2">
                     {CATEGORIES.map(cat => (
                       <button
