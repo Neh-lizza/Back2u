@@ -58,7 +58,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      let user: any = null;
+      try {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+      } catch (e) {
+        // Lock conflict — retry once after short delay
+        await new Promise(r => setTimeout(r, 500));
+        try {
+          const { data } = await supabase.auth.getUser();
+          user = data.user;
+        } catch (_) {
+          router.push("/auth");
+          return;
+        }
+      }
       if (!user) { router.push("/auth"); return; }
 
       const { data: p } = await db.from("users").select("*").eq("id", user.id).single();
