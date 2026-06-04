@@ -27,12 +27,15 @@ export default function Navbar() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    } catch (_) {
-      // Lock conflict — ignore, will retry on next render
-    }
+    const load = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (_) {
+        // Lock conflict — ignore
+      }
+    };
+    load();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });

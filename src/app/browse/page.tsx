@@ -72,7 +72,7 @@ function Dropdown({ label, options, value, onChange }: {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
+        className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition-all whitespace-nowrap"
       >
         {label}: <span className="font-bold">{value}</span>
         <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
@@ -83,11 +83,11 @@ function Dropdown({ label, options, value, onChange }: {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
-            className="absolute top-full mt-1 left-0 rounded-2xl shadow-xl z-50 py-1 min-w-[140px]" style={{ background: "#0d1f12", border: "1px solid rgba(255,255,255,0.1)" }}
+            className="absolute top-full mt-1 left-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 py-1 min-w-[140px]"
           >
             {options.map(o => (
               <button key={o} onClick={() => { onChange(o); setOpen(false); }}
-                className={`w-full text-left px-4 py-2 text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2 ${value === o ? "text-primary font-bold" : "text-white/60"}`}>
+                className={`w-full text-left px-4 py-2 text-xs font-medium hover:bg-slate-50 transition-colors flex items-center gap-2 ${value === o ? "text-primary font-bold" : "text-slate-600"}`}>
                 {value === o && <CheckCircle size={11} className="text-primary" />}
                 {value !== o && <span className="w-3" />}
                 {o}
@@ -123,8 +123,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       onClick={() => router.push(`/browse/${item.id}`)}
-      className="rounded-2xl overflow-hidden cursor-pointer group"
-      style={{ background: "#0d1f12", border: "1px solid rgba(0,154,73,0.2)" }}
+      className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer group" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
     >
       {/* Photo */}
       <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: "rgba(0,154,73,0.1)" }}>
@@ -134,7 +133,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <MapPin size={28} style={{ color: "rgba(0,154,73,0.4)" }} />
+            <MapPin size={28} className="text-slate-300" />
           </div>
         )}
 
@@ -167,19 +166,19 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
       {/* Info */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-sm truncate" style={{ color: "white" }}>{item.title}</h3>
+          <h3 className="font-bold text-sm truncate" className="text-slate-900">{item.title}</h3>
           <button onClick={handleShare}
             className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg transition-all"
-            style={{ border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)" }}
+            className="border border-slate-200 text-slate-400 bg-white hover:bg-slate-50 rounded-lg px-2 py-1 text-[9px] font-bold transition-all"
           >
             Share
           </button>
         </div>
-        <div className="flex items-center gap-1 text-[11px] mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>
-          <MapPin size={11} style={{ color: "#009A49" }} className="shrink-0" />
+        <div className="flex items-center gap-1 text-[11px] mb-1" className="text-slate-400">
+          <MapPin size={11} className="text-primary shrink-0" />
           <span className="truncate">{item.location_name || item.city || "Unknown"}</span>
         </div>
-        <div className="flex items-center gap-1 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <div className="flex items-center gap-1 text-[11px]" className="text-slate-300">
           <Clock size={11} className="shrink-0" />
           <span>{formatDate(item.created_at)}</span>
         </div>
@@ -251,11 +250,7 @@ export default function BrowseMarketplace() {
   }, [hasMore, loadingMore, page, fetchItems]);
 
   return (
-    <main style={{
-      background: "#061209",
-      backgroundImage: "linear-gradient(rgba(0,154,73,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.08) 1px,transparent 1px)",
-      backgroundSize: "24px 24px",
-    }}>
+    <main style={{ background: "#F0F4F8" }}>
       <style jsx global>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
         body { font-family: 'Satoshi', sans-serif; }
@@ -295,20 +290,20 @@ export default function BrowseMarketplace() {
         {/* Heading + view toggle */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-3">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-white leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
               Help us get it <span className="text-primary">Back2U</span>
             </h1>
             <p className="text-white/50 text-sm font-medium mt-1 md:whitespace-nowrap">
               Browse reports in your area or search specifically for what you've lost.
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-xl p-1 shrink-0" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shrink-0">
             <button onClick={() => setView("grid")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-white text-slate-900" : "text-white/50 hover:text-white"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
               <LayoutGrid size={14} /> List View
             </button>
             <button onClick={() => setView("map")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-white text-slate-900" : "text-white/50 hover:text-white"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
               <MapIcon size={14} /> Map View
             </button>
           </div>
@@ -321,7 +316,7 @@ export default function BrowseMarketplace() {
             onClick={() => setStatus(status === "missing" ? "All" : "missing")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
             style={{
-              background: status === "missing" ? "#CE1126" : "rgba(206,17,38,0.12)",
+              background: status === "missing" ? "#CE1126" : "rgba(206,17,38,0.08)",
               color: status === "missing" ? "white" : "#CE1126",
               border: "1px solid rgba(206,17,38,0.3)",
             }}
@@ -338,11 +333,10 @@ export default function BrowseMarketplace() {
           {/* Row 1: Search + Status */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }} />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" className="text-slate-300" />
               <input type="text" placeholder="Search for phones, IDs, keys..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium focus:outline-none transition-all"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-600 placeholder:text-slate-300 focus:outline-none focus:border-primary transition-all"
               />
             </div>
             <Dropdown label="Status" options={STATUS_OPTIONS} value={status} onChange={setStatus} />
@@ -352,8 +346,7 @@ export default function BrowseMarketplace() {
             <Dropdown label="Category" options={CATEGORIES}      value={category} onChange={setCategory} />
             <Dropdown label="Date"     options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
             <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+            <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 text-slate-400 hover:text-primary hover:border-primary transition-all">
               <SlidersHorizontal size={16} />
             </button>
           </div>
@@ -388,7 +381,7 @@ export default function BrowseMarketplace() {
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-3 px-6 py-2">
                         <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
-                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.2)" }}>
+                        <span className="text-[10px] font-black uppercase tracking-widest" className="text-slate-400">
                           No more items
                         </span>
                         <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
