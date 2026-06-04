@@ -150,8 +150,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
 
         {/* Flag */}
         <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
-          className="absolute bottom-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
-          style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.6)" }}
+          className="absolute bottom-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 text-emerald-700 text-[9px] font-medium"
         >
           <Flag size={11} />
         </button>
@@ -166,19 +165,18 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
       {/* Info */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-sm truncate" className="text-slate-900">{item.title}</h3>
+          <h3 className="font-bold text-sm truncate text-slate-900">{item.title}</h3>
           <button onClick={handleShare}
-            className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg transition-all"
-            className="border border-slate-200 text-slate-400 bg-white hover:bg-slate-50 rounded-lg px-2 py-1 text-[9px] font-bold transition-all"
+            className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg border border-slate-200 text-slate-400 bg-white hover:bg-slate-50 transition-all"
           >
             Share
           </button>
         </div>
-        <div className="flex items-center gap-1 text-[11px] mb-1" className="text-slate-400">
+        <div className="flex items-center gap-1 text-[11px] mb-1 text-slate-400">
           <MapPin size={11} className="text-primary shrink-0" />
           <span className="truncate">{item.location_name || item.city || "Unknown"}</span>
         </div>
-        <div className="flex items-center gap-1 text-[11px]" className="text-slate-300">
+        <div className="flex items-center gap-1 text-[11px] text-slate-300">
           <Clock size={11} className="shrink-0" />
           <span>{formatDate(item.created_at)}</span>
         </div>
@@ -223,6 +221,7 @@ export default function BrowseMarketplace() {
     if (search) q = q.ilike("title", `%${search}%`);
 
     if (date === "Today") { const s = new Date(); s.setHours(0,0,0,0); q = q.gte("created_at", s.toISOString()); }
+    else if (date === "Yesterday") { const s = new Date(); s.setDate(s.getDate()-1); s.setHours(0,0,0,0); const e = new Date(s); e.setHours(23,59,59,999); q = q.gte("created_at", s.toISOString()).lte("created_at", e.toISOString()); }
     else if (date === "This Week") { const s = new Date(); s.setDate(s.getDate()-7); q = q.gte("created_at", s.toISOString()); }
     else if (date === "This Month") { const s = new Date(); s.setDate(s.getDate()-30); q = q.gte("created_at", s.toISOString()); }
 
@@ -293,7 +292,7 @@ export default function BrowseMarketplace() {
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
               Help us get it <span className="text-primary">Back2U</span>
             </h1>
-            <p className="text-white/50 text-sm font-medium mt-1 md:whitespace-nowrap">
+            <p className="text-slate-400 text-sm font-medium mt-1 md:whitespace-nowrap">
               Browse reports in your area or search specifically for what you've lost.
             </p>
           </div>
@@ -323,7 +322,7 @@ export default function BrowseMarketplace() {
           >
             🚨 Missing Persons {status === "missing" ? "— Tap to clear" : ""}
           </button>
-          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
+          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(100,116,139,0.6)" }}>
             Free to post · Free to contact
           </span>
         </div>
@@ -333,7 +332,7 @@ export default function BrowseMarketplace() {
           {/* Row 1: Search + Status */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" className="text-slate-300" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
               <input type="text" placeholder="Search for phones, IDs, keys..."
                 value={search} onChange={e => setSearch(e.target.value)}
                 className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-600 placeholder:text-slate-300 focus:outline-none focus:border-primary transition-all"
@@ -381,7 +380,7 @@ export default function BrowseMarketplace() {
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-3 px-6 py-2">
                         <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
-                        <span className="text-[10px] font-black uppercase tracking-widest" className="text-slate-400">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           No more items
                         </span>
                         <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
