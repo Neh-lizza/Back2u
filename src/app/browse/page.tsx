@@ -58,6 +58,9 @@ function formatDate(d: string) {
 }
 
 function getItemCoords(item: ItemWithUser) {
+  if ((item as any).latitude && (item as any).longitude) {
+    return { lng: (item as any).longitude, lat: (item as any).latitude };
+  }
   return CITY_COORDS[item.city ?? ""] ?? { lng: 11.5021, lat: 3.8480 };
 }
 

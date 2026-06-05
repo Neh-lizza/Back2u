@@ -81,7 +81,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
   useEffect(() => {
     fetchNotifications();
 
-    // Realtime
+    // Realtime subscription
     const channel = supabase
       .channel(`notif-bell-${userId}`)
       .on(
@@ -96,7 +96,13 @@ export default function NotificationBell({ userId }: { userId: string }) {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Polling fallback every 10 seconds
+    const poll = setInterval(() => fetchNotifications(), 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
   }, [userId]);
 
   // ── Close on outside click ──

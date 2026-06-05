@@ -44,8 +44,24 @@ export default function ReportPage() {
   const [submittedItemId, setSubmittedItemId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const [detectingCategory, setDetectingCategory] = useState(false);
-  const [detectedConfidence, setDetectedConfidence] = useState<number | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const geocodeLocation = async (locationText: string) => {
+    if (!locationText || locationText.length < 3) return;
+    setGeocoding(true);
+    try {
+      const query = encodeURIComponent(`${locationText}, Cameroon`);
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&country=CM&limit=1`
+      );
+      const data = await res.json();
+      if (data.features?.[0]) {
+        const [lng, lat] = data.features[0].center;
+        update("latitude", lat);
+        update("longitude", lng);
+      }
+    } catch (_) {}
+    setGeocoding(false);
+  };
 
   const [formData, setFormData] = useState({
     type:              "lost",
@@ -54,6 +70,8 @@ export default function ReportPage() {
     sensitivity:       "normal",
     itemCategory:      "",
     location:          "",
+    latitude:          null as number | null,
+    longitude:         null as number | null,
     anonymous:         false,
     dateOccurred:      "",
     isMissingPerson:   false,
@@ -71,32 +89,6 @@ export default function ReportPage() {
     setPhotos(newFiles);
     setPhotoPreviews(newFiles.map(f => URL.createObjectURL(f)));
 
-    if (newFiles.length > 0 && !formData.itemCategory) {
-      setDetectingCategory(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const file = newFiles[0];
-          const ext = file.name.split(".").pop();
-          const path = `${user.id}/preview-${Date.now()}.${ext}`;
-          const { error: uploadErr } = await supabase.storage.from("item-photos").upload(path, file, { upsert: true });
-          if (!uploadErr) {
-            const { data: { publicUrl } } = supabase.storage.from("item-photos").getPublicUrl(path);
-            const res = await fetch("/api/detect-category", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageUrl: publicUrl }),
-            });
-            const data = await res.json();
-            if (data.category && data.category !== "other") {
-              update("itemCategory", data.category);
-              setDetectedConfidence(data.confidence);
-            }
-          }
-        }
-      } catch (_) {}
-      setDetectingCategory(false);
-    }
   };
 
   const removePhoto = (i: number) => {
@@ -142,6 +134,8 @@ export default function ReportPage() {
         location_name:        formData.location || null,
         city:                 profile?.city ?? null,
         region:               profile?.region ?? null,
+          latitude:             formData.latitude ?? null,
+          longitude:            formData.longitude ?? null,
         sensitivity:          formData.sensitivity as "normal" | "sensitive" | "very_sensitive",
         is_anonymous:         formData.anonymous,
         date_occurred:        formData.dateOccurred || null,
@@ -425,17 +419,6 @@ export default function ReportPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Photos</p>
-                  {detectingCategory && (
-                    <div className="flex items-center gap-1.5">
-                      <Loader2 size={11} className="animate-spin text-primary" />
-                      <span className="text-[9px] font-bold text-primary uppercase tracking-widest">AI detecting category...</span>
-                    </div>
-                  )}
-                  {detectedConfidence && !detectingCategory && (
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
-                      AI detected  {detectedConfidence}% confidence
-                    </span>
-                  )}
                 </div>
 
                 {photoPreviews.length === 0 ? (
@@ -446,7 +429,7 @@ export default function ReportPage() {
                       <Upload size={22} className="text-slate-300 group-hover:text-primary transition-all" />
                     </div>
                     <p className="font-bold text-sm text-slate-500 mb-1">Upload photos</p>
-                    <p className="text-[10px] text-slate-300 font-medium">Up to 5 photos  AI will auto-detect category</p>
+                    <p className="text-[10px] text-slate-300 font-medium">Up to 5 photos</p>
                   </motion.div>
                 ) : (
                   <div className="bg-white rounded-2xl border border-slate-200 p-3">
@@ -473,22 +456,10 @@ export default function ReportPage() {
                 <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoChange} />
               </div>
 
-              {/* Category — only shown after photo uploaded, pre-selected by AI */}
-              {photoPreviews.length > 0 && (
+              {/* Category */}
               <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Category</p>
-                  {detectedConfidence && !detectingCategory && (
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
-                      AI detected · {detectedConfidence}% confidence
-                    </span>
-                  )}
-                  {detectingCategory && (
-                    <div className="flex items-center gap-1.5">
-                      <Loader2 size={11} className="animate-spin text-primary" />
-                      <span className="text-[9px] font-bold text-primary uppercase tracking-widest">AI detecting...</span>
-                    </div>
-                  )}
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {CATEGORIES.map(cat => (
@@ -506,15 +477,16 @@ export default function ReportPage() {
                   ))}
                 </div>
               </div>
-              )} {/* end category conditional */}
 
               {/* Location + Date */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                   <MapPin size={16} className="text-primary shrink-0" />
                   <input value={formData.location} onChange={e => update("location", e.target.value)}
+                    onBlur={e => geocodeLocation(e.target.value)}
                     placeholder="Location (area, quarter...)"
                     className="bg-transparent flex-1 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none" />
+
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                   <MapPin size={14} className="text-slate-300 shrink-0" />
