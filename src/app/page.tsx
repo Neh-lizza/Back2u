@@ -375,7 +375,7 @@ export default function LandingPage() {
                       style={{ backgroundColor: `${item.color}15`, border: `1px solid ${item.color}30` }}>
                       <item.icon size={18} color={item.color} />
                     </div>
-                    <div className="inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest mb-4"
+                    <div className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest mb-4"
                       style={{ backgroundColor: `${item.color}15`, color: item.color }}>
                       {item.tag}
                     </div>
@@ -399,14 +399,14 @@ export default function LandingPage() {
             <p className="text-white font-black text-sm mb-0.5">
               Simple <span className="text-primary">Pricing.</span>
             </p>
-            <p className="text-white/30 text-[8px] font-medium mb-2">
+            <p className="text-white/30 text-[11px] font-medium mb-2">
               One annual subscription. Unlimited access. No hidden fees.
             </p>
 
             <div className="bg-primary/10 border border-primary/30 rounded-lg p-2 mb-2 text-center">
-              <p className="text-[8px] font-black uppercase tracking-widest text-primary mb-0">Annual Subscription</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-0">Annual Subscription</p>
               <p className="text-2xl font-black text-white mb-0" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>300</p>
-              <p className="text-white/40 text-[8px] font-bold uppercase tracking-widest">XAF per year</p>
+              <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest">XAF per year</p>
             </div>
 
             <div className="space-y-1">
@@ -420,14 +420,14 @@ export default function LandingPage() {
                 <div key={i} className="flex items-start gap-1.5 bg-white/5 border border-white/10 rounded-md px-2 py-1">
                   <CheckCircle2 size={10} className="text-primary shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-white font-bold text-[8px] leading-none">{item.label}</p>
-                    <p className="text-white/30 text-[7px]">{item.sub}</p>
+                    <p className="text-white font-bold text-[11px] leading-none">{item.label}</p>
+                    <p className="text-white/30 text-[10px]">{item.sub}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="text-white/20 text-[7px] font-bold uppercase tracking-widest text-center mt-1">
+            <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest text-center mt-1">
               MTN MoMo · Orange Money · No bank card needed
             </p>
           </div>
@@ -437,7 +437,7 @@ export default function LandingPage() {
             <p className="font-black text-slate-900 text-sm mb-0.5">
               Why people choose <span className="text-primary">Back2U.</span>
             </p>
-            <p className="text-slate-400 text-[8px] font-medium mb-2">
+            <p className="text-slate-400 text-[11px] font-medium mb-2">
               Built for where you live, not copy-pasted from abroad.
             </p>
             <div className="relative">
@@ -458,7 +458,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-800 text-[9px] leading-none">{item.title}</p>
-                      <p className="text-slate-400 text-[7px] font-medium">{item.desc}</p>
+                      <p className="text-slate-400 text-[10px] font-medium">{item.desc}</p>
                     </div>
                     <div className="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center shrink-0">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -488,7 +488,7 @@ export default function LandingPage() {
                 <p className="text-dark font-bold italic text-xs whitespace-normal mb-2 text-[10px]">"{review.text}"</p>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                    <span className="text-white font-black text-[8px]">{review.name[0]}</span>
+                    <span className="text-white font-black text-[11px]">{review.name[0]}</span>
                   </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">{review.name} · {review.location}</p>
                 </div>

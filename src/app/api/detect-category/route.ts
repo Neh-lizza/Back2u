@@ -1,73 +1,80 @@
 // src/app/api/detect-category/route.ts
-// NEW FILE
+// ♻️ REPLACE
 import { NextRequest, NextResponse } from "next/server";
 
-const HF_API_KEY = process.env.HUGGINGFACE_API_KEY!;
+const IMAGGA_API_KEY    = process.env.IMAGGA_API_KEY!;
+const IMAGGA_API_SECRET = process.env.IMAGGA_API_SECRET!;
 
-// Category labels with descriptive text for CLIP zero-shot classification
-const CATEGORY_LABELS = [
-  { id: "electronics",  label: "a phone, laptop, tablet, camera, or electronic device" },
-  { id: "documents",    label: "an ID card, passport, wallet, license, or document" },
-  { id: "keys",         label: "keys, a keychain, or car keys" },
-  { id: "bags",         label: "a bag, backpack, handbag, or luggage" },
-  { id: "clothing",     label: "clothing, a shirt, jacket, shoes, or clothing item" },
-  { id: "accessories",  label: "jewelry, a watch, glasses, belt, or accessory" },
-  { id: "animals",      label: "a pet, dog, cat, or animal" },
-  { id: "money",        label: "cash, money, coins, or a bank card" },
-  { id: "other",        label: "a miscellaneous lost or found object" },
-];
+const CATEGORY_MAP: Record<string, string[]> = {
+  electronics:  ["phone", "smartphone", "mobile", "laptop", "computer", "tablet", "camera", "electronic", "device", "gadget", "charger", "headphone", "earphone", "keyboard", "mouse", "screen", "iphone", "samsung", "macbook", "cable", "battery"],
+  documents:    ["document", "passport", "id", "identity", "license", "card", "paper", "certificate", "notebook", "identification", "booklet", "folder"],
+  keys:         ["key", "keychain", "remote", "fob"],
+  bags:         ["bag", "backpack", "handbag", "luggage", "suitcase", "briefcase", "purse", "tote", "satchel", "pouch", "wallet"],
+  clothing:     ["clothing", "shirt", "jacket", "coat", "dress", "shoe", "boot", "hat", "cap", "scarf", "glove", "trouser", "pants", "skirt", "sock", "apparel", "garment"],
+  accessories:  ["watch", "jewelry", "ring", "necklace", "bracelet", "earring", "glasses", "sunglasses", "belt", "accessory", "spectacles"],
+  animals:      ["dog", "cat", "bird", "animal", "pet", "puppy", "kitten", "creature"],
+  money:        ["money", "cash", "coin", "currency", "banknote", "bill", "credit card", "bank card"],
+};
+
+function detectCategoryFromTags(tags: { tag: { en: string }; confidence: number }[]): { category: string; confidence: number } {
+  const scores: Record<string, number> = {};
+
+  for (const { tag, confidence } of tags) {
+    const label = tag.en.toLowerCase();
+    for (const [category, keywords] of Object.entries(CATEGORY_MAP)) {
+      for (const keyword of keywords) {
+        if (label.includes(keyword) || keyword.includes(label)) {
+          scores[category] = (scores[category] ?? 0) + confidence;
+        }
+      }
+    }
+  }
+
+  if (Object.keys(scores).length === 0) return { category: "other", confidence: 0 };
+
+  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  const confidence = Math.min(97, Math.round(best[1] / 100));
+
+  return { category: best[0], confidence };
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { imageUrl } = await req.json();
     if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400 });
 
-    // Fetch image and convert to base64
-    const imageRes = await fetch(imageUrl);
-    const arrayBuffer = await imageRes.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-    const mimeType = imageRes.headers.get("content-type") || "image/jpeg";
+    // Call Imagga tagging API with image URL directly
+    const credentials = Buffer.from(`${IMAGGA_API_KEY}:${IMAGGA_API_SECRET}`).toString("base64");
 
-    // Use CLIP zero-shot image classification via HuggingFace
     const res = await fetch(
-      "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
+      `https://api.imagga.com/v2/tags?image_url=${encodeURIComponent(imageUrl)}&limit=20`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${HF_API_KEY}`,
-          "Content-Type": "application/json",
+          Authorization: `Basic ${credentials}`,
         },
-        body: JSON.stringify({
-          inputs: {
-            image: `data:${mimeType};base64,${base64}`,
-            text: CATEGORY_LABELS.map(c => c.label),
-          },
-          options: { wait_for_model: true },
-        }),
       }
     );
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("HF category detection error:", err);
-      return NextResponse.json({ error: "Detection failed", category: "other" });
+      console.error("Imagga error:", err);
+      return NextResponse.json({ error: "Imagga API failed", category: "other" }, { status: 500 });
     }
 
-    const scores: number[] = await res.json();
+    const data = await res.json();
+    const tags = data.result?.tags ?? [];
 
-    // Find highest scoring category
-    const maxIndex = scores.indexOf(Math.max(...scores));
-    const detected = CATEGORY_LABELS[maxIndex];
-    const confidence = Math.round(scores[maxIndex] * 100);
+    if (tags.length === 0) {
+      return NextResponse.json({ category: "other", confidence: 0, tags: [] });
+    }
+
+    const { category, confidence } = detectCategoryFromTags(tags);
 
     return NextResponse.json({
-      category:   detected.id,
+      category,
       confidence,
-      label:      detected.label,
-      all_scores: CATEGORY_LABELS.map((c, i) => ({
-        id:         c.id,
-        score:      Math.round(scores[i] * 100),
-      })),
+      tags: tags.slice(0, 5).map((t: any) => t.tag.en),
     });
 
   } catch (err: any) {

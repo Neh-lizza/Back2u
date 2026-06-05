@@ -129,7 +129,14 @@ function ChatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => fetchChats(currentUser.id))
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chats" }, () => fetchChats(currentUser.id))
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    // Polling fallback every 5 seconds in case real-time is not working
+    const poll = setInterval(() => fetchChats(currentUser.id), 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
   }, [currentUser]);
 
   const openChat = async (chat: ChatListItem) => {
@@ -145,7 +152,7 @@ function ChatPage() {
     await db.from("messages").update({ read_at: new Date().toISOString() }).eq("chat_id", chat.id).neq("sender_id", currentUser?.id).is("read_at", null);
     setChats(prev => prev.map(c => c.id === chat.id ? { ...c, unread_count: 0 } : c));
 
-    supabase.channel(`messages-${chat.id}`)
+    const msgChannel = supabase.channel(`messages-${chat.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chat.id}` },
         async (payload: any) => {
           const { data: newMsg } = await db.from("messages").select("*, sender:users(id, full_name, avatar_url)").eq("id", payload.new.id).single();
@@ -167,6 +174,16 @@ function ChatPage() {
   };
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  // Polling fallback for messages — updates every 3s when a chat is open
+  useEffect(() => {
+    if (!activeChat) return;
+    const poll = setInterval(async () => {
+      const { data } = await db.from("messages").select("*, sender:users(id, full_name, avatar_url)").eq("chat_id", activeChat.id).order("created_at", { ascending: true });
+      if (data) setMessages(data as MessageWithSender[]);
+    }, 3000);
+    return () => clearInterval(poll);
+  }, [activeChat]);
 
   const handleSend = async () => {
     if (!message.trim() || !activeChat || !currentUser || sending) return;

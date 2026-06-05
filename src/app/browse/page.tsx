@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, MapPin, Plus, Clock,
   Map as MapIcon, LayoutGrid, ChevronDown,
-  Loader2, Flag, SlidersHorizontal, CheckCircle
+  Loader2, Flag, SlidersHorizontal, CheckCircle,
+  AlertTriangle, Package
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,20 +42,38 @@ type ItemWithUser = {
   photos: string[]; location_name: string | null; city: string | null;
   status: string; sensitivity: string; is_anonymous: boolean;
   created_at: string; category: string | null;
+  is_missing_person?: boolean;
   user: { id: string; full_name: string; avatar_url: string | null } | null;
 };
 
 function formatDate(d: string) {
   const date = new Date(d);
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) +
-    " · " + date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 function getItemCoords(item: ItemWithUser) {
   return CITY_COORDS[item.city ?? ""] ?? { lng: 11.5021, lat: 3.8480 };
 }
 
-
+// ── SKELETON CARD ─────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden animate-pulse">
+      <div className="bg-slate-100" style={{ aspectRatio: "4/3" }} />
+      <div className="p-3 space-y-2">
+        <div className="h-3.5 bg-slate-100 rounded-lg w-3/4" />
+        <div className="h-2.5 bg-slate-100 rounded-lg w-1/2" />
+        <div className="h-2.5 bg-slate-100 rounded-lg w-2/3" />
+      </div>
+    </div>
+  );
+}
 
 // ── DROPDOWN ─────────────────────────────────────────────
 function Dropdown({ label, options, value, onChange }: {
@@ -68,28 +87,31 @@ function Dropdown({ label, options, value, onChange }: {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
+  const isActive = !["All", "All Cities", "Any time"].includes(value);
+
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition-all whitespace-nowrap"
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+          isActive
+            ? "bg-primary text-white border border-primary"
+            : "bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary"
+        }`}>
         {label}: <span className="font-bold">{value}</span>
-        <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            className="absolute top-full mt-1 left-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 py-1 min-w-[140px]"
-          >
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+            className="absolute top-full mt-1.5 left-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 py-1 min-w-[150px]"
+            style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
             {options.map(o => (
               <button key={o} onClick={() => { onChange(o); setOpen(false); }}
-                className={`w-full text-left px-4 py-2 text-xs font-medium hover:bg-slate-50 transition-colors flex items-center gap-2 ${value === o ? "text-primary font-bold" : "text-slate-600"}`}>
-                {value === o && <CheckCircle size={11} className="text-primary" />}
-                {value !== o && <span className="w-3" />}
+                className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 ${
+                  value === o ? "text-primary font-bold bg-primary/5" : "text-slate-600 font-medium hover:bg-slate-50"
+                }`}>
+                {value === o && <CheckCircle size={11} className="text-primary shrink-0" />}
+                {value !== o && <span className="w-3 shrink-0" />}
                 {o}
               </button>
             ))}
@@ -104,6 +126,7 @@ function Dropdown({ label, options, value, onChange }: {
 function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) => void }) {
   const router = useRouter();
   const isFound = item.type === "found";
+  const isMissing = item.is_missing_person;
   const isSensitive = item.sensitivity === "sensitive" || item.sensitivity === "very_sensitive";
   const firstPhoto = item.photos?.[0];
 
@@ -111,7 +134,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
     e.stopPropagation();
     const url = `${window.location.origin}/browse/${item.id}`;
     if (navigator.share) {
-      navigator.share({ title: item.title, text: `Check this ${item.type} item on Back2U`, url });
+      navigator.share({ title: item.title, text: `Check this ${item.type} report on Back2U`, url });
     } else {
       navigator.clipboard.writeText(url);
     }
@@ -121,64 +144,83 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -3, boxShadow: "0 12px 32px rgba(0,0,0,0.1)" }}
       onClick={() => router.push(`/browse/${item.id}`)}
-      className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer group" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
-    >
+      className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer group transition-shadow"
+      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+
       {/* Photo */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: "rgba(0,154,73,0.1)" }}>
+      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: "#f1f5f9" }}>
         {firstPhoto ? (
           <Image src={firstPhoto} alt={item.title} fill sizes="33vw"
             className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isSensitive ? "blur-xl scale-110" : ""}`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <MapPin size={28} className="text-slate-300" />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+            <Package size={24} className="text-slate-200" />
+            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">No photo</span>
           </div>
         )}
 
-        {/* Found/Lost/Missing badge */}
-        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
-          (item as any).is_missing_person ? "text-white" :
-          isFound ? "text-[#061209]" : "text-white"
-        }`} style={
-          (item as any).is_missing_person ? { background: "#CE1126" } :
-          isFound ? { background: "#FCD116" } : { background: "#FF4D4D" }
-        }>
-          {(item as any).is_missing_person ? "🚨 Missing" : isFound ? <><CheckCircle size={11} />&nbsp;Found</> : <><Search size={11} />&nbsp;Lost</>}
+        {/* Type badge */}
+        <div className={`absolute top-2.5 left-2.5 flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wide`}
+          style={isMissing
+            ? { background: "#CE1126", color: "white" }
+            : isFound
+            ? { background: "#FCD116", color: "#061209" }
+            : { background: "#FF4D4D", color: "white" }
+          }>
+          {isMissing
+            ? <><AlertTriangle size={9} /> Missing</>
+            : isFound
+            ? <><CheckCircle size={9} /> Found</>
+            : <><Search size={9} /> Lost</>
+          }
         </div>
 
-        {/* Flag */}
-        <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
-          className="absolute bottom-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 text-emerald-700 text-[9px] font-medium"
-        >
-          <Flag size={11} />
-        </button>
+        {/* Actions on hover */}
+        <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={e => { e.stopPropagation(); handleShare(e); }}
+            className="w-7 h-7 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-slate-500 hover:text-primary transition-colors shadow-sm">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+          </button>
+          <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
+            className="w-7 h-7 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors shadow-sm">
+            <Flag size={11} />
+          </button>
+        </div>
 
         {isSensitive && (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-            <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white" style={{ background: "rgba(0,0,0,0.6)" }}>Sensitive</span>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)" }}>
+            <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white bg-black/50">Sensitive</span>
           </div>
         )}
       </div>
 
       {/* Info */}
       <div className="p-3">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-sm truncate text-slate-900">{item.title}</h3>
-          <button onClick={handleShare}
-            className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg border border-slate-200 text-slate-400 bg-white hover:bg-slate-50 transition-all"
-          >
-            Share
-          </button>
+        <h3 className="font-bold text-sm text-slate-900 truncate mb-1.5 group-hover:text-primary transition-colors">{item.title}</h3>
+        {item.category && (
+          <span className="inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 mb-1.5 capitalize">{item.category}</span>
+        )}
+        <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-1">
+          <MapPin size={10} className="text-primary shrink-0" />
+          <span className="truncate">{item.location_name || item.city || "Unknown location"}</span>
         </div>
-        <div className="flex items-center gap-1 text-[11px] mb-1 text-slate-400">
-          <MapPin size={11} className="text-primary shrink-0" />
-          <span className="truncate">{item.location_name || item.city || "Unknown"}</span>
-        </div>
-        <div className="flex items-center gap-1 text-[11px] text-slate-300">
-          <Clock size={11} className="shrink-0" />
-          <span>{formatDate(item.created_at)}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-[10px] text-slate-300">
+            <Clock size={10} className="shrink-0" />
+            <span>{formatDate(item.created_at)}</span>
+          </div>
+          {item.user && !item.is_anonymous && (
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[7px] font-black text-primary">
+                {item.user.full_name?.[0]?.toUpperCase()}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -248,6 +290,13 @@ export default function BrowseMarketplace() {
     return () => observerRef.current?.disconnect();
   }, [hasMore, loadingMore, page, fetchItems]);
 
+  const activeFilterCount = [
+    status !== "All",
+    category !== "All",
+    date !== "Any time",
+    location !== "All Cities",
+  ].filter(Boolean).length;
+
   return (
     <main style={{ background: "#F0F4F8" }}>
       <style jsx global>{`
@@ -260,19 +309,20 @@ export default function BrowseMarketplace() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-
       {/* Flag modal */}
       <AnimatePresence>
         {flaggedId && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-            onClick={() => setFlaggedId(null)}
-          >
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} onClick={e => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 max-w-xs w-full mx-4 shadow-2xl"
-            >
-              <h3 className="font-black text-sm text-slate-900 mb-2">Report this item?</h3>
-              <p className="text-xs text-slate-400 mb-4">Our team will review and take action if needed.</p>
+            onClick={() => setFlaggedId(null)}>
+            <motion.div initial={{ scale: 0.9, y: 8 }} animate={{ scale: 1, y: 0 }} onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 max-w-xs w-full mx-4"
+              style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.15)" }}>
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-3">
+                <Flag size={18} className="text-red-500" />
+              </div>
+              <h3 className="font-black text-sm text-slate-900 mb-1">Report this item?</h3>
+              <p className="text-xs text-slate-400 mb-4 leading-relaxed">Our team will review and take action within 24 hours if needed.</p>
               <div className="flex gap-2">
                 <button onClick={() => setFlaggedId(null)} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all">Cancel</button>
                 <button onClick={() => setFlaggedId(null)} className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-all">Report</button>
@@ -282,109 +332,127 @@ export default function BrowseMarketplace() {
         )}
       </AnimatePresence>
 
-      {/* Match system */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-8">
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-0">
-
-        {/* Heading + view toggle */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-3">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-3">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
               Help us get it <span className="text-primary">Back2U</span>
             </h1>
-            <p className="text-slate-400 text-sm font-medium mt-1 md:whitespace-nowrap">
-              Browse reports in your area or search specifically for what you've lost.
+            <p className="text-slate-400 text-sm font-medium mt-0.5">
+              Browse reports in your area
             </p>
           </div>
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shrink-0">
+
+          {/* View toggle */}
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 self-start">
             <button onClick={() => setView("grid")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
-              <LayoutGrid size={14} /> List View
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${view === "grid" ? "bg-[#061209] text-white" : "text-slate-400 hover:text-slate-600"}`}>
+              <LayoutGrid size={13} /> Grid
             </button>
             <button onClick={() => setView("map")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}>
-              <MapIcon size={14} /> Map View
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${view === "map" ? "bg-[#061209] text-white" : "text-slate-400 hover:text-slate-600"}`}>
+              <MapIcon size={13} /> Map
             </button>
           </div>
         </div>
 
-
-        {/* Missing Persons urgent banner tab */}
-        <div className="flex items-center gap-2 mb-3">
-          <button
-            onClick={() => setStatus(status === "missing" ? "All" : "missing")}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            style={{
-              background: status === "missing" ? "#CE1126" : "rgba(206,17,38,0.08)",
-              color: status === "missing" ? "white" : "#CE1126",
-              border: "1px solid rgba(206,17,38,0.3)",
-            }}
-          >
-            🚨 Missing Persons {status === "missing" ? "— Tap to clear" : ""}
-          </button>
-          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(100,116,139,0.6)" }}>
-            Free to post · Free to contact
-          </span>
-        </div>
-
-        {/* Filter bar — 2 rows on mobile */}
-        <div className="flex flex-col gap-2 mb-4">
-          {/* Row 1: Search + Status */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
-              <input type="text" placeholder="Search for phones, IDs, keys..."
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-600 placeholder:text-slate-300 focus:outline-none focus:border-primary transition-all"
-              />
+        {/* Missing Persons banner */}
+        <motion.button
+          whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+          onClick={() => setStatus(status === "missing" ? "All" : "missing")}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl mb-3 transition-all"
+          style={{
+            background: status === "missing" ? "rgba(206,17,38,0.08)" : "white",
+            border: `1.5px solid ${status === "missing" ? "#CE1126" : "rgba(206,17,38,0.2)"}`,
+          }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(206,17,38,0.1)" }}>
+              <AlertTriangle size={15} style={{ color: "#CE1126" }} />
             </div>
-            <Dropdown label="Status" options={STATUS_OPTIONS} value={status} onChange={setStatus} />
+            <div className="text-left">
+              <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#CE1126" }}>Missing Persons</p>
+              <p className="text-[9px] font-medium text-slate-400">Free to post and contact forever</p>
+            </div>
           </div>
-          {/* Row 2: Category + Date + Location + Filter — scrollable */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <Dropdown label="Category" options={CATEGORIES}      value={category} onChange={setCategory} />
-            <Dropdown label="Date"     options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
-            <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
-            <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 text-slate-400 hover:text-primary hover:border-primary transition-all">
-              <SlidersHorizontal size={16} />
-            </button>
-          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
+            style={{
+              background: status === "missing" ? "#CE1126" : "rgba(206,17,38,0.1)",
+              color: status === "missing" ? "white" : "#CE1126"
+            }}>
+            {status === "missing" ? "Clear" : "View All"}
+          </span>
+        </motion.button>
+
+        {/* Search bar */}
+        <div className="relative mb-3">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" />
+          <input type="text" placeholder="Search for phones, wallets, ID cards, keys..."
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-primary transition-all"
+            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+          />
         </div>
 
-        {/* ── GRID VIEW ── */}
+        {/* Filter bar */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mb-5 pb-1">
+          <Dropdown label="Status"   options={STATUS_OPTIONS}  value={status}   onChange={setStatus}   />
+          <Dropdown label="Category" options={CATEGORIES}      value={category} onChange={setCategory} />
+          <Dropdown label="Date"     options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
+          <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
+          {activeFilterCount > 0 && (
+            <button
+              onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 whitespace-nowrap hover:bg-red-100 transition-all">
+              Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+            </button>
+          )}
+        </div>
+
+        {/* Results count */}
+        {!loading && (
+          <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">
+            {items.length} report{items.length !== 1 ? "s" : ""} found
+            {search ? ` for "${search}"` : ""}
+          </p>
+        )}
+
+        {/* Grid view */}
         {view === "grid" && (
           <>
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 size={28} className="animate-spin text-primary" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
               </div>
             ) : items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100">
                 <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                  <Search size={28} className="text-slate-300" />
+                  <Search size={24} className="text-slate-300" />
                 </div>
-                <p className="font-bold text-slate-400 text-sm mb-1">No items found</p>
-                <p className="text-slate-300 text-xs">Try adjusting your filters</p>
-              </div>
+                <p className="font-black text-slate-400 text-sm mb-1">No reports found</p>
+                <p className="text-slate-300 text-xs mb-4">Try adjusting your filters or search terms</p>
+                {activeFilterCount > 0 && (
+                  <button onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); setSearch(""); }}
+                    className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all">
+                    Clear all filters
+                  </button>
+                )}
+              </motion.div>
             ) : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {items.map(item => (
-                    <ItemCard key={item.id} item={item} onFlag={setFlaggedId} />
-                  ))}
+                  {items.map((item, i) => <ItemCard key={item.id} item={item} onFlag={setFlaggedId} />)}
                 </div>
-                <div ref={sentinelRef} className="flex items-center justify-center mt-2 pb-2">
+                <div ref={sentinelRef} className="flex items-center justify-center mt-6 pb-2">
                   {loadingMore ? (
                     <Loader2 size={20} className="animate-spin text-primary" />
                   ) : !hasMore && items.length > 0 ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex items-center gap-3 px-6 py-2">
-                        <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          No more items
-                        </span>
-                        <div className="h-px w-12" style={{ background: "rgba(0,154,73,0.3)" }} />
-                      </div>
+                    <div className="flex items-center gap-3 px-6 py-2">
+                      <div className="h-px w-12 bg-slate-200" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">All caught up</span>
+                      <div className="h-px w-12 bg-slate-200" />
                     </div>
                   ) : null}
                 </div>
@@ -393,7 +461,7 @@ export default function BrowseMarketplace() {
           </>
         )}
 
-        {/* ── MAP VIEW ── */}
+        {/* Map view */}
         {view === "map" && (
           <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm" style={{ height: "70vh" }}>
             <Map
@@ -403,21 +471,18 @@ export default function BrowseMarketplace() {
               mapStyle="mapbox://styles/mapbox/light-v11"
               onMove={e => setMapViewport(e.viewState)}
               maxBounds={[[7.0, -0.8], [17.0, 13.5]]}
-              minZoom={5.2}
-              maxZoom={17}
-              attributionControl={false}
-            >
+              minZoom={5.2} maxZoom={17}
+              attributionControl={false}>
               <NavigationControl position="bottom-right" showCompass={false} />
               {items.map(item => {
                 const coords = getItemCoords(item);
                 return (
                   <Marker key={item.id} longitude={coords.lng} latitude={coords.lat} anchor="bottom"
-                    onClick={e => { e.originalEvent.stopPropagation(); setSelectedMapItem(item); }}
-                  >
+                    onClick={e => { e.originalEvent.stopPropagation(); setSelectedMapItem(item); }}>
                     <div className={`w-9 h-9 rounded-xl shadow-md flex items-center justify-center border-2 cursor-pointer transition-transform hover:scale-110 ${
-                      item.type === "found" ? "bg-white border-primary" : "bg-white border-orange-400"
+                      item.type === "found" ? "bg-white border-primary" : "bg-white border-red-400"
                     }`}>
-                      <MapPin size={16} className={item.type === "found" ? "text-primary" : "text-orange-400"} />
+                      <MapPin size={16} className={item.type === "found" ? "text-primary" : "text-red-400"} />
                     </div>
                   </Marker>
                 );
@@ -426,8 +491,7 @@ export default function BrowseMarketplace() {
                 const coords = getItemCoords(selectedMapItem);
                 return (
                   <Popup longitude={coords.lng} latitude={coords.lat} anchor="top"
-                    onClose={() => setSelectedMapItem(null)} closeButton={false} className="back2u-popup"
-                  >
+                    onClose={() => setSelectedMapItem(null)} closeButton={false} className="back2u-popup">
                     <div className="bg-white rounded-2xl shadow-xl p-3 w-48 cursor-pointer border border-slate-100"
                       onClick={() => window.location.href = `/browse/${selectedMapItem.id}`}>
                       {selectedMapItem.photos?.[0] && (
@@ -435,7 +499,7 @@ export default function BrowseMarketplace() {
                           <Image src={selectedMapItem.photos[0]} alt={selectedMapItem.title} fill sizes="192px" className="object-cover" />
                         </div>
                       )}
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase mb-1.5 ${selectedMapItem.type === "found" ? "bg-primary/10 text-primary" : "bg-orange-50 text-orange-500"}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase mb-1.5 ${selectedMapItem.type === "found" ? "bg-primary/10 text-primary" : "bg-red-50 text-red-500"}`}>
                         {selectedMapItem.type}
                       </span>
                       <p className="font-bold text-xs text-slate-900 truncate">{selectedMapItem.title}</p>
@@ -451,10 +515,9 @@ export default function BrowseMarketplace() {
 
       {/* FAB */}
       <Link href="/report">
-        <motion.button
-          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          className="fixed bottom-8 right-6 w-14 h-14 bg-primary rounded-full shadow-2xl flex items-center justify-center z-50 shadow-primary/30"
-        >
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          className="fixed bottom-8 right-6 w-14 h-14 bg-primary rounded-full shadow-2xl flex items-center justify-center z-50"
+          style={{ boxShadow: "0 8px 32px rgba(0,154,73,0.4)" }}>
           <Plus size={24} className="text-white" strokeWidth={2.5} />
         </motion.button>
       </Link>
