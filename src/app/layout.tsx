@@ -5,6 +5,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
+import OneSignalInit from "@/components/shared/OneSignalInit";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Back2U" },
   openGraph: {
-    type: "website", locale: "en_CM", url: "https://back2u.cm", siteName: "Back2U",
+    type: "website", locale: "en_CM", url: "https://back2u-cmr.vercel.app", siteName: "Back2U",
     title: "Back2U — Lost & Found Cameroon",
     description: "Cameroon's #1 Lost & Found Recovery Network",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Back2U — Lost & Found Cameroon" }],
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
       </head>
       <body className="bg-[#0a0a0a] antialiased">
+        <OneSignalInit />
         <Navbar />
         <main className="pt-14 md:pt-16">
           {children}

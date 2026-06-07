@@ -153,6 +153,28 @@ export async function POST(req: NextRequest) {
       console.error("Resend error:", err);
     }
 
+    // Send OneSignal push notification
+    const onesignalKey = process.env.ONESIGNAL_REST_API_KEY;
+    const onesignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+    if (onesignalKey && onesignalAppId) {
+      await fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Basic ${onesignalKey}`,
+        },
+        body: JSON.stringify({
+          app_id: onesignalAppId,
+          include_aliases: { external_id: [user_id] },
+          target_channel: "push",
+          headings: { en: "Potential Match Found!" },
+          contents: { en: `Your report matched another item. Score: ${score}/100. Tap to view.` },
+          url: `${process.env.NEXT_PUBLIC_APP_URL || "https://back2u-cmr.vercel.app"}/browse/${itemId}`,
+          web_push_topic: "match_found",
+        }),
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Webhook error:", err);
