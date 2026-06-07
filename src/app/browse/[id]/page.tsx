@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MapPin, Clock, MessageSquare,
@@ -12,6 +13,8 @@ import {
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+
+const ItemQRCode = dynamic(() => import("@/components/shared/ItemQRCode"), { ssr: false });
 
 type ItemWithUser = {
   id: string; user_id: string; type: string; title: string;
@@ -45,6 +48,10 @@ export default function ItemDetailPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [shared, setShared] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationAnswers, setVerificationAnswers] = useState<string[]>([]);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -63,6 +70,54 @@ export default function ItemDetailPage() {
   const handleClaim = async () => {
     if (!currentUser) { router.push("/auth"); return; }
     if (!item) return;
+
+    // If item has verification questions and claimant is not the owner — show verification modal
+    const questions = (item as any).verification_questions;
+    if (questions && questions.length > 0 && currentUser.id !== item.user_id) {
+      setVerificationAnswers(new Array(questions.length).fill(""));
+      setShowVerification(true);
+      return;
+    }
+
+    await proceedToChat();
+  };
+
+  const handleVerificationSubmit = async () => {
+    if (!item || !currentUser) return;
+    setVerifying(true);
+    setVerificationError(null);
+
+    const questions = (item as any).verification_questions as { question: string; answer: string }[];
+    let correct = 0;
+    questions.forEach((q, i) => {
+      const expected = q.answer.trim().toLowerCase();
+      const given = (verificationAnswers[i] || "").trim().toLowerCase();
+      if (given === expected || expected.includes(given) || given.includes(expected)) correct++;
+    });
+
+    const score = Math.round((correct / questions.length) * 100);
+    const passed = score >= 60;
+
+    await (supabase as any).from("verification_attempts").insert({
+      item_id: item.id,
+      claimant_id: currentUser.id,
+      score,
+      passed,
+      answers: verificationAnswers,
+    });
+
+    if (!passed) {
+      setVerificationError(`${correct}/${questions.length} correct. You need at least 60% to proceed. Please try again or contact Back2U support if this is your item.`);
+      setVerifying(false);
+      return;
+    }
+
+    setShowVerification(false);
+    await proceedToChat();
+  };
+
+  const proceedToChat = async () => {
+    if (!item || !currentUser) return;
     setClaiming(true); setClaimError(null);
     try {
       // R5: Check for suspicious unlock attempts
@@ -138,6 +193,63 @@ export default function ItemDetailPage() {
       backgroundImage: "linear-gradient(rgba(0,154,73,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.06) 1px,transparent 1px)",
       backgroundSize: "24px 24px",
     }}>
+
+      {/* Verification Modal */}
+      <AnimatePresence>
+        {showVerification && item && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#0d1f12] border border-white/10 rounded-3xl p-6 max-w-sm w-full"
+              style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.5)" }}>
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                <Shield size={20} className="text-primary" />
+              </div>
+              <h3 className="text-lg font-black text-white mb-1" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+                Prove It&apos;s Yours
+              </h3>
+              <p className="text-white/40 text-xs font-medium mb-5 leading-relaxed">
+                The owner set up verification questions. Answer them to prove this item belongs to you.
+              </p>
+
+              <div className="space-y-4 mb-5">
+                {((item as any).verification_questions as { question: string; answer: string }[]).map((q, i) => (
+                  <div key={i}>
+                    <p className="text-xs font-bold text-white/70 mb-1.5">{q.question}</p>
+                    <input
+                      value={verificationAnswers[i] || ""}
+                      onChange={e => {
+                        const updated = [...verificationAnswers];
+                        updated[i] = e.target.value;
+                        setVerificationAnswers(updated);
+                      }}
+                      placeholder="Your answer..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary transition-all"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {verificationError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-4">
+                  <p className="text-red-400 text-xs font-medium">{verificationError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button onClick={() => { setShowVerification(false); setVerificationError(null); }}
+                  className="flex-1 py-3 rounded-xl border border-white/10 text-white/40 text-xs font-bold hover:bg-white/5 transition-all">
+                  Cancel
+                </button>
+                <button onClick={handleVerificationSubmit} disabled={verifying}
+                  className="flex-[2] py-3 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
+                  {verifying ? <><Loader2 size={14} className="animate-spin" /> Checking...</> : "Submit Answers"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <style jsx global>{`
         @import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@700,600,400&f[]=satoshi@700,500,400&display=swap');
         body { font-family: 'Satoshi', sans-serif; }
@@ -350,7 +462,8 @@ export default function ItemDetailPage() {
 
             {isOwnItem && (
               <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(0,154,73,0.1)", border: "1px solid rgba(0,154,73,0.2)" }}>
-                <p className="text-primary font-black text-sm uppercase tracking-widest">This is your listing</p>
+                <p className="text-primary font-black text-sm uppercase tracking-widest mb-4">This is your listing</p>
+                <ItemQRCode itemId={item.id} itemTitle={item.title} itemType={item.type} size={130} />
               </div>
             )}
 

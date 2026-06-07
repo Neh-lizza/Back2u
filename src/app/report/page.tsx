@@ -3,6 +3,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
+const ItemQRCode = dynamic(() => import("@/components/shared/ItemQRCode"), { ssr: false });
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, ArrowRight, ArrowLeft, Search, ShieldAlert,
@@ -68,6 +70,7 @@ export default function ReportPage() {
     title:             "",
     description:       "",
     sensitivity:       "normal",
+    verificationQuestions: [] as { question: string; answer: string }[],
     itemCategory:      "",
     location:          "",
     latitude:          null as number | null,
@@ -137,6 +140,9 @@ export default function ReportPage() {
           latitude:             formData.latitude ?? null,
           longitude:            formData.longitude ?? null,
         sensitivity:          formData.sensitivity as "normal" | "sensitive" | "very_sensitive",
+          verification_questions: formData.verificationQuestions.length > 0
+            ? formData.verificationQuestions.filter(q => q.question.trim() && q.answer.trim())
+            : null,
         is_anonymous:         formData.anonymous,
         date_occurred:        formData.dateOccurred || null,
         is_missing_person:    formData.isMissingPerson,
@@ -380,6 +386,76 @@ export default function ReportPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Verification Questions — lost items only, optional */}
+              {formData.type === "lost" && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Ownership Verification</p>
+                      <p className="text-[9px] text-slate-400 mt-0.5">Optional — claimants must answer before chatting</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (formData.verificationQuestions.length === 0) {
+                          update("verificationQuestions", [{ question: "", answer: "" }]);
+                        } else {
+                          update("verificationQuestions", []);
+                        }
+                      }}
+                      className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all"
+                      style={{
+                        background: formData.verificationQuestions.length > 0 ? "rgba(0,154,73,0.1)" : "#f1f5f9",
+                        color: formData.verificationQuestions.length > 0 ? "#009A49" : "#94a3b8",
+                      }}>
+                      {formData.verificationQuestions.length > 0 ? "Enabled" : "Add Questions"}
+                    </button>
+                  </div>
+
+                  {formData.verificationQuestions.length > 0 && (
+                    <div className="space-y-3">
+                      {formData.verificationQuestions.map((q, i) => (
+                        <div key={i} className="bg-slate-50 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Question {i + 1}</span>
+                            {formData.verificationQuestions.length > 1 && (
+                              <button onClick={() => update("verificationQuestions", formData.verificationQuestions.filter((_, idx) => idx !== i))}
+                                className="text-[9px] text-red-400 font-bold">Remove</button>
+                            )}
+                          </div>
+                          <input
+                            placeholder="e.g. What color is it?"
+                            value={q.question}
+                            onChange={e => {
+                              const updated = [...formData.verificationQuestions];
+                              updated[i] = { ...updated[i], question: e.target.value };
+                              update("verificationQuestions", updated);
+                            }}
+                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-primary"
+                          />
+                          <input
+                            placeholder="Your answer (hidden from others)"
+                            value={q.answer}
+                            onChange={e => {
+                              const updated = [...formData.verificationQuestions];
+                              updated[i] = { ...updated[i], answer: e.target.value };
+                              update("verificationQuestions", updated);
+                            }}
+                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      ))}
+                      {formData.verificationQuestions.length < 3 && (
+                        <button
+                          onClick={() => update("verificationQuestions", [...formData.verificationQuestions, { question: "", answer: "" }])}
+                          className="w-full py-2 rounded-xl border border-dashed border-slate-200 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:border-primary hover:text-primary transition-all">
+                          + Add Another Question
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                 onClick={() => setStep(2)}
@@ -668,6 +744,20 @@ function SuccessState({ sensitivity, itemId }: { sensitivity: string; itemId: st
               }
             </button>
           )}
+        </div>
+      )}
+
+      {/* QR Code */}
+      {itemId && (
+        <div className="max-w-sm w-full mb-6 rounded-2xl p-5 text-center"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Your Recovery QR Code</p>
+          <p className="text-xs font-medium mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+            Anyone who finds your item can scan this to contact you instantly.
+          </p>
+          <div className="flex justify-center">
+            <ItemQRCode itemId={itemId} itemTitle="item" itemType="lost" size={140} />
+          </div>
         </div>
       )}
 
