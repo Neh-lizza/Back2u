@@ -156,6 +156,14 @@ function AIMatchReportModal({
           </button>
         </div>
 
+        {/* Distance pill */}
+        {(notif.data as any)?.distance && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 w-fit mb-4">
+            <MapPin size={11} className="text-primary" />
+            <span className="text-white/60 text-[10px] font-bold">{(notif.data as any).distance}</span>
+          </div>
+        )}
+
         {/* Score bar */}
         <div className="bg-white/5 rounded-2xl p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -340,7 +348,12 @@ export default function NotificationBell({ userId }: { userId: string }) {
                         <p className="text-[10px] text-white/30 font-medium leading-relaxed line-clamp-2">{notif.body}</p>
                       )}
                       {notif.type === "match_found" && (
-                        <p className="text-[9px] text-primary font-black uppercase tracking-widest mt-1">Tap for AI analysis</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[9px] text-primary font-black uppercase tracking-widest">Tap for AI analysis</p>
+                          {(notif.data as any)?.distance && (
+                            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">· {(notif.data as any).distance}</span>
+                          )}
+                        </div>
                       )}
                       <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">{timeAgo(notif.created_at)}</p>
                     </div>

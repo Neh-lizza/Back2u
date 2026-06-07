@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, MapPin, Plus, Clock,
   Map as MapIcon, LayoutGrid, ChevronDown,
-  Loader2, Flag, SlidersHorizontal, CheckCircle,
+  Loader2, Flag, SlidersHorizontal, CheckCircle, Navigation,
   AlertTriangle, Package
 } from "lucide-react";
 import Link from "next/link";
@@ -245,11 +245,35 @@ export default function BrowseMarketplace() {
   const [category, setCategory] = useState("All");
   const [date, setDate] = useState("Any time");
   const [location, setLocation] = useState("All Cities");
+  const [radius, setRadius] = useState<number | null>(null);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
   const [selectedMapItem, setSelectedMapItem] = useState<ItemWithUser | null>(null);
   const [mapViewport, setMapViewport] = useState({ longitude: 12.35, latitude: 5.96, zoom: 5.5 });
   const [flaggedId, setFlaggedId] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) return;
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGettingLocation(false);
+        setRadius(5); // default 5km when GPS enabled
+      },
+      () => setGettingLocation(false)
+    );
+  };
+
+  const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
 
   const fetchItems = useCallback(async (pageNum: number, reset = false) => {
     if (reset) setLoading(true); else setLoadingMore(true);
@@ -270,13 +294,24 @@ export default function BrowseMarketplace() {
     else if (date === "This Week") { const s = new Date(); s.setDate(s.getDate()-7); q = q.gte("created_at", s.toISOString()); }
     else if (date === "This Month") { const s = new Date(); s.setDate(s.getDate()-30); q = q.gte("created_at", s.toISOString()); }
 
-    const { data } = await q;
+    const { data: rawData } = await q;
+
+    // Client-side radius filter if user has GPS and radius is set
+    let filteredData = rawData ?? [];
+    if (radius && userCoords && filteredData.length > 0) {
+      filteredData = filteredData.filter((item: any) => {
+        if (!item.latitude || !item.longitude) return true; // include items without coords
+        const dist = haversineKm(userCoords.lat, userCoords.lng, item.latitude, item.longitude);
+        return dist <= radius;
+      });
+    }
+    const data = filteredData;
     const newItems = data ?? [];
     setItems(prev => reset ? newItems : [...prev, ...newItems]);
     setHasMore(newItems.length === PAGE_SIZE);
     setLoading(false);
     setLoadingMore(false);
-  }, [status, category, location, date, search]);
+  }, [status, category, location, date, search, radius, userCoords]);
 
   useEffect(() => { setPage(0); fetchItems(0, true); }, [fetchItems]);
 
@@ -298,6 +333,7 @@ export default function BrowseMarketplace() {
     category !== "All",
     date !== "Any time",
     location !== "All Cities",
+    radius !== null,
   ].filter(Boolean).length;
 
   return (
@@ -406,7 +442,7 @@ export default function BrowseMarketplace() {
           <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
           {activeFilterCount > 0 && (
             <button
-              onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); }}
+              onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); setRadius(null); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 whitespace-nowrap hover:bg-red-100 transition-all">
               Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
             </button>
@@ -437,7 +473,7 @@ export default function BrowseMarketplace() {
                 <p className="font-black text-slate-400 text-sm mb-1">No reports found</p>
                 <p className="text-slate-300 text-xs mb-4">Try adjusting your filters or search terms</p>
                 {activeFilterCount > 0 && (
-                  <button onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); setSearch(""); }}
+                  <button onClick={() => { setStatus("All"); setCategory("All"); setDate("Any time"); setLocation("All Cities"); setSearch(""); setRadius(null); }}
                     className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all">
                     Clear all filters
                   </button>

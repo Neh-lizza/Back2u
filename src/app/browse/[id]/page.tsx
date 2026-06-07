@@ -413,6 +413,70 @@ export default function ItemDetailPage() {
               )}
             </div>
 
+            {/* Location Trail */}
+            <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.25)" }}>Item Journey</p>
+              <div className="relative">
+                <div className="absolute left-3 top-3 bottom-3 w-px bg-white/10" />
+                <div className="space-y-3">
+                  {/* Step 1: Reported */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 relative" style={{ background: item.type === "lost" ? "#FF4D4D" : "#009A49" }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white text-xs font-bold capitalize">{item.type === "lost" ? "Lost" : "Found"} — {item.location_name || item.city || "Unknown location"}</p>
+                      <p className="text-white/30 text-[10px] font-medium">{new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Matched (if applicable) */}
+                  {(item.status === "matched" || item.status === "recovered") && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 relative" style={{ background: "#FCD116" }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#061209" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white text-xs font-bold">Match Found</p>
+                        <p className="text-white/30 text-[10px] font-medium">A potential match was identified by Back2U</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Recovered */}
+                  {item.status === "recovered" ? (
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 relative" style={{ background: "#009A49" }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m4.5 12.75 6 6 9-13.5"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white text-xs font-bold">Recovered</p>
+                        <p className="text-white/30 text-[10px] font-medium">Item successfully returned to owner</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-3 opacity-30">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 relative border-2 border-dashed border-white/20">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m4.5 12.75 6 6 9-13.5"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white text-xs font-bold">Awaiting Recovery</p>
+                        <p className="text-white/30 text-[10px] font-medium">Contact the poster to claim this item</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Reporter card */}
             {!item.is_anonymous && item.user && (
               <div className="flex items-center gap-4 rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
