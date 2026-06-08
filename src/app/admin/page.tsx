@@ -1,6 +1,8 @@
 // src/app/admin/page.tsx
 // ♻️ REPLACE
 "use client";
+// @ts-ignore
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -38,13 +40,14 @@ type UserItem = {
   city: string | null; role: string; rating: number;
   is_banned: boolean; is_flagged: boolean; items_count: number;
 };
-type AdminTab = "overview" | "flags" | "pending" | "users" | "archived" | "fraud" | "facebook";
+type AdminTab = "overview" | "flags" | "pending" | "users" | "archived" | "fraud" | "facebook" | "analytics";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
+  const [analytics, setAnalytics] = useState<any>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [flaggedItems, setFlaggedItems] = useState<FlaggedItem[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
@@ -251,6 +254,7 @@ export default function AdminDashboard() {
     { id: "facebook", label: "Facebook",  icon: Share2,      badge: stats?.pendingFbShares },
     { id: "users",    label: "Users",     icon: Users },
     { id: "archived", label: "Archived",  icon: Archive },
+    { id: "analytics", label: "Analytics", icon: TrendingUp },
   ];
 
   return (
@@ -719,6 +723,111 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+          </motion.div>
+        )}
+
+        {activeTab === "analytics" && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+
+            {/* Stats summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Total Reports",  value: stats?.total ?? 0,     color: "#009A49" },
+                { label: "Recovered",      value: stats?.recovered ?? 0,  color: "#FCD116" },
+                { label: "Active",         value: stats?.active ?? 0,     color: "#3b82f6" },
+                { label: "Recovery Rate",  value: stats?.total ? Math.round((stats.recovered / stats.total) * 100) + "%" : "0%", color: "#009A49" },
+              ].map((s, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
+                  <p className="text-3xl font-black" style={{ color: s.color }}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Daily reports line chart */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-sm font-black text-slate-900 mb-1">Reports — Last 14 Days</p>
+              <p className="text-xs text-slate-400 mb-4">Daily report activity across Cameroon</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={analytics?.dailyData ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#94a3b8" }} />
+                  <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e2e8f0" }} />
+                  <Line type="monotone" dataKey="count" stroke="#009A49" strokeWidth={2.5} dot={{ fill: "#009A49", r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-5">
+              {/* Category bar chart */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <p className="text-sm font-black text-slate-900 mb-1">Reports by Category</p>
+                <p className="text-xs text-slate-400 mb-4">Most common item types reported</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={analytics?.categoryData ?? []} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 9, fill: "#94a3b8" }} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#64748b" }} width={70} />
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e2e8f0" }} />
+                    <Bar dataKey="count" fill="#009A49" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* City bar chart */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <p className="text-sm font-black text-slate-900 mb-1">Reports by City</p>
+                <p className="text-xs text-slate-400 mb-4">Where items are being lost and found</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={analytics?.cityData ?? []} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 9, fill: "#94a3b8" }} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#64748b" }} width={70} />
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e2e8f0" }} />
+                    <Bar dataKey="count" fill="#FCD116" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Lost vs Found pie */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-sm font-black text-slate-900 mb-1">Lost vs Found Distribution</p>
+              <p className="text-xs text-slate-400 mb-4">Breakdown of report types</p>
+              <div className="flex items-center gap-8 justify-center">
+                <ResponsiveContainer width={180} height={180}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Lost",  value: analytics?.lostCount  ?? 0 },
+                        { name: "Found", value: analytics?.foundCount ?? 0 },
+                      ]}
+                      cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+                      dataKey="value" paddingAngle={4}>
+                      <Cell fill="#FF4D4D" />
+                      <Cell fill="#009A49" />
+                    </Pie>
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e2e8f0" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <p className="text-xs font-bold text-slate-600">Lost — {analytics?.lostCount ?? 0} reports</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-primary" />
+                    <p className="text-xs font-bold text-slate-600">Found — {analytics?.foundCount ?? 0} reports</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <p className="text-xs font-bold text-slate-600">Recovered — {stats?.recovered ?? 0} items</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </motion.div>
         )}
 

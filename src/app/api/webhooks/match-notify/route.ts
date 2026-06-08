@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
         "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Back2U <notifications@back2u.cm>",
+        from: "Back2U <onboarding@resend.dev>",
         to: user.email,
         subject: `Match found for your report — Score: ${score}/100`,
         html,
