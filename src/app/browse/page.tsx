@@ -47,14 +47,15 @@ type ItemWithUser = {
 };
 
 function formatDate(d: string) {
-  const date = new Date(d);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diff < 60) return "Just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 function getItemCoords(item: ItemWithUser) {
@@ -133,97 +134,121 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
   const isSensitive = item.sensitivity === "sensitive" || item.sensitivity === "very_sensitive";
   const firstPhoto = item.photos?.[0];
 
-  const handleShare = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const url = `${window.location.origin}/browse/${item.id}`;
-    if (navigator.share) {
-      navigator.share({ title: item.title, text: `Check this ${item.type} report on Back2U`, url });
-    } else {
-      navigator.clipboard.writeText(url);
-    }
-  };
+  const tagBg   = isMissing ? "#CE1126" : isFound ? "#FCD116" : "#FF4D4D";
+  const tagColor = isFound && !isMissing ? "#061209" : "white";
+  const tagLabel = isMissing ? "Missing" : isFound ? "Found" : "Lost";
+  const tagIcon  = isMissing ? <AlertTriangle size={9} /> : isFound ? <CheckCircle size={9} /> : <Search size={9} />;
+
+  const borderColor = isMissing
+    ? "rgba(206,17,38,0.35)"
+    : isFound
+    ? "rgb(190,190,190)"
+    : "rgb(190,190,190)";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -3, boxShadow: "0 12px 32px rgba(0,0,0,0.1)" }}
       onClick={() => router.push(`/browse/${item.id}`)}
-      className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer group transition-shadow"
-      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+      className="cursor-pointer group"
+      style={{
+        background: "white",
+        borderRadius: "10px",
+        transition: "border-radius 0.5s cubic-bezier(0.175,0.885,0.32,1.275), transform 0.3s",
+        boxShadow: isMissing
+          ? `inset 0 -3em 3em rgba(206,17,38,0.04), 0 0 0 2px ${borderColor}, 0.3em 0.3em 1em rgba(0,0,0,0.25)`
+          : `inset 0 -3em 3em rgba(0,0,0,0.06), 0 0 0 2px ${borderColor}, 0.3em 0.3em 1em rgba(0,0,0,0.25)`,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      whileHover={{
+        borderRadius: "20px",
+        y: -3,
+        boxShadow: `inset 0 -3em 3em rgba(0,0,0,0.08), 0 0 0 2px #009A49, 0.3em 0.3em 1.4em rgba(0,0,0,0.3)`,
+      }}>
 
       {/* Photo */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3", background: "#f1f5f9" }}>
+      <div className="relative overflow-hidden" style={{ height: "160px", background: isMissing ? "#fff0f1" : isFound ? "#f0faf4" : "#fff1f1" }}>
         {firstPhoto ? (
-          <Image src={firstPhoto} alt={item.title} fill sizes="33vw"
-            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isSensitive ? "blur-xl scale-110" : ""}`}
-          />
+          <>
+            <Image src={firstPhoto} alt={item.title} fill sizes="33vw"
+              className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isSensitive ? "blur-xl scale-110" : ""}`}
+            />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 60%)" }} />
+          </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-            <Package size={24} className="text-slate-200" />
-            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">No photo</span>
+            <Package size={28} className="opacity-20" style={{ color: tagBg }} />
           </div>
         )}
 
-        {/* Type badge */}
-        <div className={`absolute top-2.5 left-2.5 flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wide`}
-          style={isMissing
-            ? { background: "#CE1126", color: "white" }
-            : isFound
-            ? { background: "#FCD116", color: "#061209" }
-            : { background: "#FF4D4D", color: "white" }
-          }>
-          {isMissing
-            ? <><AlertTriangle size={9} /> Missing</>
-            : isFound
-            ? <><CheckCircle size={9} /> Found</>
-            : <><Search size={9} /> Lost</>
-          }
+        {/* Type tag */}
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wide"
+          style={{ background: tagBg, color: tagColor }}>
+          {tagIcon} {tagLabel}
         </div>
 
-        {/* Actions on hover */}
-        <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={e => { e.stopPropagation(); handleShare(e); }}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-slate-500 hover:text-primary transition-colors shadow-sm">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
-            </svg>
-          </button>
-          <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors shadow-sm">
-            <Flag size={11} />
-          </button>
-        </div>
-
+        {/* Sensitive overlay */}
         {isSensitive && (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)" }}>
-            <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white bg-black/50">Sensitive</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+            <Package size={22} className="text-white opacity-30" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-white opacity-40">Sensitive</span>
           </div>
         )}
+
+        {/* Flag button on hover */}
+        <button onClick={e => { e.stopPropagation(); onFlag(item.id); }}
+          className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+          <Flag size={10} />
+        </button>
       </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <h3 className="font-bold text-sm text-slate-900 truncate mb-1.5 group-hover:text-primary transition-colors">{item.title}</h3>
-        {item.category && (
-          <span className="inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 mb-1.5 capitalize">{item.category}</span>
-        )}
-        <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-1">
-          <MapPin size={10} className="text-primary shrink-0" />
-          <span className="truncate">{item.location_name || item.city || "Unknown location"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-[10px] text-slate-300">
-            <Clock size={10} className="shrink-0" />
-            <span>{formatDate(item.created_at)}</span>
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-3">
+        {/* Title — larger and bolder */}
+        <h3 className="truncate mb-2 leading-tight" style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>{item.title}</h3>
+
+        {/* Location + Category on same row */}
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          <div className="flex items-center gap-1">
+            <MapPin size={11} className="shrink-0" style={{ color: isMissing ? "#CE1126" : "#009A49" }} />
+            <span className="text-[11px] font-semibold text-slate-600 truncate">{item.location_name || item.city || "Unknown"}</span>
           </div>
-          {item.user && !item.is_anonymous && (
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[7px] font-black text-primary">
+          {item.category && (
+            <span className="inline-block px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest capitalize"
+              style={{ background: isMissing ? "#fff0f1" : "#f1f5f9", color: isMissing ? "#CE1126" : "#64748b" }}>
+              {isMissing ? "Missing" : item.category}
+            </span>
+          )}
+        </div>
+
+        <p className="text-[10px] font-medium text-slate-400 mb-2">{formatDate(item.created_at)}</p>
+
+        {/* Footer */}
+        <div className="mt-auto pt-2 flex items-center justify-between" style={{ borderTop: "1px solid #f1f5f9" }}>
+          <div className="flex items-center gap-1.5">
+            {item.user && !item.is_anonymous && (
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
+                style={{ background: isMissing ? "#CE1126" : "#009A49" }}>
                 {item.user.full_name?.[0]?.toUpperCase()}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          <button
+            onClick={e => { e.stopPropagation(); router.push(`/browse/${item.id}`); }}
+            className="text-[10px] font-bold rounded-full px-3 py-1 transition-all"
+            style={{ color: isMissing ? "#CE1126" : "#009A49", border: `1.5px solid ${isMissing ? "#CE1126" : "#009A49"}`, background: "transparent" }}
+            onMouseEnter={e => {
+              (e.target as HTMLButtonElement).style.background = isMissing ? "#CE1126" : "#009A49";
+              (e.target as HTMLButtonElement).style.color = "white";
+            }}
+            onMouseLeave={e => {
+              (e.target as HTMLButtonElement).style.background = "transparent";
+              (e.target as HTMLButtonElement).style.color = isMissing ? "#CE1126" : "#009A49";
+            }}>
+            See more
+          </button>
         </div>
       </div>
     </motion.div>
