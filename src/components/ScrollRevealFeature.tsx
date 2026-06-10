@@ -13,18 +13,11 @@ const SLIDES = [
   { src: "/screenshots/sample5.jpg", num: "05" },
 ];
 
-// Each card has a unique clip-path that creates the curved concave bottom
-// and the angled/fan effect on the outer cards
 const CLIP_PATHS = [
-  // Far left — angled right side, curved bottom-left
   "polygon(0% 0%, 92% 0%, 100% 8%, 100% 100%, 8% 88%, 0% 72%)",
-  // Left — slight angle, curved bottom
   "polygon(0% 0%, 95% 0%, 100% 5%, 100% 96%, 50% 100%, 0% 96%)",
-  // Center — straight top, curved concave bottom (deepest curve)
   "polygon(0% 0%, 100% 0%, 100% 94%, 85% 100%, 50% 96%, 15% 100%, 0% 94%)",
-  // Right — mirror of left
   "polygon(5% 0%, 100% 0%, 100% 96%, 50% 100%, 0% 96%, 0% 5%)",
-  // Far right — angled left side, curved bottom-right
   "polygon(0% 8%, 8% 0%, 100% 0%, 100% 72%, 92% 88%, 0% 100%)",
 ];
 
@@ -33,24 +26,23 @@ const ROTATIONS = [-6, -2, 0, 2, 6];
 
 export default function ScrollRevealFeature() {
   return (
-    <section className="relative my-6 overflow-hidden" style={{ background: "#fff" }}>
+    <section className="relative mt-0 mb-6 overflow-hidden" style={{ background: "#fff" }}>
 
-      {/* Top text */}
-      <div className="text-center px-6 pt-14 pb-12">
+      {/* Top text — reduced padding */}
+      <div className="text-center px-6 pt-6 pb-8">
         <motion.h2
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="font-black text-slate-900 leading-tight mb-4"
           style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}>
-          In Cameroon, losing something<br />
-          <span className="text-primary">used to mean losing it forever.</span>
+          Losing something doesn't mean
+          <span className="text-primary"> it's gone forever.</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ delay: 0.1 }}
           className="text-slate-400 font-medium max-w-lg mx-auto mb-7 text-sm leading-relaxed">
-          Back2U changes that. Every day, people across Douala, Buea and Yaoundé
-          are reuniting with their lost items. Not by luck. By design.
+With Back2U, recovery is no longer a matter of chance. Join a community dedicated to helping people recover lost items and reconnect missing loved ones.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}

@@ -11,16 +11,16 @@ import {
   Smartphone, HeartHandshake, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import Counter from "@/components/Counter";
 import ScrollRevealFeature from "@/components/ScrollRevealFeature";
 
 const REVIEWS = [
-  { name: "Arnaud T.",     location: "Douala",  text: "Found my laptop in 2 days. The safe zone meeting was very professional.", stars: 5 },
-  { name: "Marie-Louise",  location: "Yaoundé", text: "Honest community. Someone found my ID card and reported it here.",        stars: 5 },
-  { name: "Kevin N.",      location: "Buea",    text: "The interface is so simple to use even for my parents.",                   stars: 4 },
-  { name: "Sali H.",       location: "Garoua",  text: "I returned a wallet today. The gratitude tip system is a great touch!",   stars: 5 },
-  { name: "Christelle M.", location: "Bamenda", text: "Got a match notification within hours of posting. Incredible.",            stars: 5 },
-  { name: "Ibrahim D.",    location: "Maroua",  text: "Reported a found phone, owner confirmed same day. 50 Guardian points!",   stars: 5 },
+  { name: "Kemugne Angela",   location: "Douala",   text: "Found my laptop in 2 days. The safe zone meeting was very professional.", stars: 5 },
+  { name: "Ofor Gloria",      location: "Yaoundé",  text: "Honest community. Someone found my ID card and reported it here.",        stars: 5 },
+  { name: "Mbachan Frankfils",location: "Buea",     text: "The interface is so simple to use even for my parents.",                   stars: 4 },
+  { name: "Fanta M.",         location: "Bamenda",  text: "I found a wallet near Marché Central and the owner contacted me within minutes.", stars: 5 },
 ];
 
 const UploadIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
@@ -88,17 +88,17 @@ function OnboardingModal({ onClose }: { onClose: () => void }) {
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all" onClick={() => setOpen(o => !o)}>
+    <div className="border border-slate-200 rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all" onClick={() => setOpen(o => !o)}>
       <div className="flex items-center justify-between px-6 py-5">
-        <p className="font-bold text-slate-800 text-[10px] pr-2">{q}</p>
-        <div className={`w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
-          <span className="text-primary font-black text-lg leading-none">+</span>
+        <p className="font-bold text-slate-800 text-sm pr-2">{q}</p>
+        <div className={`w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
+          <span className="text-primary font-black text-xl leading-none">+</span>
         </div>
       </div>
       <AnimatePresence>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}>
-            <p className="px-4 pb-2 text-slate-400 text-[9px] font-medium leading-relaxed border-t border-slate-50 pt-4">{a}</p>
+            <p className="px-6 pb-5 text-slate-500 text-sm font-medium leading-relaxed border-t border-slate-100 pt-4">{a}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -107,6 +107,8 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
+  const supabase = createClient();
   const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -127,6 +129,16 @@ export default function LandingPage() {
     localStorage.setItem("back2u_onboarded", "1");
   };
 
+  // Change 3: Explore button checks auth and routes correctly
+  const handleExplore = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      router.push("/browse");
+    } else {
+      router.push("/auth");
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -143,34 +155,19 @@ export default function LandingPage() {
 
       {/* HERO */}
       <section className="relative overflow-hidden" style={{ paddingBottom: 0 }}>
-
-        {/* SVG wave + organic blob background */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 700"
             preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-
-            {/* Base */}
             <rect width="1440" height="700" fill="#eaf6f0"/>
-
-            {/* Large organic blob top-right — like Image 2 liquid shape */}
             <path d="M1100 -80 C1320 -60, 1500 80, 1480 260 C1460 440, 1280 480, 1120 400 C960 320, 880 160, 960 60 C1020 -20, 1060 -60, 1100 -80 Z"
               fill="url(#blobTR)" opacity="0.75"/>
-
-            {/* Organic blob bottom-left */}
             <path d="M-120 420 C-40 320, 120 300, 200 380 C280 460, 260 580, 140 640 C20 700, -80 660, -120 580 C-160 500, -140 440, -120 420 Z"
               fill="url(#blobBL)" opacity="0.65"/>
-
-            {/* Wave layer 1 — sweeping from bottom */}
             <path d="M0 620 C240 540, 480 600, 720 560 C960 520, 1200 580, 1440 540 L1440 700 L0 700 Z"
               fill="url(#waveA)" opacity="0.45"/>
-
-            {/* Wave layer 2 — higher, lighter */}
             <path d="M0 660 C180 620, 420 650, 660 630 C900 610, 1140 640, 1440 620 L1440 700 L0 700 Z"
               fill="url(#waveB)" opacity="0.35"/>
-
-            {/* Small yellow accent circle */}
             <circle cx="720" cy="200" r="90" fill="url(#blobY)" opacity="0.18"/>
-
             <defs>
               <radialGradient id="blobTR" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#00ADB5" stopOpacity="1"/>
@@ -200,19 +197,17 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-10" style={{ position: "relative", zIndex: 1 }}>
-        <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-10" style={{ position: "relative", zIndex: 1 }}>
           <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
             <div className="space-y-4">
-
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                 className="font-black leading-[1.1] tracking-[-0.02em] text-[#061209]"
                 style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)", fontFamily: "'Clash Grotesk', sans-serif" }}>
                 Every loss has a story.{" "}
                 <span className="text-primary" style={{ fontFamily: "'Emilys Candy', cursive" }}>Back2U writes the ending.</span>
               </motion.h1>
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              <motion.p initial={{ opacity: 1, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 className="text-base text-slate-500 font-medium max-w-md leading-relaxed">
-                Whether it's a phone, a wallet, or a loved one. We help you find it, fast.
+                Whether it's a phone, a wallet, or a loved one. We can help you find it.
               </motion.p>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                 className="flex flex-wrap items-center gap-3">
@@ -225,7 +220,6 @@ export default function LandingPage() {
                   <Search size={15} /> Browse
                 </Link>
               </motion.div>
-              {/* trust row */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
                 className="flex items-center gap-4 pt-2">
                 <div className="flex">
@@ -236,14 +230,14 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">2,400+</span> items recovered across Cameroon</p>
+                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">250+</span> items recovered across Cameroon</p>
               </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
                 className="flex flex-wrap items-center gap-4 text-xs text-slate-400 font-medium">
                 {[
                   { icon: CheckCircle2, text: "First post free" },
-                  { icon: CheckCircle2, text: "300 XAF/year" },
                   { icon: CheckCircle2, text: "Missing persons free" },
+                  { icon: CheckCircle2, text: "300 XAF/year" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-1.5">
                     <item.icon size={13} className="text-primary" />
@@ -252,15 +246,12 @@ export default function LandingPage() {
                 ))}
               </motion.div>
             </div>
-            {/* right side — float cards illustration */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
               className="relative flex items-center justify-center mt-6 lg:mt-0">
               <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-md mx-auto" style={{ transform: `translateY(${scrollY * 0.06}px)`, transition: "transform 0.1s linear" }}>
-                {/* main card */}
-                <div className="rounded-3xl overflow-hidden flex items-center justify-center" style={{ background: "linear-gradient(135deg,#e8f5ee,#f0fdfa,#f0fdf4)", height: "200px" }}>
+                <div className="rounded-3xl overflow-hidden flex items-center justify-center" style={{ background: "linear-gradient(135deg,#e8f5ee,#f0fdfa,#f0fdf4)", height: "300px" }}>
                   <img src="/images/hero-illustration.png" alt="Back2U lost and found illustration" className="w-full h-full object-contain drop-shadow-2xl" />
                 </div>
-                {/* float card 1 */}
                 <div className="absolute -bottom-4 -left-8 bg-white rounded-2xl px-4 py-3 flex items-center gap-3"
                   style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0" }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,173,181,0.1)" }}>
@@ -271,27 +262,25 @@ export default function LandingPage() {
                     <p className="text-[10px] text-slate-400 mt-0.5">Score: 89% · 450m away</p>
                   </div>
                 </div>
-                {/* float card 2 */}
                 <div className="absolute -top-4 -right-6 bg-white rounded-2xl px-4 py-3 text-center"
                   style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0" }}>
-                  <p className="text-xl font-black text-primary leading-none">1,240</p>
+                  <p className="text-xl font-black text-primary leading-none">40</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">Active reports</p>
                 </div>
               </div>
             </motion.div>
           </div>
         </div>
-        </div>
       </section>
 
       {/* STATS */}
-      <section className="max-w-7xl mx-auto px-5 md:px-10 py-4" style={{ background: "linear-gradient(90deg,#f0fdf4 0%,#f0fdfa 50%,#f0fdf4 100%)" }}>
+      <section className="max-w-7xl mx-auto px-5 md:px-10 py-3" style={{ background: "linear-gradient(90deg,#f0fdf4 0%,#f0fdfa 50%,#f0fdf4 100%)" }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { value: "150+", label: "Items Recovered",   bg: "#fce8e8", color: "#ef4444", icon: PackageCheck },
-            { value: "227+", label: "Community Members", bg: "#fef0e6", color: "#f97316", icon: Users        },
-            { value: "10",   label: "Cities Covered",    bg: "#e8f9ee", color: "#22c55e", icon: MapPin       },
-            { value: "78%",  label: "Recovery Rate",     bg: "#f0fdfa", color: "#00ADB5", icon: CheckCircle2 },
+            { value: "250+", label: "Items Recovered",   bg: "#fce8e8", color: "#e03535", icon: PackageCheck },
+            { value: "227+", label: "Community Members", bg: "#fef0e6", color: "#e76a10", icon: Users        },
+            { value: "10",   label: "Cities Covered",    bg: "#e8f9ee", color: "#18b150", icon: MapPin       },
+            { value: "78%",  label: "Recovery Rate",     bg: "#f0fdfa", color: "#0064b5", icon: CheckCircle2 },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl p-5 flex items-center gap-4" style={{ background: item.bg }}>
               <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ background: item.color }}>
@@ -307,22 +296,48 @@ export default function LandingPage() {
       </section>
 
       {/* WHAT IS BACK2U */}
-      <section className="py-10 px-4 md:px-10 max-w-7xl mx-auto" style={{ background: "linear-gradient(160deg, #fff 0%, #f0fdfa 60%, #f0fdf4 100%)" }}>
+      {/* Change 1: "What is Back2U?" label moved to right side above the two image cards */}
+      <section className="py-8 px-4 md:px-10 max-w-7xl mx-auto" style={{ background: "linear-gradient(160deg, #fff 0%, #f0fdfa 60%, #f0fdf4 100%)" }}>
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-          {/* LEFT — stacked image collage */}
+          {/* LEFT — image collage with placeholder cards */}
+          {/* Change 2: two stacked image cards with placeholder areas */}
           <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="relative hidden md:block" style={{ height: "400px" }}>
+            {/* Card 1 — placeholder */}
             <div className="absolute left-0 top-0 w-64 h-72 rounded-3xl overflow-hidden"
-              style={{ background: "linear-gradient(135deg,#e8f5ee,#f0fdf4)", border: "1px solid #bbf7d0" }}>
-              <img src="/images/about-1.jpg" alt="" className="w-full h-full object-cover opacity-80"
+              style={{ background: "linear-gradient(135deg,#e8f5ee,#f0fdf4)", border: "1.5px dashed #009A49" }}>
+              <img src="/images/about-1.jpg" alt="" className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,154,73,0.1)", border: "1.5px dashed #009A49" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#009A49" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
+                  </svg>
+                </div>
+                <p style={{ color: "#009A49", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", textAlign: "center" }}>about-1.jpg</p>
+              </div>
             </div>
-            <div className="absolute right-0 bottom-6 w-48 h-56 rounded-3xl overflow-hidden shadow-xl"
+
+            {/* Card 2 — placeholder for user image */}
+            <div className="absolute right-0 bottom-6 w-48 h-56 rounded-3xl overflow-hidden shadow-xl flex items-center justify-center"
               style={{ background: "linear-gradient(135deg,#fff7ed,#fef3c7)", border: "1px solid #fde68a" }}>
-              <img src="/images/about-2.jpg" alt="" className="w-full h-full object-cover opacity-80"
+              <img src="/images/about-2.jpg" alt="" className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              {/* Placeholder shown when no image */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(252,209,22,0.2)", border: "1.5px dashed #FCD116" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
+                  </svg>
+                </div>
+                <p style={{ color: "#b45309", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center" }}>
+                  Add image
+                </p>
+              </div>
             </div>
+
+            {/* Floating stat */}
             <motion.div animate={{ y: [0,-6,0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="absolute right-4 top-4 bg-white rounded-2xl px-4 py-3 shadow-lg z-10"
               style={{ border: "1px solid #e2e8f0" }}>
@@ -338,22 +353,23 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          {/* RIGHT — storytelling */}
+          {/* RIGHT — storytelling with label at top */}
           <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-            <div className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full mb-5"
+            {/* Change 1: label is here on the right, above the heading */}
+            <div className="inline-block text-[13px] font-bold uppercase tracking-[0.3em] px-3 py-2 rounded-full mb-5"
               style={{ background: "#f0fdf4", color: "#009A49", border: "1px solid #bbf7d0" }}>
               What is Back2U?
             </div>
             <h2 className="font-black leading-tight mb-5"
               style={{ fontSize: "clamp(1.7rem,3vw,2.4rem)", fontFamily: "'Clash Grotesk',sans-serif", color: "#222831" }}>
-              Every day in Cameroon,<br />thousands of items are lost.<br />
-              <span className="text-primary">Most never come back.</span>
+              Over 2000+ items are lost in Cameroon daily.
+              <span className="text-primary"> Most never come back.</span>
             </h2>
             <p className="text-slate-500 text-sm font-medium leading-relaxed mb-4">
-              Back2U exists to close that gap. We built a space where the person who finds your phone and the person who lost it can find each other safely — without sharing contacts, without social media chaos, without the anxiety of not knowing.
+              Whethr it's taxis, schools, roads or other public spaces. We often assume they were stolen. In many cases, however, the people who find these items simply have no way of returning them to their rightful owners.
             </p>
             <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
-              Whether it is a wallet dropped on the road, a student ID left in a lecture hall, or a loved one who has gone missing — Back2U is the bridge. One platform. The whole of Cameroon.
+              We built a platform where the person who finds your phone, wallet, document, bag, or any lost item can connect safely with the person who lost it. Beyond lost property, Back2U also supports missing-person searches, helping families and communities share information and work together to locate loved ones who have gone missing. By making it easy to report, search, match, and recover lost items or reconnect missing persons with their families, Back2U fosters trust, community responsibility, and meaningful reunions across Cameroon.
             </p>
             <div className="space-y-4 mb-7">
               {[
@@ -373,10 +389,12 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/browse" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
+            {/* Change 3: auth-aware explore button */}
+            <button onClick={handleExplore}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
               style={{ background: "#009A49" }}>
               Explore Back2U <ArrowRight size={15} />
-            </Link>
+            </button>
           </motion.div>
 
         </div>
@@ -385,7 +403,7 @@ export default function LandingPage() {
       <ScrollRevealFeature />
 
       {/* HOW IT WORKS */}
-      <section className="py-12 px-4 max-w-7xl mx-auto" id="how-it-works" style={{ background: "linear-gradient(180deg, #fff 0%, #f8faff 100%)" }}>
+      <section className="pt-12 pb-4 px-4 max-w-7xl mx-auto" id="how-it-works" style={{ background: "linear-gradient(160deg, #ffffff 0%, #f0fdfa 50%, #e8f5ee 100%)" }}>
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-black mb-3 text-slate-900" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
             How it works
@@ -395,55 +413,24 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Desktop — 4 columns with curved dotted arrows */}
+        {/* Desktop — 4 columns, dotted lines NO arrows (Change 4) */}
         <div className="relative hidden lg:block">
           <svg className="absolute top-0 left-0 w-full pointer-events-none" style={{ height: "170px" }}
             viewBox="0 0 1200 170" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Arc 1 to 2: curves UP (above illustrations) */}
+            {/* Arc 1 to 2: curves UP — no arrowhead */}
             <path d="M 240 90 Q 300 35 360 90" stroke="#00ADB5" strokeWidth="2" strokeDasharray="7 5" fill="none" strokeLinecap="round"/>
-            <polygon points="354,83 365,92 352,97" fill="#00ADB5" opacity="0.75"/>
-            {/* Arc 2 to 3: curves DOWN (below, alternating) */}
+            {/* Arc 2 to 3: curves DOWN — no arrowhead */}
             <path d="M 540 90 Q 600 145 660 90" stroke="#00ADB5" strokeWidth="2" strokeDasharray="7 5" fill="none" strokeLinecap="round"/>
-            <polygon points="654,83 665,92 652,97" fill="#00ADB5" opacity="0.75"/>
-            {/* Arc 3 to 4: curves UP again */}
+            {/* Arc 3 to 4: curves UP — no arrowhead */}
             <path d="M 840 90 Q 900 35 960 90" stroke="#00ADB5" strokeWidth="2" strokeDasharray="7 5" fill="none" strokeLinecap="round"/>
-            <polygon points="954,83 965,92 952,97" fill="#00ADB5" opacity="0.75"/>
           </svg>
 
           <div className="grid grid-cols-4 gap-0">
             {[
-              {
-                step: "01", title: "Post your report", delay: 0,
-                desc: "Fill the form, add photos, pin the location. First post always free.",
-                svg: (
-                  <img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain"
-                    onError={(e) => { e.currentTarget.style.opacity = "0"; }} />
-                )
-              },
-              {
-                step: "02", title: "Smart matching", delay: 0.1,
-                desc: "Our matching engine scores reports by keywords, GPS distance, category and photo similarity.",
-                svg: (
-                  <img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain"
-                    onError={(e) => { e.currentTarget.style.opacity = "0"; }} />
-                )
-              },
-              {
-                step: "03", title: "Verify and chat", delay: 0.2,
-                desc: "Prove ownership through secret questions, then open a private secure chat with the finder.",
-                svg: (
-                  <img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain"
-                    onError={(e) => { e.currentTarget.style.opacity = "0"; }} />
-                )
-              },
-              {
-                step: "04", title: "Recover and rate", delay: 0.3,
-                desc: "Collect your item, rate the experience. Finder earns Guardian points for honesty.",
-                svg: (
-                  <img src="/images/hiw-4.svg" alt="Recover and rate" className="w-full h-full object-contain"
-                    onError={(e) => { e.currentTarget.style.opacity = "0"; }} />
-                )
-              }
+              { step: "01", title: "Post your report", delay: 0, desc: "Fill in a simple form, add photos, and indicate where the item was lost or found. Your first report is always free.", svg: (<img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "02", title: "Find possible matches", delay: 0.1, desc: "Back2U automatically looks for reports that may match yours and suggests potential connections.", svg: (<img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "03", title: "Verify and connect", delay: 0.2, desc: "Confirm ownership with a few questions, then securely connect with the finder or owner.", svg: (<img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "04", title: "Recover and rate", delay: 0.3, desc: "Get your item back, share your experience, and help build a trusted community.", svg: (<img src="/images/hiw-4.svg" alt="Recover and rate" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: item.delay }}
                 className="flex flex-col items-center text-center px-4 relative z-10">
@@ -460,13 +447,13 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile — clean 2x2 grid, no arrows */}
+        {/* Mobile — clean 2x2 grid */}
         <div className="lg:hidden grid grid-cols-2 gap-3">
           {[
-            { step: "1", title: "Post your report", desc: "Fill the form, add photos, pin location. First post free.", img: "/images/hiw-1.svg" },
-            { step: "2", title: "Smart matching", desc: "Our engine scores by keywords, GPS and photo similarity.", img: "/images/hiw-2.svg" },
-            { step: "3", title: "Verify and chat", desc: "Prove ownership, chat securely with the finder.", img: "/images/hiw-3.svg" },
-            { step: "4", title: "Recover and rate", desc: "Collect your item. Finder earns Guardian points.", img: "/images/hiw-4.svg" },
+            { step: "1", title: "Post your report", desc: "Fill in a simple form, add photos, and indicate where the item was lost or found.", img: "/images/hiw-1.svg" },
+            { step: "2", title: "Find possible matches", desc: "Back2U automatically looks for reports that may match yours.", img: "/images/hiw-2.svg" },
+            { step: "3", title: "Verify and connect", desc: "Confirm ownership with a few questions, then securely connect.", img: "/images/hiw-3.svg" },
+            { step: "4", title: "Recover and rate", desc: "Get your item back, share your experience, and help build a trusted community.", img: "/images/hiw-4.svg" },
           ].map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="flex flex-col items-center text-center p-4 rounded-2xl"
@@ -483,103 +470,65 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING + WHY BACK2U */}
-      <section className="py-10 px-4 max-w-7xl mx-auto" style={{ background: "linear-gradient(135deg, #fafffe 0%, #f0fdfa 50%, #fff7ed 100%)" }}>
+      <section className="py-8 px-4 max-w-7xl mx-auto" style={{ background: "linear-gradient(135deg, #f0fdfa 0%, #fffbeb 50%, #fafffe 100%)" }}>
         <div className="text-center mb-10">
           <h2 className="font-black text-slate-900 leading-tight mb-2"
             style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}>
-            Simple pricing. Real reasons <span className="text-primary">to trust us.</span>
+            Simple pricing<span className="text-primary"> to trust us.</span>
           </h2>
           <p className="text-slate-400 text-sm font-medium max-w-md mx-auto">
-            One fair price. Built for Cameroon. No surprises.
+            One fair price built for all.
           </p>
         </div>
 
         <div className="flex flex-col md:flex-row items-end justify-center gap-6">
 
-          {/* PRICING CARD — starts lower (normal position) */}
+          {/* PRICING CARD */}
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="w-full md:w-72 bg-white rounded-2xl overflow-visible relative"
-            style={{
-              paddingTop: "10px",
-              paddingBottom: "24px",
-              boxShadow: "0 6px 30px rgba(0,0,0,0.1)",
-              border: "1px solid #e2e8f0",
-              borderBottom: "4px solid #222831",
-            }}>
-            {/* Title */}
+            style={{ paddingTop: "10px", paddingBottom: "24px", boxShadow: "0 6px 30px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", borderBottom: "4px solid #222831" }}>
             <div className="px-7 pt-3 pb-4">
-              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0"
-                style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
                 Annual Pass
                 <span className="block text-xs font-normal text-slate-400 mt-0.5">For lost item owners</span>
               </h3>
             </div>
-
-            {/* Price ribbon — yellow tag like reference */}
             <div className="relative mx-0 mb-5" style={{ marginLeft: "-1px" }}>
               <div className="flex items-baseline gap-1 px-7 py-2.5 relative"
                 style={{ background: "#FCD116", borderRadius: "0 6px 6px 0", width: "calc(100% + 1px)" }}>
                 <span className="text-sm font-light text-slate-700 self-start mt-1">XAF</span>
-                <span className="font-black text-3xl text-slate-900 leading-none"
-                  style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>300</span>
+                <span className="font-black text-3xl text-slate-900 leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>300</span>
                 <span className="text-sm font-light text-slate-600">/ year</span>
-                {/* Folded corner */}
                 <div className="absolute -bottom-5 right-0 w-0 h-0"
                   style={{ borderTop: "12px solid #b45309", borderBottom: "10px solid transparent", borderRight: "12px solid transparent" }} />
               </div>
             </div>
-
-            {/* Benefits */}
             <div className="px-7 space-y-2.5 mb-6">
-              {[
-                "Post unlimited lost reports",
-                "Contact any finder for free",
-                "Found items always free",
-                "Missing persons always free",
-                "First lost report free",
-              ].map((item, i) => (
+              {["Post unlimited lost reports","Contact any finder for free","Found items always free","Missing persons always free","First lost report free"].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <CheckCircle2 size={15} className="text-primary shrink-0" />
                   <span className="text-sm font-medium text-slate-600">{item}</span>
                 </div>
               ))}
             </div>
-
-            {/* CTA */}
             <div className="px-7">
-              <Link href="/subscribe"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
-                style={{ background: "#222831" }}>
-                <Zap size={15} />
-                Get Annual Pass
+              <Link href="/subscribe" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all" style={{ background: "#222831" }}>
+                <Zap size={15} /> Get Annual Pass
               </Link>
-              <p className="text-center text-[10px] text-slate-300 font-medium mt-2.5 uppercase tracking-widest">
-                MTN MoMo · Orange Money
-              </p>
+              <p className="text-center text-[10px] text-slate-300 font-medium mt-2.5 uppercase tracking-widest">MTN MoMo · Orange Money</p>
             </div>
           </motion.div>
 
-          {/* WHY BACK2U CARD — starts higher (pushed up with negative margin) */}
+          {/* WHY BACK2U CARD */}
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
             className="w-full md:w-72 bg-white rounded-2xl overflow-visible relative"
-            style={{
-              paddingTop: "10px",
-              paddingBottom: "24px",
-              boxShadow: "0 6px 30px rgba(0,0,0,0.1)",
-              border: "1px solid #e2e8f0",
-              borderBottom: "4px solid #009A49",
-              marginBottom: "28px",
-            }}>
-            {/* Title */}
+            style={{ paddingTop: "10px", paddingBottom: "24px", boxShadow: "0 6px 30px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", borderBottom: "4px solid #009A49", marginBottom: "28px" }}>
             <div className="px-7 pt-3 pb-4">
-              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0"
-                style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
                 Why Back2U
                 <span className="block text-xs font-normal text-slate-400 mt-0.5">Built for Cameroon</span>
               </h3>
             </div>
-
-            {/* Teal ribbon instead of price */}
             <div className="relative mx-0 mb-5" style={{ marginLeft: "-1px" }}>
               <div className="flex items-center gap-2 px-7 py-2.5"
                 style={{ background: "#00ADB5", borderRadius: "0 6px 6px 0", width: "calc(100% + 1px)" }}>
@@ -589,33 +538,25 @@ export default function LandingPage() {
                   style={{ borderTop: "12px solid #007a80", borderBottom: "10px solid transparent", borderRight: "12px solid transparent" }} />
               </div>
             </div>
-
-            {/* Reasons */}
             <div className="px-7 space-y-2.5 mb-6">
               {[
-                { icon: Smartphone,   text: "Pay with MTN MoMo or Orange Money" },
-                { icon: Lock,         text: "No phone numbers ever shared" },
-                { icon: Bell,         text: "Notified the moment a match is found" },
-                { icon: Award,        text: "Honesty earns Guardian points" },
                 { icon: CheckCircle2, text: "First report is always free" },
+                { icon: Bell,         text: "Notified the moment a match is found" },
+                { icon: Lock,         text: "No phone numbers ever shared" },
+                { icon: Smartphone,   text: "Use Back2U in English Or French" },
+                { icon: Award,        text: "Honesty earns Guardian points" },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: "#f0fdfa", border: "1px solid #99f6e4" }}>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "#f0fdfa", border: "1px solid #99f6e4" }}>
                     <item.icon size={12} style={{ color: "#00ADB5" }} />
                   </div>
                   <span className="text-sm font-medium text-slate-600">{item.text}</span>
                 </div>
               ))}
             </div>
-
-            {/* CTA */}
             <div className="px-7">
-              <Link href="/browse"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
-                style={{ background: "#009A49" }}>
-                <Search size={15} />
-                Browse reports
+              <Link href="/browse" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all" style={{ background: "#009A49" }}>
+                <Search size={15} /> Browse reports
               </Link>
             </div>
           </motion.div>
@@ -623,93 +564,72 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* REVIEWS */}
-      {/* REVIEWS */}
-      <section className="relative py-16 px-4 overflow-hidden">
-        <div className="absolute inset-0" style={{
-          background: "linear-gradient(135deg, #1a2e1a 0%, #222831 40%, #0d2020 70%, #1a2818 100%)",
-        }} />
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none" style={{
-          background: "radial-gradient(circle, rgba(0,154,73,0.12) 0%, transparent 65%)",
-          filter: "blur(60px)", transform: "translateY(-30%)",
-        }} />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full pointer-events-none" style={{
-          background: "radial-gradient(circle, rgba(0,173,181,0.1) 0%, transparent 65%)",
-          filter: "blur(60px)", transform: "translateY(30%)",
-        }} />
+      {/* REVIEWS — Change 5: 4 cards, 2x2 on mobile, smaller, light green tint */}
+      <section className="relative py-8 px-4 overflow-hidden">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1a2e1a 0%, #222831 40%, #0d2020 70%, #1a2818 100%)" }} />
+        <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(0,154,73,0.08) 0%, transparent 65%)", filter: "blur(40px)" }} />
+        <div className="absolute bottom-0 right-1/4 w-56 h-56 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(0,173,181,0.07) 0%, transparent 65%)", filter: "blur(40px)" }} />
         <style>{`
           .testi-card { transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1); }
-          .testi-card:hover { box-shadow: 8px 8px 0px #009A49; border-color: #009A49 !important; transform: translate(-8px, -8px); }
+          .testi-card:hover { box-shadow: 6px 6px 0px #009A49; border-color: #009A49 !important; transform: translate(-6px, -6px); }
         `}</style>
         <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-6">
             <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#00ADB5", letterSpacing: "0.2em" }}>Testimonials</p>
-            <h2 className="font-black leading-tight" style={{
-              fontFamily: "'Clash Grotesk', sans-serif",
-              fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
-              color: "#FCD116",
-            }}>
+            <h2 className="font-black leading-tight" style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: "#FCD116" }}>
               What our community says
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {REVIEWS.slice(0, 3).map((review, i) => (
+          {/* 4 cards — 4 cols desktop, 2x2 mobile */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {REVIEWS.map((review, i) => (
               <motion.div key={i}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="testi-card flex flex-col justify-between"
+                transition={{ delay: i * 0.08 }}
+                className="testi-card flex flex-col gap-3 p-5 rounded-2xl"
                 style={{
-                  padding: "32px",
-                  borderRadius: "24px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.05)",
-                  backdropFilter: "blur(12px)",
-                  lineHeight: 1.6,
-                  minHeight: "340px",
+                  background: "rgba(0,154,73,0.08)",
+                  border: "1px solid rgba(0,154,73,0.2)",
+                  backdropFilter: "blur(8px)",
                 }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-base shrink-0"
+                {/* Avatar + name */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
                     style={{
-                      background: i === 0 ? "#009A49" : i === 1 ? "#00ADB5" : "#FCD116",
+                      background: i === 0 ? "#009A49" : i === 1 ? "#00ADB5" : i === 2 ? "#FCD116" : "#CE1126",
                       color: i === 2 ? "#222831" : "#fff",
                       fontFamily: "'Clash Grotesk', sans-serif",
                     }}>
-                    {review.name[0]}
+                    {review.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
                   </div>
                   <div>
-                    <strong className="font-black text-white text-sm block" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
-                      {review.name}
-                    </strong>
-                    <p className="text-xs font-medium" style={{ color: "#00ADB5" }}>{review.location}</p>
+                    <p className="font-black text-white text-xs leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{review.name}</p>
+                    <p className="text-[10px] font-medium mt-0.5" style={{ color: "#00ADB5" }}>{review.location}</p>
                   </div>
                 </div>
-                <div className="flex flex-col gap-4 flex-1 justify-between">
-                  <div>
-                    <svg viewBox="0 0 24 24" style={{ width: "40px", height: "40px", marginBottom: "12px" }}>
-                      <path fill="#FCD116" opacity="0.3" d="M4.58341 17.3211C3.55316 16.2274 3 15 3 13.0103C3 9.51086 5.45651 6.37366 9.03059 4.82318L9.92328 6.20079C6.58804 8.00539 5.93618 10.346 5.67564 11.822C6.21263 11.5443 6.91558 11.4466 7.60471 11.5105C9.40908 11.6778 10.8312 13.159 10.8312 15C10.8312 16.933 9.26416 18.5 7.33116 18.5C6.2581 18.5 5.23196 18.0095 4.58341 17.3211ZM14.5834 17.3211C13.5532 16.2274 13 15 13 13.0103C13 9.51086 15.4565 6.37366 19.0306 4.82318L19.9233 6.20079C16.588 8.00539 15.9362 10.346 15.6756 11.822C16.2126 11.5443 16.9156 11.4466 17.6047 11.5105C19.4091 11.6778 20.8312 13.159 20.8312 15C20.8312 16.933 19.2642 18.5 17.3312 18.5C16.2581 18.5 15.232 18.0095 14.5834 17.3211Z"/>
-                    </svg>
-                    <p className="text-sm font-medium leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
-                      {review.text}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 pt-2">
-                    {[...Array(review.stars)].map((_, s) => (
-                      <Star key={s} size={13} className="fill-secondary text-secondary" />
-                    ))}
-                  </div>
+                {/* Stars */}
+                <div className="flex gap-0.5">
+                  {[...Array(review.stars)].map((_, s) => (
+                    <Star key={s} size={12} className="fill-secondary text-secondary" />
+                  ))}
                 </div>
+                {/* Text */}
+                <p className="text-xs font-medium leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  {review.text}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-      {/* FAQ */}
-      <section className="py-4 px-4 max-w-7xl mx-auto">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-black mb-1">Common <span className="text-primary">questions.</span></h2>
-          <p className="text-slate-400 text-xs font-medium">Everything you need to know before getting started.</p>
+
+      {/* FAQ — Change 6: removed "How long does a report stay active?", increased text sizes */}
+      <section className="py-6 px-4 max-w-7xl mx-auto" style={{ background: "linear-gradient(160deg, #fafffe 0%, #f0fdf4 60%, #fffbeb 100%)" }}>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-black mb-2">Common <span className="text-primary">questions.</span></h2>
+          <p className="text-slate-400 text-sm font-medium">Everything you need to know before getting started.</p>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
           {[
@@ -719,13 +639,12 @@ export default function LandingPage() {
             { q: "I found something. What should I do?", a: "Post a Found report with a photo and location. It is completely free. You earn 10 Guardian points just for helping and build your reputation in the community." },
             { q: "How does the matching work?", a: "Our system scores reports by keyword similarity, GPS proximity, date, and AI visual image similarity. A high enough score triggers a match notification to both users." },
             { q: "What if my item is sensitive?", a: "Mark it Sensitive or High Risk when posting. Photos blur publicly. High Risk items are reviewed by admin before going live." },
-            { q: "How long does a report stay active?", a: "Reports stay active for 6 months then get archived. You get a 7-day warning before it expires so you can repost." },
           ].map((faq, i) => <FAQItem key={i} q={faq.q} a={faq.a} />)}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
+      <section className="max-w-7xl mx-auto px-4 py-6" style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #f0fdfa 100%)" }}>
         <div className="relative max-w-lg mx-auto bg-[#0a0a0a] rounded-[1.5rem] p-4 text-center overflow-hidden border border-white/5">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-[50px] pointer-events-none" />
           <div className="relative z-10 space-y-2">
