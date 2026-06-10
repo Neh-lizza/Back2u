@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import {
   Plus, ChevronRight, Star, Search, Flag,
   Package, Loader2, MessageSquare, MapPin,
-  Shield, Zap, CheckCircle, CheckCircle2, Bell, LogOut,
-  ArrowUpRight, Navigation, Users
+  Shield, Zap, CheckCircle, CheckCircle2, Bell,
+  ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -45,6 +45,17 @@ function getGuardian(r: number) {
   return              { label: "New Guardian",    color: "#009A49", nextAt: 5,  next: "Bronze" };
 }
 
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  "Douala":     { lat: 4.0511,  lng: 9.7085  },
+  "Yaoundé":    { lat: 3.8480,  lng: 11.5021 },
+  "Buea":       { lat: 4.1527,  lng: 9.2316  },
+  "Bamenda":    { lat: 5.9597,  lng: 10.1592 },
+  "Garoua":     { lat: 9.3017,  lng: 13.3990 },
+  "Maroua":     { lat: 10.5910, lng: 14.3158 },
+  "Bafoussam":  { lat: 5.4781,  lng: 10.4200 },
+  "Ngaoundéré": { lat: 7.3220,  lng: 13.5840 },
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const supabase = createClient();
@@ -64,7 +75,6 @@ export default function Dashboard() {
         const { data } = await supabase.auth.getUser();
         user = data.user;
       } catch (e) {
-        // Lock conflict — retry once after short delay
         await new Promise(r => setTimeout(r, 500));
         try {
           const { data } = await supabase.auth.getUser();
@@ -80,7 +90,6 @@ export default function Dashboard() {
       if (p) {
         setProfile(p);
       } else {
-        // Profile missing — create it from auth metadata
         const meta = user.user_metadata ?? {};
         const { data: newProfile } = await db.from("users").insert({
           id:        user.id,
@@ -128,11 +137,6 @@ export default function Dashboard() {
     })();
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth");
-  };
-
   if (loading) return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
@@ -149,6 +153,10 @@ export default function Dashboard() {
   const firstName = profile?.full_name?.split(" ")[0] ?? "Guardian";
   const progress = Math.min(100, ((profile?.recovery_count ?? 0) / g.nextAt) * 100);
 
+  const cityCoords = CITY_COORDS[profile?.city ?? ""] ?? CITY_COORDS["Yaoundé"];
+  const d = 0.07;
+  const bbox = `${cityCoords.lng - d},${cityCoords.lat - d * 0.7},${cityCoords.lng + d},${cityCoords.lat + d * 0.7}`;
+
   return (
     <main className="min-h-screen" style={{ background: "#F0F4F8" }}>
       <style jsx global>{`
@@ -159,14 +167,13 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-5">
 
-        {/* ── TOP BAR ── */}
+        {/* TOP BAR */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
+          className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Hello, <span className="font-black text-primary">{firstName}.</span></p>
+            <p className="text-slate-500 text-base font-medium">Hello, <span className="font-black text-primary">{firstName}.</span></p>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mt-0.5" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
-              Here's what's happening{profile?.city ? ` in ${profile.city}` : " today"}.
+              Here&apos;s what&apos;s happening{profile?.city ? ` in ${profile.city}` : " today"}.
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -179,49 +186,47 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* ── MAIN GRID: left 2/3 (stat cards + my items) | right 1/3 (guardian + activity) ── */}
         <div className="grid lg:grid-cols-3 gap-4 items-start">
 
           {/* LEFT COLUMN */}
           <div className="lg:col-span-2 flex flex-col gap-2">
 
-            {/* 4 stat cards */}
+            {/* 4 stat cards — Dabang pastel style */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Items Returned", value: stats.recovered, icon: CheckCircle,  bg: "bg-emerald-500", trend: "+12%", style: {} },
-                { label: "Searching",      value: stats.active,    icon: Search,        bg: "bg-blue-500",    trend: "-1%",  style: {} },
-                { label: "Total Reported", value: stats.reported,  icon: Flag,          bg: "bg-violet-500",  trend: "+5%",  style: {} },
-                { label: "Active Chats",   value: stats.chats,     icon: MessageSquare, bg: "",               trend: "+2%",  style: { background: "#FF0000" } },
+                { label: "Items Returned", value: stats.recovered, icon: CheckCircle,  iconColor: "#ef4444", cardBg: "#fdc5c5", trend: "+12%", trendUp: true  },
+                { label: "Searching",      value: stats.active,    icon: Search,       iconColor: "#f97316", cardBg: "#fdd5b0", trend: "-1%",  trendUp: false },
+                { label: "Total Reported", value: stats.reported,  icon: Flag,         iconColor: "#22c55e", cardBg: "#bef0d0", trend: "+5%",  trendUp: true  },
+                { label: "Active Chats",   value: stats.chats,     icon: MessageSquare,iconColor: "#a855f7", cardBg: "#e0c4ff", trend: "+2%",  trendUp: true  },
               ].map((s, i) => (
                 <motion.div key={s.label}
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                  className={`${s.bg} rounded-xl p-2 md:p-3 shadow-sm relative overflow-hidden`}
-                  style={s.style}
-                >
-                  <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
-                  <div className="absolute -right-2 -bottom-6 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-1.5 md:mb-3">
-                      <div className="w-6 h-6 md:w-9 md:h-9 bg-white/20 rounded-xl flex items-center justify-center">
-                        <s.icon size={16} className="text-white" />
-                      </div>
-                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/20 text-white">{s.trend}</span>
+                  className="rounded-2xl p-4"
+                  style={{ background: s.cardBg }}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: s.iconColor }}>
+                      <s.icon size={22} className="text-white" />
                     </div>
-                    <p className="text-sm md:text-lg font-black text-white leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{s.value.toLocaleString()}</p>
-                    <p className="text-[9px] md:text-[10px] font-medium text-white/70 mt-1">{s.label}</p>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${s.trendUp ? "text-emerald-600 bg-emerald-100" : "text-red-500 bg-red-100"}`}>
+                      {s.trend}
+                    </span>
                   </div>
+                  <p className="text-3xl font-black text-slate-900 leading-none mb-1.5" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{s.value}</p>
+                  <p className="text-sm font-bold text-slate-700 mb-1">{s.label}</p>
+                  <p className={`text-xs font-medium ${s.trendUp ? "text-emerald-600" : "text-red-500"}`}>
+                    {s.trend} from yesterday
+                  </p>
                 </motion.div>
               ))}
             </div>
 
-            {/* My Items — immediately below stat cards */}
+            {/* My Items */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-              className="rounded-xl overflow-hidden" style={{ background: "#EDE9FE", border: "1px solid #C4B5FD" }}
-            >
+              className="rounded-xl overflow-hidden" style={{ background: "#EDE9FE", border: "1px solid #C4B5FD" }}>
               <div className="flex items-center justify-between px-3 py-2 border-b border-slate-50">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-black text-xs text-purple-900">My Reports</h2>
-                  <span className="px-2.5 py-0.5 bg-purple-200 text-purple-800 rounded-full text-[9px] font-black">{stats.active} active</span>
+                  <h2 className="font-black text-sm text-purple-900">My Reports</h2>
+                  <span className="px-2.5 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs font-black">{stats.active} active</span>
                 </div>
                 <Link href="/browse" className="text-purple-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
                   View all <ChevronRight size={11} />
@@ -242,8 +247,7 @@ export default function Dashboard() {
                   {myItems.map((item, i) => (
                     <Link href={`/browse/${item.id}`} key={item.id}>
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 + i * 0.05 }}
-                        className="flex items-center gap-3 px-4 py-2 hover:bg-purple-100 transition-all cursor-pointer group"
-                      >
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-purple-100 transition-all cursor-pointer group">
                         <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 shrink-0">
                           {item.photos?.[0]
                             ? <img src={item.photos[0]} className="w-full h-full object-cover" alt="" />
@@ -251,14 +255,14 @@ export default function Dashboard() {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs text-slate-900 truncate">{item.title}</p>
-                          <p className="text-[8px] text-slate-400 font-medium flex items-center gap-1 mt-0">
+                          <p className="font-bold text-sm text-slate-900 truncate">{item.title}</p>
+                          <p className="text-xs text-slate-400 font-medium flex items-center gap-1 mt-0.5">
                             <MapPin size={9} />{item.location_name ?? item.city ?? "No location"} · {timeAgo(item.created_at)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase ${item.type === "lost" ? "bg-amber-50 text-amber-500" : "bg-emerald-50 text-emerald-600"}`}>{item.type}</span>
-                          <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase ${
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${item.type === "lost" ? "bg-amber-50 text-amber-500" : "bg-emerald-50 text-emerald-600"}`}>{item.type}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
                             item.status === "active" ? "bg-emerald-50 text-emerald-600" :
                             item.status === "matched" ? "bg-amber-50 text-amber-600" :
                             item.status === "recovered" ? "bg-slate-100 text-slate-400" : "bg-red-50 text-red-400"
@@ -274,8 +278,7 @@ export default function Dashboard() {
 
             {/* Recent Chats */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-              className="rounded-xl overflow-hidden" style={{ background: "#DBEAFE", border: "1px solid #93C5FD" }}
-            >
+              className="rounded-xl overflow-hidden" style={{ background: "#DBEAFE", border: "1px solid #93C5FD" }}>
               <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #93C5FD" }}>
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0">
@@ -302,8 +305,8 @@ export default function Dashboard() {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs text-blue-900 truncate">{chat.item?.title ?? "Chat"}</p>
-                          <p className="text-[9px] text-blue-500">with {chat.other_user?.full_name ?? "Unknown"}</p>
+                          <p className="font-bold text-sm text-blue-900 truncate">{chat.item?.title ?? "Chat"}</p>
+                          <p className="text-xs text-blue-500">with {chat.other_user?.full_name ?? "Unknown"}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">{chat.status}</span>
@@ -321,7 +324,7 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-          </div>{/* end left column */}
+          </div>
 
           {/* RIGHT COLUMN */}
           <div className="flex flex-col gap-4">
@@ -329,8 +332,7 @@ export default function Dashboard() {
             {/* Guardian card */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
               className="relative rounded-2xl p-5 overflow-hidden"
-              style={{ background: "#061209" }}
-            >
+              style={{ background: "#061209" }}>
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-[60px] pointer-events-none" style={{ background: `${g.color}30` }} />
               <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full blur-[40px] pointer-events-none" style={{ background: `${g.color}15` }} />
               <div className="relative z-10 space-y-2.5">
@@ -340,39 +342,35 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-black text-white text-xs leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{g.label}</p>
+                      <p className="font-black text-white text-sm leading-none" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>{g.label}</p>
                       <span className="text-white font-black text-sm" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
                         {profile?.recovery_count ?? 0}
                         <span className="text-white/30 text-[9px] font-medium ml-1">recoveries</span>
                       </span>
                     </div>
-                    <p className="text-[9px] font-bold mt-1 flex items-center gap-1" style={{ color: g.color }}>
+                    <p className="text-xs font-bold mt-1 flex items-center gap-1" style={{ color: g.color }}>
                       <Zap size={9} /> {points.toLocaleString()} pts
                     </p>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Progress</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-white/20">Progress</p>
                     {g.next && <p className="text-[9px] font-black" style={{ color: g.color }}>{g.nextAt - (profile?.recovery_count ?? 0)} more to {g.next}</p>}
                   </div>
                   <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
                       transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
-                      className="h-full rounded-full" style={{ backgroundColor: g.color }}
-                    />
+                      className="h-full rounded-full" style={{ backgroundColor: g.color }} />
                   </div>
                 </div>
                 <div className="flex gap-1.5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} size={13}
                       style={{ color: i < Math.min(5, profile?.recovery_count ?? 0) ? g.color : "rgba(255,255,255,0.1)" }}
-                      fill={i < Math.min(5, profile?.recovery_count ?? 0) ? g.color : "rgba(255,255,255,0.1)"}
-                    />
+                      fill={i < Math.min(5, profile?.recovery_count ?? 0) ? g.color : "rgba(255,255,255,0.1)"} />
                   ))}
                 </div>
-
-                {/* Subscription status */}
                 <div className="pt-2 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
                   {profile?.is_subscribed && profile?.subscription_end && new Date(profile.subscription_end) > new Date() ? (
                     <div className="flex items-center justify-between">
@@ -401,10 +399,9 @@ export default function Dashboard() {
             {/* Recent Activity */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
               className="rounded-2xl overflow-hidden border border-green-100"
-              style={{ background: "#F0FDF4" }}
-            >
+              style={{ background: "#F0FDF4" }}>
               <div className="flex items-center justify-between px-3 py-2 border-b border-green-100">
-                <h2 className="font-black text-sm" style={{ color: "rgb(22 101 52)" }}>Recent Activity</h2>
+                <h2 className="font-black text-base" style={{ color: "rgb(22 101 52)" }}>Recent Activity</h2>
                 <Link href="/browse"><ArrowUpRight size={15} style={{ color: "rgb(74 222 128)" }} /></Link>
               </div>
               {nearbyItems.length === 0 ? (
@@ -421,8 +418,8 @@ export default function Dashboard() {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs truncate" style={{ color: "rgb(22 101 52)" }}>{item.title}</p>
-                          <p className="text-[9px] mt-0.5" style={{ color: "rgb(21 128 61)" }}>{timeAgo(item.created_at)}</p>
+                          <p className="font-bold text-sm truncate" style={{ color: "rgb(22 101 52)" }}>{item.title}</p>
+                          <p className="text-xs mt-0.5" style={{ color: "rgb(21 128 61)" }}>{timeAgo(item.created_at)}</p>
                         </div>
                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase shrink-0 ${
                           item.type === "lost" ? "bg-red-50 text-red-400" : "bg-green-200 text-green-800"
@@ -439,10 +436,9 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Mini Map */}
+            {/* Mini Map — zoomed into city */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-              className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
-            >
+              className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
               <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
@@ -453,52 +449,38 @@ export default function Dashboard() {
                   </h2>
                 </div>
               </div>
-              <div className="relative w-full overflow-hidden" style={{ height: "120px" }}>
+              <div className="relative w-full overflow-hidden" style={{ height: "150px" }}>
                 <iframe
                   title="activity-map"
                   width="100%"
-                  height="160"
-                  style={{ border: 0, display: "block" }}
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=8.4,3.8,16.2,12.8&layer=mapnik&marker=${
-                    profile?.city === "Douala" ? "4.0511,9.7679" :
-                    profile?.city === "Yaoundé" ? "3.8480,11.5021" :
-                    profile?.city === "Buea" ? "4.1597,9.2430" :
-                    profile?.city === "Bamenda" ? "5.9597,10.1459" :
-                    profile?.city === "Garoua" ? "9.3011,13.3921" :
-                    profile?.city === "Bafoussam" ? "5.4760,10.4175" :
-                    "3.8480,11.5021"
-                  }`}
+                  height="200"
+                  style={{ border: 0, display: "block", marginTop: "-25px" }}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${cityCoords.lat},${cityCoords.lng}`}
                   loading="lazy"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none"
                   style={{ background: "linear-gradient(to top, white, transparent)" }} />
               </div>
               <div className="px-3 py-1.5 border-t border-slate-100 flex items-center justify-between">
                 <p className="text-[9px] text-slate-400 font-medium">OpenStreetMap</p>
-                <a href={`https://www.openstreetmap.org/#map=12/${
-                    profile?.city === "Douala" ? "4.0511/9.7679" :
-                    profile?.city === "Yaoundé" ? "3.8480/11.5021" :
-                    profile?.city === "Buea" ? "4.1597/9.2430" :
-                    "3.8480/11.5021"
-                  }`} target="_blank" rel="noreferrer"
+                <a href={`https://www.openstreetmap.org/#map=14/${cityCoords.lat}/${cityCoords.lng}`}
+                  target="_blank" rel="noreferrer"
                   className="text-[9px] text-primary font-bold hover:underline flex items-center gap-1">
                   Open full map <ArrowUpRight size={10} />
                 </a>
               </div>
             </motion.div>
 
-          </div>{/* end right column */}
+          </div>
 
-        </div>{/* end main grid */}
-
-      </div>{/* end max-w-7xl */}
+        </div>
+      </div>
 
       {/* FAB */}
       <Link href="/report">
         <motion.button
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          className="fixed bottom-8 right-6 md:right-10 bg-[#061209] text-white pl-5 pr-7 py-4 rounded-full shadow-2xl flex items-center gap-3 z-50 border border-white/10 hover:bg-primary transition-all"
-        >
+          className="fixed bottom-8 right-6 md:right-10 bg-[#061209] text-white pl-5 pr-7 py-4 rounded-full shadow-2xl flex items-center gap-3 z-50 border border-white/10 hover:bg-primary transition-all">
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-[#061209]">
             <Plus size={18} strokeWidth={3} />
           </div>

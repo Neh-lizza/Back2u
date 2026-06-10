@@ -169,10 +169,10 @@ export default function ItemDetailPage() {
   const isFound = item?.type === "found";
 
   if (loading) return (
-    <main className="min-h-screen flex items-center justify-center" style={{ background: "#061209" }}>
+    <main className="min-h-screen flex items-center justify-center" style={{ background: "#F0F4F8" }}>
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center">
-          <Loader2 size={20} className="animate-spin text-white" />
+          <Loader2 size={20} className="animate-spin text-primary" />
         </div>
         <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>Loading item</p>
       </div>
@@ -180,16 +180,16 @@ export default function ItemDetailPage() {
   );
 
   if (error || !item) return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#061209" }}>
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#F0F4F8" }}>
       <AlertCircle size={32} className="text-red-400" />
-      <p className="font-black text-xl text-white">{error || "Item not found"}</p>
-      <button onClick={() => router.back()} className="text-primary font-black text-sm uppercase tracking-widest">Go Back</button>
+      <p className="font-black text-xl text-slate-900">{error || "Item not found"}</p>
+      <button onClick={() => router.back()} className="text-primary font-bold text-sm flex items-center gap-1.5"><ArrowLeft size={16} /> Go Back</button>
     </main>
   );
 
   return (
     <main className="min-h-screen" style={{
-      background: "#061209",
+      background: "#F0F4F8", backgroundImage: "none",
       backgroundImage: "linear-gradient(rgba(0,154,73,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.06) 1px,transparent 1px)",
       backgroundSize: "24px 24px",
     }}>
@@ -261,7 +261,7 @@ export default function ItemDetailPage() {
         <motion.button initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
           onClick={() => router.back()}
           className="flex items-center gap-2 font-bold text-xs uppercase tracking-widest mb-8 transition-colors"
-          style={{ color: "rgba(255,255,255,0.4)" }}
+          className="text-slate-500 hover:text-slate-900"
         >
           <ArrowLeft size={15} /> Back to Browse
         </motion.button>
@@ -272,7 +272,7 @@ export default function ItemDetailPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
 
             {/* Main photo */}
-            <div className="relative rounded-3xl overflow-hidden" style={{ aspectRatio: "4/3", background: "rgba(0,154,73,0.08)", border: "1px solid rgba(0,154,73,0.2)" }}>
+            <div className="relative rounded-3xl overflow-hidden" style={{ aspectRatio: "4/3", background: "#f1f5f9", borderRadius: "16px", overflow: "hidden", boxShadow: "inset 0 -3em 3em rgba(0,0,0,0.04), 0 0 0 2px rgb(200,200,200), 0.3em 0.3em 1em rgba(0,0,0,0.15)" }}>
               {photos.length > 0 ? (
                 <>
                   <img src={photos[photoIndex]} alt={item.title}
@@ -331,18 +331,18 @@ export default function ItemDetailPage() {
             <div className="flex flex-wrap gap-2">
               {item.category && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                  style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", color: "#64748b" }}>
                   <Tag size={11} /> {item.category}
                 </div>
               )}
               {item.city && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                  style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", color: "#64748b" }}>
                   <MapPin size={11} /> {item.city}
                 </div>
               )}
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", color: "#64748b" }}>
                 <Clock size={11} /> {formatDate(item.created_at)}
               </div>
             </div>
@@ -360,7 +360,7 @@ export default function ItemDetailPage() {
                 </span>
                 {item.sensitivity !== "normal" && (
                   <span className="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest"
-                    style={{ background: "rgba(252,209,22,0.15)", color: "#FCD116", border: "1px solid rgba(252,209,22,0.3)" }}>
+                    style={{ background: "rgba(252,209,22,0.1)", color: "#b45309", border: "1px solid rgba(252,209,22,0.4)" }}>
                     {item.sensitivity === "very_sensitive" ? "High Risk" : "Sensitive"}
                   </span>
                 )}
@@ -373,51 +373,51 @@ export default function ItemDetailPage() {
               </div>
               <button onClick={handleShare}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: shared ? "#009A49" : "rgba(255,255,255,0.5)" }}>
+                style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", color: shared ? "#009A49" : "#64748b" }}>
                 <Share2 size={13} /> {shared ? "Copied!" : "Share"}
               </button>
             </div>
 
             {/* Title */}
             <div>
-              <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-2" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-2" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
                 {item.title}
               </h1>
             </div>
 
             {/* Description */}
             {item.sensitivity !== "very_sensitive" && item.description && (
-              <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="rounded-2xl p-5" style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "16px" }}>
                 <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: "#009A49" }}>Description</p>
-                <p className="font-medium leading-relaxed text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{item.description}</p>
+                <p className="font-medium leading-relaxed text-sm" className="text-slate-600 text-sm font-medium leading-relaxed">{item.description}</p>
               </div>
             )}
 
             {/* Location + date details */}
             <div className="space-y-2.5">
               {item.location_name && (
-                <div className="flex items-center gap-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                <div className="flex items-center gap-3 text-sm font-medium" className="text-slate-600">
                   <MapPin size={15} className="text-primary shrink-0" />
                   {item.location_name}
                 </div>
               )}
-              <div className="flex items-center gap-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="flex items-center gap-3 text-sm font-medium" className="text-slate-600">
                 <Clock size={15} className="text-primary shrink-0" />
                 Reported on {formatDate(item.created_at)}
               </div>
               {item.date_occurred && (
                 <div className="flex items-center gap-3 text-sm font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  <Calendar size={15} style={{ color: "rgba(255,255,255,0.3)" }} className="shrink-0" />
+                  <Calendar size={15} className="text-slate-400 shrink-0" />
                   {item.type === "lost" ? "Lost on" : "Found on"} {new Date(item.date_occurred).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                 </div>
               )}
             </div>
 
             {/* Location Trail */}
-            <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.25)" }}>Item Journey</p>
+            <div className="rounded-2xl p-4" style={{ background: "white", border: "1px solid #f1f5f9", boxShadow: "inset 0 -3em 3em rgba(0,0,0,0.03), 0 0 0 1px rgb(210,210,210), 0.2em 0.2em 0.6em rgba(0,0,0,0.15)" }}>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#94a3b8" }}>Item Journey</p>
               <div className="relative">
-                <div className="absolute left-3 top-3 bottom-3 w-px bg-white/10" />
+                <div className="absolute left-3 top-3 bottom-3 w-px bg-slate-200" />
                 <div className="space-y-3">
                   {/* Step 1: Reported */}
                   <div className="flex items-start gap-3">
@@ -427,8 +427,8 @@ export default function ItemDetailPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-white text-xs font-bold capitalize">{item.type === "lost" ? "Lost" : "Found"} — {item.location_name || item.city || "Unknown location"}</p>
-                      <p className="text-white/30 text-[10px] font-medium">{new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+                      <p className="text-slate-800 text-xs font-bold capitalize">{item.type === "lost" ? "Lost" : "Found"} — {item.location_name || item.city || "Unknown location"}</p>
+                      <p className="text-slate-400 text-[10px] font-medium">{new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
                     </div>
                   </div>
 
@@ -441,8 +441,8 @@ export default function ItemDetailPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white text-xs font-bold">Match Found</p>
-                        <p className="text-white/30 text-[10px] font-medium">A potential match was identified by Back2U</p>
+                        <p className="text-slate-800 text-xs font-bold">Match Found</p>
+                        <p className="text-slate-400 text-[10px] font-medium">A potential match was identified by Back2U</p>
                       </div>
                     </div>
                   )}
@@ -456,8 +456,8 @@ export default function ItemDetailPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white text-xs font-bold">Recovered</p>
-                        <p className="text-white/30 text-[10px] font-medium">Item successfully returned to owner</p>
+                        <p className="text-slate-800 text-xs font-bold">Recovered</p>
+                        <p className="text-slate-400 text-[10px] font-medium">Item successfully returned to owner</p>
                       </div>
                     </div>
                   ) : (
@@ -468,8 +468,8 @@ export default function ItemDetailPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white text-xs font-bold">Awaiting Recovery</p>
-                        <p className="text-white/30 text-[10px] font-medium">Contact the poster to claim this item</p>
+                        <p className="text-slate-800 text-xs font-bold">Awaiting Recovery</p>
+                        <p className="text-slate-400 text-[10px] font-medium">Contact the poster to claim this item</p>
                       </div>
                     </div>
                   )}
@@ -479,13 +479,13 @@ export default function ItemDetailPage() {
 
             {/* Reporter card */}
             {!item.is_anonymous && item.user && (
-              <div className="flex items-center gap-4 rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="flex items-center gap-4 rounded-2xl p-4" style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "16px" }}>
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0"
                   style={{ background: "rgba(0,154,73,0.2)", color: "#009A49" }}>
                   {item.user.full_name?.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-sm text-white">{item.user.full_name}</p>
+                  <p className="font-black text-sm text-slate-900">{item.user.full_name}</p>
                   <div className="flex items-center gap-3 mt-0.5">
                     <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: "#FCD116" }}>
                       <Star size={10} fill="#FCD116" /> {item.user.rating?.toFixed(1) ?? "New"}
@@ -525,14 +525,14 @@ export default function ItemDetailPage() {
             )}
 
             {isOwnItem && (
-              <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(0,154,73,0.1)", border: "1px solid rgba(0,154,73,0.2)" }}>
-                <p className="text-primary font-black text-sm uppercase tracking-widest mb-4">This is your listing</p>
+              <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(0,154,73,0.05)", border: "1px solid rgba(0,154,73,0.15)", boxShadow: "0 1px 4px rgba(0,154,73,0.08)" }}>
+                <p className="text-primary font-black text-sm uppercase tracking-widest mb-3">This is your listing</p>
                 <ItemQRCode itemId={item.id} itemTitle={item.title} itemType={item.type} size={130} />
               </div>
             )}
 
             {item.status === "recovered" && (
-              <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(0,154,73,0.1)", border: "1px solid rgba(0,154,73,0.2)" }}>
+              <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(0,154,73,0.05)", border: "1px solid rgba(0,154,73,0.15)", boxShadow: "0 1px 4px rgba(0,154,73,0.08)" }}>
                 <p className="text-primary font-black text-sm uppercase tracking-widest">Item Recovered</p>
               </div>
             )}

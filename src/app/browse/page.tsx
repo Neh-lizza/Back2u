@@ -169,7 +169,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
       }}>
 
       {/* Photo */}
-      <div className="relative overflow-hidden" style={{ height: "160px", background: isMissing ? "#fff0f1" : isFound ? "#f0faf4" : "#fff1f1" }}>
+      <div className="relative overflow-hidden" style={{ height: "180px", background: isMissing ? "#fff0f1" : isFound ? "#f0faf4" : "#fff1f1" }}>
         {firstPhoto ? (
           <>
             <Image src={firstPhoto} alt={item.title} fill sizes="33vw"
@@ -205,48 +205,40 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
       </div>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 p-3">
-        {/* Title — larger and bolder */}
-        <h3 className="truncate mb-2 leading-tight" style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>{item.title}</h3>
+      <div className="flex flex-col flex-1 px-3 pt-2 pb-2.5">
+        <h3 className="truncate mb-1.5 leading-tight" style={{ fontWeight: 800, fontSize: "15px", color: "#0f172a" }}>{item.title}</h3>
 
-        {/* Location + Category on same row */}
-        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          <div className="flex items-center gap-1">
-            <MapPin size={11} className="shrink-0" style={{ color: isMissing ? "#CE1126" : "#009A49" }} />
-            <span className="text-[11px] font-semibold text-slate-600 truncate">{item.location_name || item.city || "Unknown"}</span>
-          </div>
+        {/* Location + Category + Time all on same row */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+          <MapPin size={10} className="shrink-0" style={{ color: isMissing ? "#CE1126" : "#009A49" }} />
+          <span className="text-[10px] font-semibold text-slate-600 truncate max-w-[90px]">{item.location_name || item.city || "Unknown"}</span>
+          <span className="text-slate-300 text-[10px]">·</span>
+          <span className="text-[10px] font-medium text-slate-400">{formatDate(item.created_at)}</span>
           {item.category && (
-            <span className="inline-block px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest capitalize"
-              style={{ background: isMissing ? "#fff0f1" : "#f1f5f9", color: isMissing ? "#CE1126" : "#64748b" }}>
-              {isMissing ? "Missing" : item.category}
-            </span>
+            <>
+              <span className="text-slate-300 text-[10px]">·</span>
+              <span className="text-[9px] font-bold uppercase tracking-wide capitalize"
+                style={{ color: isMissing ? "#CE1126" : "#64748b" }}>
+                {isMissing ? "Missing" : item.category}
+              </span>
+            </>
           )}
         </div>
 
-        <p className="text-[10px] font-medium text-slate-400 mb-2">{formatDate(item.created_at)}</p>
-
         {/* Footer */}
-        <div className="mt-auto pt-2 flex items-center justify-between" style={{ borderTop: "1px solid #f1f5f9" }}>
-          <div className="flex items-center gap-1.5">
-            {item.user && !item.is_anonymous && (
-              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
-                style={{ background: isMissing ? "#CE1126" : "#009A49" }}>
-                {item.user.full_name?.[0]?.toUpperCase()}
-              </div>
-            )}
-          </div>
+        <div className="flex items-center justify-between" style={{ borderTop: "1px solid #f1f5f9", paddingTop: "6px" }}>
+          {item.user && !item.is_anonymous ? (
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
+              style={{ background: isMissing ? "#CE1126" : "#009A49" }}>
+              {item.user.full_name?.[0]?.toUpperCase()}
+            </div>
+          ) : <div />}
           <button
             onClick={e => { e.stopPropagation(); router.push(`/browse/${item.id}`); }}
             className="text-[10px] font-bold rounded-full px-3 py-1 transition-all"
             style={{ color: isMissing ? "#CE1126" : "#009A49", border: `1.5px solid ${isMissing ? "#CE1126" : "#009A49"}`, background: "transparent" }}
-            onMouseEnter={e => {
-              (e.target as HTMLButtonElement).style.background = isMissing ? "#CE1126" : "#009A49";
-              (e.target as HTMLButtonElement).style.color = "white";
-            }}
-            onMouseLeave={e => {
-              (e.target as HTMLButtonElement).style.background = "transparent";
-              (e.target as HTMLButtonElement).style.color = isMissing ? "#CE1126" : "#009A49";
-            }}>
+            onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = isMissing ? "#CE1126" : "#009A49"; (e.target as HTMLButtonElement).style.color = "white"; }}
+            onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = "transparent"; (e.target as HTMLButtonElement).style.color = isMissing ? "#CE1126" : "#009A49"; }}>
             See more
           </button>
         </div>

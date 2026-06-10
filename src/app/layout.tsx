@@ -59,8 +59,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={poppins.variable}>
       <head>
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+        <style>{`
+          :root {
+            --color-primary: #009A49;
+            --color-secondary: #FCD116;
+            --color-accent: #CE1126;
+            --color-feature: #00ADB5;
+            --color-dark: #222831;
+            --color-dark-alt: #393E46;
+            --color-bg: #F0F4F8;
+            --color-surface: #F0FDF4;
+          }
+          * { box-sizing: border-box; }
+          html { scroll-behavior: smooth; }
+        `}</style>
       </head>
-      <body className="bg-[#0a0a0a] antialiased">
+      <body className="antialiased" style={{ background: "#F0F4F8" }}>
         <OneSignalInit />
         <Navbar />
         <main className="pt-14 md:pt-16">
