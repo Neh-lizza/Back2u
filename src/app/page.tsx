@@ -2,7 +2,7 @@
 // ♻️ REPLACE
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, ArrowRight, CheckCircle2, Users, PackageCheck,
@@ -107,6 +107,12 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function LandingPage() {
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -136,11 +142,65 @@ export default function LandingPage() {
       <AnimatePresence>{showModal && <OnboardingModal onClose={handleCloseModal} />}</AnimatePresence>
 
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #e8f5ee 0%, #f0fdf4 35%, #f0fdfa 65%, #ffffff 100%)", paddingBottom: 0 }}>
-        {/* blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none" style={{ background: "rgba(0,154,73,0.06)", transform: "translate(30%, -30%)" }} />
-        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none" style={{ background: "rgba(252,209,22,0.07)", transform: "translate(-20%, 30%)" }} />
-        <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-10 relative z-10">
+      <section className="relative overflow-hidden" style={{ paddingBottom: 0 }}>
+
+        {/* SVG wave + organic blob background */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 700"
+            preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+
+            {/* Base */}
+            <rect width="1440" height="700" fill="#eaf6f0"/>
+
+            {/* Large organic blob top-right — like Image 2 liquid shape */}
+            <path d="M1100 -80 C1320 -60, 1500 80, 1480 260 C1460 440, 1280 480, 1120 400 C960 320, 880 160, 960 60 C1020 -20, 1060 -60, 1100 -80 Z"
+              fill="url(#blobTR)" opacity="0.75"/>
+
+            {/* Organic blob bottom-left */}
+            <path d="M-120 420 C-40 320, 120 300, 200 380 C280 460, 260 580, 140 640 C20 700, -80 660, -120 580 C-160 500, -140 440, -120 420 Z"
+              fill="url(#blobBL)" opacity="0.65"/>
+
+            {/* Wave layer 1 — sweeping from bottom */}
+            <path d="M0 620 C240 540, 480 600, 720 560 C960 520, 1200 580, 1440 540 L1440 700 L0 700 Z"
+              fill="url(#waveA)" opacity="0.45"/>
+
+            {/* Wave layer 2 — higher, lighter */}
+            <path d="M0 660 C180 620, 420 650, 660 630 C900 610, 1140 640, 1440 620 L1440 700 L0 700 Z"
+              fill="url(#waveB)" opacity="0.35"/>
+
+            {/* Small yellow accent circle */}
+            <circle cx="720" cy="200" r="90" fill="url(#blobY)" opacity="0.18"/>
+
+            <defs>
+              <radialGradient id="blobTR" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#00ADB5" stopOpacity="1"/>
+                <stop offset="50%" stopColor="#009A49" stopOpacity="0.6"/>
+                <stop offset="100%" stopColor="#009A49" stopOpacity="0"/>
+              </radialGradient>
+              <radialGradient id="blobBL" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#009A49" stopOpacity="1"/>
+                <stop offset="55%" stopColor="#00ADB5" stopOpacity="0.5"/>
+                <stop offset="100%" stopColor="#00ADB5" stopOpacity="0"/>
+              </radialGradient>
+              <linearGradient id="waveA" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#009A49" stopOpacity="0.5"/>
+                <stop offset="50%" stopColor="#00ADB5" stopOpacity="0.35"/>
+                <stop offset="100%" stopColor="#009A49" stopOpacity="0.4"/>
+              </linearGradient>
+              <linearGradient id="waveB" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#00ADB5" stopOpacity="0.4"/>
+                <stop offset="100%" stopColor="#009A49" stopOpacity="0.3"/>
+              </linearGradient>
+              <radialGradient id="blobY" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FCD116" stopOpacity="1"/>
+                <stop offset="100%" stopColor="#FCD116" stopOpacity="0"/>
+              </radialGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-10" style={{ position: "relative", zIndex: 1 }}>
+        <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-10" style={{ position: "relative", zIndex: 1 }}>
           <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
             <div className="space-y-4">
 
@@ -195,7 +255,7 @@ export default function LandingPage() {
             {/* right side — float cards illustration */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
               className="relative flex items-center justify-center mt-6 lg:mt-0">
-              <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-md mx-auto">
+              <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-md mx-auto" style={{ transform: `translateY(${scrollY * 0.06}px)`, transition: "transform 0.1s linear" }}>
                 {/* main card */}
                 <div className="rounded-3xl overflow-hidden flex items-center justify-center" style={{ background: "linear-gradient(135deg,#e8f5ee,#f0fdfa,#f0fdf4)", height: "200px" }}>
                   <img src="/images/hero-illustration.png" alt="Back2U lost and found illustration" className="w-full h-full object-contain drop-shadow-2xl" />
@@ -221,10 +281,11 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* STATS */}
-      <section className="max-w-7xl mx-auto px-5 md:px-10 py-4">
+      <section className="max-w-7xl mx-auto px-5 md:px-10 py-4" style={{ background: "linear-gradient(90deg,#f0fdf4 0%,#f0fdfa 50%,#f0fdf4 100%)" }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { value: "150+", label: "Items Recovered",   bg: "#fce8e8", color: "#ef4444", icon: PackageCheck },
@@ -246,7 +307,7 @@ export default function LandingPage() {
       </section>
 
       {/* WHAT IS BACK2U */}
-      <section className="py-10 px-4 md:px-10 max-w-7xl mx-auto">
+      <section className="py-10 px-4 md:px-10 max-w-7xl mx-auto" style={{ background: "linear-gradient(160deg, #fff 0%, #f0fdfa 60%, #f0fdf4 100%)" }}>
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* LEFT — stacked image collage */}
@@ -324,7 +385,7 @@ export default function LandingPage() {
       <ScrollRevealFeature />
 
       {/* HOW IT WORKS */}
-      <section className="py-12 px-4 max-w-7xl mx-auto" id="how-it-works">
+      <section className="py-12 px-4 max-w-7xl mx-auto" id="how-it-works" style={{ background: "linear-gradient(180deg, #fff 0%, #f8faff 100%)" }}>
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-black mb-3 text-slate-900" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
             How it works
@@ -422,97 +483,228 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING + WHY BACK2U */}
-      <section className="py-1.5 px-3 mx-2">
-        <div className="grid md:grid-cols-2 gap-4 items-start">
-          <div className="bg-[#0a0a0a] rounded-[1rem] p-2.5">
-            <p className="text-white font-black text-[10px] mb-0">Simple <span className="text-primary">Pricing.</span></p>
-            <p className="text-white/30 text-[8px] font-medium mb-2">One annual subscription. Unlimited access. No hidden fees.</p>
-            <div className="bg-primary/10 border border-primary/30 rounded-lg p-2 mb-2 text-center">
-              <p className="text-[8px] font-black uppercase tracking-widest text-primary mb-0">Annual Subscription</p>
-              <p className="text-2xl font-black text-white mb-0" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>300</p>
-              <p className="text-white/40 text-[8px] font-bold uppercase tracking-widest">XAF per year</p>
+      <section className="py-10 px-4 max-w-7xl mx-auto" style={{ background: "linear-gradient(135deg, #fafffe 0%, #f0fdfa 50%, #fff7ed 100%)" }}>
+        <div className="text-center mb-10">
+          <h2 className="font-black text-slate-900 leading-tight mb-2"
+            style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}>
+            Simple pricing. Real reasons <span className="text-primary">to trust us.</span>
+          </h2>
+          <p className="text-slate-400 text-sm font-medium max-w-md mx-auto">
+            One fair price. Built for Cameroon. No surprises.
+          </p>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-end justify-center gap-6">
+
+          {/* PRICING CARD — starts lower (normal position) */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="w-full md:w-72 bg-white rounded-2xl overflow-visible relative"
+            style={{
+              paddingTop: "10px",
+              paddingBottom: "24px",
+              boxShadow: "0 6px 30px rgba(0,0,0,0.1)",
+              border: "1px solid #e2e8f0",
+              borderBottom: "4px solid #222831",
+            }}>
+            {/* Title */}
+            <div className="px-7 pt-3 pb-4">
+              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0"
+                style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+                Annual Pass
+                <span className="block text-xs font-normal text-slate-400 mt-0.5">For lost item owners</span>
+              </h3>
             </div>
-            <div className="space-y-1">
+
+            {/* Price ribbon — yellow tag like reference */}
+            <div className="relative mx-0 mb-5" style={{ marginLeft: "-1px" }}>
+              <div className="flex items-baseline gap-1 px-7 py-2.5 relative"
+                style={{ background: "#FCD116", borderRadius: "0 6px 6px 0", width: "calc(100% + 1px)" }}>
+                <span className="text-sm font-light text-slate-700 self-start mt-1">XAF</span>
+                <span className="font-black text-3xl text-slate-900 leading-none"
+                  style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>300</span>
+                <span className="text-sm font-light text-slate-600">/ year</span>
+                {/* Folded corner */}
+                <div className="absolute -bottom-5 right-0 w-0 h-0"
+                  style={{ borderTop: "12px solid #b45309", borderBottom: "10px solid transparent", borderRight: "12px solid transparent" }} />
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div className="px-7 space-y-2.5 mb-6">
               {[
-                { label: "Post unlimited lost reports", sub: "All year, no limits" },
-                { label: "Contact any finder for free",  sub: "No per-chat fees" },
-                { label: "Found items always free",      sub: "Forever, no subscription needed" },
-                { label: "Missing persons always free",  sub: "Help find loved ones at no cost" },
-                { label: "First lost report free",       sub: "Try before you subscribe" },
+                "Post unlimited lost reports",
+                "Contact any finder for free",
+                "Found items always free",
+                "Missing persons always free",
+                "First lost report free",
               ].map((item, i) => (
-                <div key={i} className="flex items-start gap-1.5 bg-white/5 border border-white/10 rounded-md px-2 py-1">
-                  <CheckCircle2 size={10} className="text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-white font-bold text-[8px] leading-none">{item.label}</p>
-                    <p className="text-white/30 text-[7px]">{item.sub}</p>
-                  </div>
+                <div key={i} className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} className="text-primary shrink-0" />
+                  <span className="text-sm font-medium text-slate-600">{item}</span>
                 </div>
               ))}
             </div>
-            <p className="text-white/20 text-[7px] font-bold uppercase tracking-widest text-center mt-1">MTN MoMo · Orange Money · No bank card needed</p>
-          </div>
 
-          <div className="bg-slate-50 rounded-[1rem] p-2.5">
-            <p className="font-black text-slate-900 text-[10px] mb-0">Why people choose <span className="text-primary">Back2U.</span></p>
-            <p className="text-slate-400 text-[8px] font-medium mb-2">Built for where you live, not copy-pasted from abroad.</p>
-            <div className="relative">
-              <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-slate-200" />
-              <div className="space-y-0">
-                {[
-                  { icon: MapPin,       title: "Built for where you live",    desc: "10 Cameroonian cities." },
-                  { icon: Smartphone,   title: "Pay the way you already pay", desc: "MTN MoMo or Orange Money." },
-                  { icon: Lock,         title: "Your privacy is protected",   desc: "No phone numbers shared." },
-                  { icon: Bell,         title: "Know within hours",           desc: "We notify you instantly." },
-                  { icon: Award,        title: "Honesty is rewarded",         desc: "Earn Guardian points and badges." },
-                  { icon: CheckCircle2, title: "First report is free",        desc: "Post, match, contact. Free." },
-                ].map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                    className="relative flex items-center gap-2 py-1">
-                    <div className="relative z-10 w-5 h-5 rounded-full bg-white border-2 border-primary/30 flex items-center justify-center shrink-0 shadow-sm">
-                      <item.icon size={9} className="text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-800 text-[9px] leading-none">{item.title}</p>
-                      <p className="text-slate-400 text-[7px] font-medium">{item.desc}</p>
-                    </div>
-                    <div className="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center shrink-0">
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m4.5 12.75 6 6 9-13.5"/>
-                      </svg>
-                    </div>
-                  </motion.div>
-                ))}
+            {/* CTA */}
+            <div className="px-7">
+              <Link href="/subscribe"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
+                style={{ background: "#222831" }}>
+                <Zap size={15} />
+                Get Annual Pass
+              </Link>
+              <p className="text-center text-[10px] text-slate-300 font-medium mt-2.5 uppercase tracking-widest">
+                MTN MoMo · Orange Money
+              </p>
+            </div>
+          </motion.div>
+
+          {/* WHY BACK2U CARD — starts higher (pushed up with negative margin) */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
+            className="w-full md:w-72 bg-white rounded-2xl overflow-visible relative"
+            style={{
+              paddingTop: "10px",
+              paddingBottom: "24px",
+              boxShadow: "0 6px 30px rgba(0,0,0,0.1)",
+              border: "1px solid #e2e8f0",
+              borderBottom: "4px solid #009A49",
+              marginBottom: "28px",
+            }}>
+            {/* Title */}
+            <div className="px-7 pt-3 pb-4">
+              <h3 className="font-black text-2xl text-slate-900 leading-tight mb-0"
+                style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+                Why Back2U
+                <span className="block text-xs font-normal text-slate-400 mt-0.5">Built for Cameroon</span>
+              </h3>
+            </div>
+
+            {/* Teal ribbon instead of price */}
+            <div className="relative mx-0 mb-5" style={{ marginLeft: "-1px" }}>
+              <div className="flex items-center gap-2 px-7 py-2.5"
+                style={{ background: "#00ADB5", borderRadius: "0 6px 6px 0", width: "calc(100% + 1px)" }}>
+                <MapPin size={14} className="text-white shrink-0" />
+                <span className="font-bold text-white text-sm">Made for where you live</span>
+                <div className="absolute -bottom-5 right-0 w-0 h-0"
+                  style={{ borderTop: "12px solid #007a80", borderBottom: "10px solid transparent", borderRight: "12px solid transparent" }} />
               </div>
             </div>
-          </div>
+
+            {/* Reasons */}
+            <div className="px-7 space-y-2.5 mb-6">
+              {[
+                { icon: Smartphone,   text: "Pay with MTN MoMo or Orange Money" },
+                { icon: Lock,         text: "No phone numbers ever shared" },
+                { icon: Bell,         text: "Notified the moment a match is found" },
+                { icon: Award,        text: "Honesty earns Guardian points" },
+                { icon: CheckCircle2, text: "First report is always free" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: "#f0fdfa", border: "1px solid #99f6e4" }}>
+                    <item.icon size={12} style={{ color: "#00ADB5" }} />
+                  </div>
+                  <span className="text-sm font-medium text-slate-600">{item.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="px-7">
+              <Link href="/browse"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
+                style={{ background: "#009A49" }}>
+                <Search size={15} />
+                Browse reports
+              </Link>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
       {/* REVIEWS */}
-      <section className="py-4 overflow-hidden bg-slate-50 rounded-[4rem] mx-4">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-black">Trusted by the <span className="text-primary">Community.</span></h2>
-        </div>
-        <div className="flex w-full relative">
-          <motion.div className="flex gap-4 whitespace-nowrap" animate={{ x: [0, -1200] }} transition={{ duration: 35, repeat: Infinity, ease: "linear" }}>
-            {[...REVIEWS, ...REVIEWS].map((review, i) => (
-              <div key={i} className="inline-block w-[200px] bg-white p-3 rounded-[1rem] border border-slate-100 shrink-0">
-                <div className="flex gap-1 mb-2">
-                  {[...Array(review.stars)].map((_, s) => <Star key={s} size={11} className="fill-secondary text-secondary" />)}
-                </div>
-                <p className="text-slate-600 font-medium italic text-[9px] whitespace-normal mb-2 leading-relaxed">&quot;{review.text}&quot;</p>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center shrink-0">
-                    <span className="text-white font-black text-[7px]">{review.name[0]}</span>
+      {/* REVIEWS */}
+      <section className="relative py-16 px-4 overflow-hidden">
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(135deg, #1a2e1a 0%, #222831 40%, #0d2020 70%, #1a2818 100%)",
+        }} />
+        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none" style={{
+          background: "radial-gradient(circle, rgba(0,154,73,0.12) 0%, transparent 65%)",
+          filter: "blur(60px)", transform: "translateY(-30%)",
+        }} />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full pointer-events-none" style={{
+          background: "radial-gradient(circle, rgba(0,173,181,0.1) 0%, transparent 65%)",
+          filter: "blur(60px)", transform: "translateY(30%)",
+        }} />
+        <style>{`
+          .testi-card { transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1); }
+          .testi-card:hover { box-shadow: 8px 8px 0px #009A49; border-color: #009A49 !important; transform: translate(-8px, -8px); }
+        `}</style>
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#00ADB5", letterSpacing: "0.2em" }}>Testimonials</p>
+            <h2 className="font-black leading-tight" style={{
+              fontFamily: "'Clash Grotesk', sans-serif",
+              fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+              color: "#FCD116",
+            }}>
+              What our community says
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {REVIEWS.slice(0, 3).map((review, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="testi-card flex flex-col justify-between"
+                style={{
+                  padding: "32px",
+                  borderRadius: "24px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(12px)",
+                  lineHeight: 1.6,
+                  minHeight: "340px",
+                }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-base shrink-0"
+                    style={{
+                      background: i === 0 ? "#009A49" : i === 1 ? "#00ADB5" : "#FCD116",
+                      color: i === 2 ? "#222831" : "#fff",
+                      fontFamily: "'Clash Grotesk', sans-serif",
+                    }}>
+                    {review.name[0]}
                   </div>
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">{review.name} · {review.location}</p>
+                  <div>
+                    <strong className="font-black text-white text-sm block" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+                      {review.name}
+                    </strong>
+                    <p className="text-xs font-medium" style={{ color: "#00ADB5" }}>{review.location}</p>
+                  </div>
                 </div>
-              </div>
+                <div className="flex flex-col gap-4 flex-1 justify-between">
+                  <div>
+                    <svg viewBox="0 0 24 24" style={{ width: "40px", height: "40px", marginBottom: "12px" }}>
+                      <path fill="#FCD116" opacity="0.3" d="M4.58341 17.3211C3.55316 16.2274 3 15 3 13.0103C3 9.51086 5.45651 6.37366 9.03059 4.82318L9.92328 6.20079C6.58804 8.00539 5.93618 10.346 5.67564 11.822C6.21263 11.5443 6.91558 11.4466 7.60471 11.5105C9.40908 11.6778 10.8312 13.159 10.8312 15C10.8312 16.933 9.26416 18.5 7.33116 18.5C6.2581 18.5 5.23196 18.0095 4.58341 17.3211ZM14.5834 17.3211C13.5532 16.2274 13 15 13 13.0103C13 9.51086 15.4565 6.37366 19.0306 4.82318L19.9233 6.20079C16.588 8.00539 15.9362 10.346 15.6756 11.822C16.2126 11.5443 16.9156 11.4466 17.6047 11.5105C19.4091 11.6778 20.8312 13.159 20.8312 15C20.8312 16.933 19.2642 18.5 17.3312 18.5C16.2581 18.5 15.232 18.0095 14.5834 17.3211Z"/>
+                    </svg>
+                    <p className="text-sm font-medium leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+                      {review.text}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 pt-2">
+                    {[...Array(review.stars)].map((_, s) => (
+                      <Star key={s} size={13} className="fill-secondary text-secondary" />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
-
       {/* FAQ */}
       <section className="py-4 px-4 max-w-7xl mx-auto">
         <div className="text-center mb-4">
