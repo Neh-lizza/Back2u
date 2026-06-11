@@ -191,7 +191,7 @@ export default function ItemDetailPage() {
 
   return (
     <main className="min-h-screen" style={{
-      background: "#F0F4F8", backgroundImage: "none",
+      background: "#F0F4F8",
       backgroundImage: "linear-gradient(rgba(0,154,73,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.06) 1px,transparent 1px)",
       backgroundSize: "24px 24px",
     }}>
