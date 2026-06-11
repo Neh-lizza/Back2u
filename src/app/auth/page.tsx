@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const CAMEROON_CITIES = [
   { city: "Douala",      region: "Littoral" },
@@ -29,6 +30,7 @@ const CAMEROON_CITIES = [
 export default function AuthPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
 
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -207,13 +209,13 @@ export default function AuthPage() {
               <form onSubmit={handleLogin} className="space-y-3">
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
-                  <input type="email" placeholder="Email address" required autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  <input type="email" placeholder={t("emailAddress")} required autoCapitalize="none" autoCorrect="off" spellCheck={false}
                     value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 font-black text-[10px] tracking-widest text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-all normal-case" />
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
-                  <input type="password" placeholder="Password" required
+                  <input type="password" placeholder={t("password")} required
                     value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 font-black text-[10px] tracking-widest text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-all" />
                 </div>
@@ -260,13 +262,13 @@ export default function AuthPage() {
               <form onSubmit={handleRegister} className="space-y-3">
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                  <input type="text" placeholder="Full name" required
+                  <input type="text" placeholder={t("fullName")} required
                     value={registerData.fullName} onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
                     className="w-full bg-white/5 border-2 border-white/10 rounded-2xl py-4 pl-12 pr-4 font-black text-[10px] tracking-widest text-white placeholder:text-white/30 focus:border-primary focus:outline-none transition-all" />
                 </div>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                  <input type="email" placeholder="Email address" required autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  <input type="email" placeholder={t("emailAddress")} required autoCapitalize="none" autoCorrect="off" spellCheck={false}
                     value={registerData.email} onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     className="w-full bg-white/5 border-2 border-white/10 rounded-2xl py-4 pl-12 pr-4 font-black text-[10px] tracking-widest text-white placeholder:text-white/30 focus:border-primary focus:outline-none transition-all normal-case" />
                 </div>

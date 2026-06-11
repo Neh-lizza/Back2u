@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const CATEGORIES = [
   { id: "electronics",  label: "Electronics",  icon: Smartphone, color: "#3B82F6" },
@@ -36,6 +37,7 @@ const SENSITIVITY_LEVELS = [
 export default function ReportPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
   const db = supabase as any;
   const fileInputRef = useRef<HTMLInputElement>(null);
 

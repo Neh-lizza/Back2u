@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Counter from "@/components/Counter";
 import ScrollRevealFeature from "@/components/ScrollRevealFeature";
+import { useI18n } from "@/lib/i18n";
 
 const REVIEWS = [
   { name: "Kemugne Angela",   location: "Douala",   text: "Found my laptop in 2 days. The safe zone meeting was very professional.", stars: 5 },
@@ -109,6 +110,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function LandingPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
   const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -230,7 +232,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">250+</span> items recovered across Cameroon</p>
+                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">250+</span> {t("recoveredAcross")}</p>
               </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
                 className="flex flex-wrap items-center gap-4 text-xs text-slate-400 font-medium">
@@ -277,10 +279,10 @@ export default function LandingPage() {
       <section className="max-w-7xl mx-auto px-5 md:px-10 py-3" style={{ background: "linear-gradient(90deg,#f0fdf4 0%,#f0fdfa 50%,#f0fdf4 100%)" }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { value: "250+", label: "Items Recovered",   bg: "#fce8e8", color: "#e03535", icon: PackageCheck },
-            { value: "227+", label: "Community Members", bg: "#fef0e6", color: "#e76a10", icon: Users        },
-            { value: "10",   label: "Cities Covered",    bg: "#e8f9ee", color: "#18b150", icon: MapPin       },
-            { value: "78%",  label: "Recovery Rate",     bg: "#f0fdfa", color: "#0064b5", icon: CheckCircle2 },
+            { value: "250+", label: t("itemsRecovered"),   bg: "#fce8e8", color: "#e03535", icon: PackageCheck },
+            { value: "227+", label: t("communityMembers"), bg: "#fef0e6", color: "#e76a10", icon: Users        },
+            { value: "10",   label: t("citiesCovered"),    bg: "#e8f9ee", color: "#18b150", icon: MapPin       },
+            { value: "78%",  label: t("recoveryRate"),     bg: "#f0fdfa", color: "#0064b5", icon: CheckCircle2 },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl p-5 flex items-center gap-4" style={{ background: item.bg }}>
               <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ background: item.color }}>
@@ -393,7 +395,7 @@ export default function LandingPage() {
             <button onClick={handleExplore}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all"
               style={{ background: "#009A49" }}>
-              Explore Back2U <ArrowRight size={15} />
+              {t("exploreBack2u")} <ArrowRight size={15} />
             </button>
           </motion.div>
 
@@ -427,10 +429,10 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-4 gap-0">
             {[
-              { step: "01", title: "Post your report", delay: 0, desc: "Fill in a simple form, add photos, and indicate where the item was lost or found. Your first report is always free.", svg: (<img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "02", title: "Find possible matches", delay: 0.1, desc: "Back2U automatically looks for reports that may match yours and suggests potential connections.", svg: (<img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "03", title: "Verify and connect", delay: 0.2, desc: "Confirm ownership with a few questions, then securely connect with the finder or owner.", svg: (<img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "04", title: "Recover and rate", delay: 0.3, desc: "Get your item back, share your experience, and help build a trusted community.", svg: (<img src="/images/hiw-4.svg" alt="Recover and rate" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "01", title: t("step1Title"), delay: 0, desc: "Fill in a simple form, add photos, and indicate where the item was lost or found. Your first report is always free.", svg: (<img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "02", title: t("step2Title"), delay: 0.1, desc: "Back2U automatically looks for reports that may match yours and suggests potential connections.", svg: (<img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "03", title: t("step3Title"), delay: 0.2, desc: "Confirm ownership with a few questions, then securely connect with the finder or owner.", svg: (<img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "04", title: t("step4Title"), delay: 0.3, desc: "Get your item back, share your experience, and help build a trusted community.", svg: (<img src="/images/hiw-4.svg" alt=t("step4Title") className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: item.delay }}
                 className="flex flex-col items-center text-center px-4 relative z-10">
@@ -450,10 +452,10 @@ export default function LandingPage() {
         {/* Mobile — clean 2x2 grid */}
         <div className="lg:hidden grid grid-cols-2 gap-3">
           {[
-            { step: "1", title: "Post your report", desc: "Fill in a simple form, add photos, and indicate where the item was lost or found.", img: "/images/hiw-1.svg" },
-            { step: "2", title: "Find possible matches", desc: "Back2U automatically looks for reports that may match yours.", img: "/images/hiw-2.svg" },
-            { step: "3", title: "Verify and connect", desc: "Confirm ownership with a few questions, then securely connect.", img: "/images/hiw-3.svg" },
-            { step: "4", title: "Recover and rate", desc: "Get your item back, share your experience, and help build a trusted community.", img: "/images/hiw-4.svg" },
+            { step: "1", title: t("step1Title"), desc: "Fill in a simple form, add photos, and indicate where the item was lost or found.", img: "/images/hiw-1.svg" },
+            { step: "2", title: t("step2Title"), desc: "Back2U automatically looks for reports that may match yours.", img: "/images/hiw-2.svg" },
+            { step: "3", title: t("step3Title"), desc: "Confirm ownership with a few questions, then securely connect.", img: "/images/hiw-3.svg" },
+            { step: "4", title: t("step4Title"), desc: "Get your item back, share your experience, and help build a trusted community.", img: "/images/hiw-4.svg" },
           ].map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="flex flex-col items-center text-center p-4 rounded-2xl"

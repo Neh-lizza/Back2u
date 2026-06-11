@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const ItemQRCode = dynamic(() => import("@/components/shared/ItemQRCode"), { ssr: false });
 
@@ -39,6 +40,7 @@ export default function ItemDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const supabase = createClient();
+  const { t } = useI18n();
 
   const [item, setItem] = useState<ItemWithUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -189,8 +191,7 @@ export default function ItemDetailPage() {
 
   return (
     <main className="min-h-screen" style={{
-      background: "#F0F4F8", backgroundImage: "none",
-      backgroundImage: "linear-gradient(rgba(0,154,73,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.06) 1px,transparent 1px)",
+      background: "#F0F4F8", backgroundImage: "linear-gradient(rgba(0,154,73,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,154,73,0.06) 1px,transparent 1px)",
       backgroundSize: "24px 24px",
     }}>
 
@@ -260,8 +261,7 @@ export default function ItemDetailPage() {
         {/* Back button */}
         <motion.button initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
           onClick={() => router.back()}
-          className="flex items-center gap-2 font-bold text-xs uppercase tracking-widest mb-8 transition-colors"
-          className="text-slate-500 hover:text-slate-900"
+          className="flex items-center gap-2 font-bold text-xs uppercase tracking-widest mb-8 transition-colors text-slate-500 hover:text-slate-900"
         >
           <ArrowLeft size={15} /> Back to Browse
         </motion.button>
@@ -389,19 +389,19 @@ export default function ItemDetailPage() {
             {item.sensitivity !== "very_sensitive" && item.description && (
               <div className="rounded-2xl p-5" style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "16px" }}>
                 <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: "#009A49" }}>Description</p>
-                <p className="font-medium leading-relaxed text-sm" className="text-slate-600 text-sm font-medium leading-relaxed">{item.description}</p>
+                <p className="text-slate-600 text-sm font-medium leading-relaxed">{item.description}</p>
               </div>
             )}
 
             {/* Location + date details */}
             <div className="space-y-2.5">
               {item.location_name && (
-                <div className="flex items-center gap-3 text-sm font-medium" className="text-slate-600">
+                <div className="flex items-center gap-3 text-sm font-medium text-slate-600">
                   <MapPin size={15} className="text-primary shrink-0" />
                   {item.location_name}
                 </div>
               )}
-              <div className="flex items-center gap-3 text-sm font-medium" className="text-slate-600">
+              <div className="flex items-center gap-3 text-sm font-medium text-slate-600">
                 <Clock size={15} className="text-primary shrink-0" />
                 Reported on {formatDate(item.created_at)}
               </div>
@@ -427,7 +427,7 @@ export default function ItemDetailPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-slate-800 text-xs font-bold capitalize">{item.type === "lost" ? "Lost" : "Found"} — {item.location_name || item.city || "Unknown location"}</p>
+                      <p className="text-slate-800 text-xs font-bold capitalize">{item.type === "lost" ? t("lost") : t("found")} — {item.location_name || item.city || "Unknown location"}</p>
                       <p className="text-slate-400 text-[10px] font-medium">{new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
                     </div>
                   </div>

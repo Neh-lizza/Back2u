@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import Map, { Marker, Popup, NavigationControl } from "react-map-gl/mapbox";
+import { useI18n } from "@/lib/i18n";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const PAGE_SIZE = 12;
@@ -250,6 +251,7 @@ function ItemCard({ item, onFlag }: { item: ItemWithUser; onFlag: (id: string) =
 // ── MAIN ──────────────────────────────────────────────────
 export default function BrowseMarketplace() {
   const supabase = createClient();
+  const { t } = useI18n();
   const db = supabase as any;
   const [view, setView] = useState<"grid" | "map">("grid");
   const [items, setItems] = useState<ItemWithUser[]>([]);

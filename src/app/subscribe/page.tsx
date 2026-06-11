@@ -8,6 +8,7 @@ import { CheckCircle2, Loader2, Phone, ArrowLeft, Zap, Shield, MessageSquare, St
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const BG = (
   <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
@@ -49,6 +50,7 @@ const BG = (
 export default function SubscribePage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
   const db = supabase as any;
 
   const [phone, setPhone]   = useState("");
@@ -252,7 +254,7 @@ export default function SubscribePage() {
             <Phone size={16} className="text-slate-300 shrink-0" />
             <input
               type="tel"
-              placeholder="6XXXXXXXX"
+              placeholder={t("phoneNumber")}
               value={phone}
               onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
               maxLength={9}

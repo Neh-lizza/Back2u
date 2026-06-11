@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 type UserProfile = {
   id: string; full_name: string; avatar_url: string | null;
@@ -59,6 +60,7 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
 export default function Dashboard() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
   const db = supabase as any;
 
   const [profile,     setProfile]     = useState<UserProfile | null>(null);
