@@ -52,11 +52,13 @@ function formatTime(dateStr: string): string {
 }
 
 import { Suspense } from "react";
+import { useI18n } from "@/lib/i18n";
 
 function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const { t } = useI18n();
   const db = supabase as any; // bypass strict TypeScript on all db calls
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

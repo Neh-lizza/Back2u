@@ -1,8 +1,12 @@
+"use client";
+
 // src/components/shared/Footer.tsx
 import { ShieldCheck, Heart, MapPin, Twitter, Instagram, Github, Facebook } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="bg-[#050505] pt-10 pb-6 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6">

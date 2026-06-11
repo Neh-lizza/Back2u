@@ -23,6 +23,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const supabase = createClient();
 
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const { lang, setLang } = useI18n();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -54,11 +55,11 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { name: "Home",      href: "/",          icon: Home },
-    { name: "Browse",    href: "/browse",     icon: Search },
-    { name: "Report",    href: "/report",     icon: PlusCircle },
-    { name: "Dashboard", href: "/dashboard",  icon: LayoutDashboard },
-    { name: "Messages",  href: "/chat",      icon: MessageSquare },
+    { name: t("home"),      href: "/",          icon: Home },
+    { name: t("browse"),    href: "/browse",     icon: Search },
+    { name: t("report"),    href: "/report",     icon: PlusCircle },
+    { name: t("dashboard"), href: "/dashboard",  icon: LayoutDashboard },
+    { name: t("messages"),  href: "/chat",      icon: MessageSquare },
   ];
 
   const NavItem = ({ item }: { item: typeof navItems[0] }) => {
@@ -142,7 +143,7 @@ export default function Navbar() {
                 style={{ color: "rgba(255,255,255,0.5)", minWidth: "52px" }}>
                 {loggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} strokeWidth={1.8} />}
                 <span style={{ fontSize: "0.6rem", fontWeight: 700, lineHeight: 1, marginTop: 3, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                  {loggingOut ? "..." : "Logout"}
+                  {loggingOut ? "..." : t("logout")}
                 </span>
               </button>
             ) : (
