@@ -1,12 +1,19 @@
 // src/app/layout.tsx
 //  REPLACE
 import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
 import { I18nProvider } from "@/lib/i18n";
 import Footer from "@/components/shared/Footer";
 import OneSignalInit from "@/components/shared/OneSignalInit";
 
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "-font-poppins",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "Back2U - Lost & Found Cameroon", template: "%s | Back2U" },
@@ -50,10 +57,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="">
+    <html lang="en" className={poppins.variable}>
       <head>
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <style>{`
           :root {
             -color-primary: #009A49;
