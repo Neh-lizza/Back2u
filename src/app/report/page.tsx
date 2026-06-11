@@ -34,6 +34,53 @@ const SENSITIVITY_LEVELS = [
 ];
 
 
+
+function SuccessState({ sensitivity, itemId }: { sensitivity: string; itemId: string | null }) {
+  const router = useRouter();
+  const isPending = sensitivity === "very_sensitive";
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4" style={{ background: "#F0F4F8" }}>
+      <div className="max-w-sm w-full text-center space-y-5">
+        <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center"
+          style={{ background: isPending ? "rgba(252,209,22,0.12)" : "rgba(0,154,73,0.12)", border: isPending ? "1.5px solid rgba(252,209,22,0.3)" : "1.5px solid rgba(0,154,73,0.3)" }}>
+          {isPending
+            ? <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            : <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#009A49" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          }
+        </div>
+        <div>
+          <h2 className="font-black text-2xl text-slate-900 mb-2" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+            {isPending ? "Report submitted for review" : "Report published!"}
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            {isPending
+              ? "Your report has been flagged as very sensitive and is pending admin approval. You will be notified once it goes live."
+              : "Your report is now live. We will notify you as soon as a match is found."}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => router.push("/browse")}
+            className="flex-1 py-3 rounded-xl font-bold text-sm text-slate-500 transition-all hover:bg-slate-100"
+            style={{ border: "1.5px solid #e2e8f0", background: "#fff" }}>
+            Browse reports
+          </button>
+          {itemId && (
+            <button onClick={() => router.push(`/browse/${itemId}`)}
+              className="flex-1 py-3 rounded-xl font-black text-sm text-white hover:opacity-90 transition-all"
+              style={{ background: "#009A49" }}>
+              View my report
+            </button>
+          )}
+        </div>
+        <button onClick={() => router.push("/dashboard")}
+          className="block w-full text-xs font-bold text-slate-300 hover:text-slate-500 transition-colors uppercase tracking-widest">
+          Go to dashboard
+        </button>
+      </div>
+    </main>
+  );
+}
+
 export default function ReportPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -391,7 +438,7 @@ export default function ReportPage() {
               </div>
 
               {/* Verification Questions — lost items only, optional */}
-              {formData.itemType === "lost" && (
+              {formData.type === "lost" && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>

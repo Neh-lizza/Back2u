@@ -1,7 +1,7 @@
 // src/app/admin/page.tsx
 //  REPLACE
 "use client";
-// recharts — run: npm install recharts
+// recharts - run: npm install recharts
 // @ts-ignore
 let BarChart: any, Bar: any, LineChart: any, Line: any, XAxis: any, YAxis: any,
     CartesianGrid: any, Tooltip: any, ResponsiveContainer: any, PieChart: any, Pie: any, Cell: any;
@@ -593,7 +593,7 @@ export default function AdminDashboard() {
             {/* Fraud alert log */}
             <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e2e8f0" }}>
               <div className="px-4 py-3 border-b border-slate-100">
-                <h3 className="font-bold text-sm font-black text-slate-900" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>Fraud Alert Log</h3>
+                <h3 className="font-black text-sm text-slate-900" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>Fraud Alert Log</h3>
               </div>
               {fraudAlerts.length === 0 ? (
                 <div className="flex flex-col items-center py-10 gap-2">

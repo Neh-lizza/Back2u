@@ -6,7 +6,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/report',
-  '/browse',
   '/chat',
   '/admin',
   '/recovery',
@@ -77,8 +76,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // ── BANNED USER CHECK ──────────────────────────────────
-  if (user) {
+  // BANNED USER CHECK - only run on protected routes to avoid slowing every page
+  if (user && isProtected) {
     const isBannedAllowed = BANNED_ALLOWED_ROUTES.some(route => path.startsWith(route))
     if (!isBannedAllowed) {
       const { data: profile } = await supabase
