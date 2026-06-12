@@ -304,7 +304,7 @@ export default function BrowseMarketplace() {
 
     if (status === "missing") q = q.eq("is_missing_person", true);
     else if (status !== "All") q = q.eq("type", status.toLowerCase());
-    if (category !== "All") q = q.eq("category", category.toLowerCase());
+    if (category !== "All") q = q.ilike("category", category);
     if (location !== "All Cities") q = q.eq("city", location);
     if (search) q = q.ilike("title", `%${search}%`);
 
@@ -459,8 +459,8 @@ export default function BrowseMarketplace() {
         {/* Filter bar */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mb-5 pb-1">
           <Dropdown label="Status"   options={STATUS_OPTIONS}  value={status}   onChange={setStatus}   />
-          <Dropdown label="Category" options={CATEGORIES}      value={category} onChange={setCategory} />
-          <Dropdown label="Date"     options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
+          <Dropdown label={t("filterCategory")} options={CATEGORIES}      value={category} onChange={setCategory} />
+          <Dropdown label={t("filterDate")} options={DATE_OPTIONS}    value={date}     onChange={setDate}     />
           <Dropdown label="Location" options={CAMEROON_CITIES} value={location} onChange={setLocation} />
           {activeFilterCount > 0 && (
             <button

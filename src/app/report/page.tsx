@@ -28,9 +28,9 @@ const CATEGORIES = [
 ];
 
 const SENSITIVITY_LEVELS = [
-  { id: "normal",         icon: Package,    label: "Standard",  desc: "Visible to all",        color: "#009A49" },
-  { id: "sensitive",      icon: ShieldAlert, label: "Sensitive", desc: "Photo blurred",          color: "#F59E0B" },
-  { id: "very_sensitive", icon: EyeOff,     label: "High Risk", desc: "Admin review required",  color: "#EF4444" },
+  { id: "normal",         icon: Package,    label: t("standard"),  desc: t("standardDesc"),        color: "#009A49" },
+  { id: "sensitive",      icon: ShieldAlert, label: t("sensitive"), desc: t("sensitiveDesc"),          color: "#F59E0B" },
+  { id: "very_sensitive", icon: EyeOff,     label: t("highRisk"), desc: t("highRiskDesc"),  color: "#EF4444" },
 ];
 
 
@@ -283,7 +283,7 @@ export default function ReportPage() {
             </span>
           </h1>
           <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>
-            {formData.isMissingPerson ? "Free forever. Help someone find their loved one." : formData.type === "found" ? "Help someone recover what they lost. Always free." : "Post free. Get matched. Recover faster."}
+            {formData.isMissingPerson ? "Free forever. Help someone find their loved one." : formData.type === "found" ? "Help someone recover what they lost. Always free." : t("reportPageSub")}
           </p>
 
           {/* Step indicators inside banner */}
@@ -377,8 +377,8 @@ export default function ReportPage() {
               {!formData.isMissingPerson && (
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: "lost",  label: "I Lost Something",  Icon: Search,       desc: "Post a lost report and get matched", color: "#EF4444" },
-                    { id: "found", label: "I Found Something", Icon: CheckCircle2, desc: "Help someone recover their item",      color: "#009A49" },
+                    { id: "lost",  label: t("iLostSomething"),  Icon: Search,       desc: t("iLostDesc"), color: "#EF4444" },
+                    { id: "found", label: t("iFoundSomething"), Icon: CheckCircle2, desc: t("iFoundDesc"),      color: "#009A49" },
                   ].map(t => (
                     <motion.button key={t.id} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
                       onClick={() => update("type", t.id)}
@@ -458,7 +458,7 @@ export default function ReportPage() {
                         background: formData.verificationQuestions.length > 0 ? "rgba(0,154,73,0.1)" : "#f1f5f9",
                         color: formData.verificationQuestions.length > 0 ? "#009A49" : "#94a3b8",
                       }}>
-                      {formData.verificationQuestions.length > 0 ? "Enabled" : "Add Questions"}
+                      {formData.verificationQuestions.length > 0 ? "Enabled" : t("addQuestions")}
                     </button>
                   </div>
 

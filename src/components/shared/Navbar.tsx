@@ -160,39 +160,67 @@ export default function Navbar() {
       {/* ── MOBILE FULL SCREEN MENU ── */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="fixed inset-0 z-[99] flex flex-col items-center justify-center gap-6 md:hidden"
-            style={{ background: "rgba(6,18,9,0.97)", backdropFilter: "blur(20px)" }}
-          >
-            {navItems.map((item) => (
-              <Link key={item.name} href={item.href} onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 transition-all"
-                style={{
-                  background: pathname === item.href ? "rgba(0,154,73,0.2)" : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${pathname === item.href ? "rgba(0,154,73,0.4)" : "rgba(255,255,255,0.08)"}`,
-                  color: pathname === item.href ? "#009A49" : item.href === "/report" ? "#FCD116" : "rgba(255,255,255,0.8)",
-                }}>
-                <item.icon size={22} />
-                <span className="font-black uppercase tracking-widest text-sm">{item.name}</span>
-              </Link>
-            ))}
-            <LangToggle mobile />
-            {user ? (
-              <button onClick={() => { handleLogout(); setIsOpen(false); }}
-                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 mt-2"
-                style={{ background: "rgba(255,77,77,0.08)", border: "1px solid rgba(255,77,77,0.15)", color: "rgba(255,100,100,0.8)" }}>
-                <LogOut size={22} />
-                <span className="font-black uppercase tracking-widest text-sm">Logout</span>
-              </button>
-            ) : (
-              <Link href="/auth" onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 px-8 py-4 rounded-2xl w-64 mt-2"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                <User size={22} />
-                <span className="font-black uppercase tracking-widest text-sm">Login</span>
-              </Link>
-            )}
-          </motion.div>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[98] md:hidden"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+              onClick={() => setIsOpen(false)}
+            />
+            {/* Slide-in panel from right */}
+            <motion.div
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="fixed top-0 right-0 h-full z-[99] flex flex-col md:hidden"
+              style={{ width: "280px", background: "#0a0a0a", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
+              {/* Panel header */}
+              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <span className="font-black text-lg text-white" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
+                  back<span style={{ color: "#009A49" }}>2u</span>
+                </span>
+                <button onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+              {/* Nav links */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+                {navItems.map((item) => (
+                  <Link key={item.name} href={item.href} onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                    style={{
+                      background: pathname === item.href ? "rgba(0,154,73,0.12)" : "transparent",
+                      color: pathname === item.href ? "#009A49" : "rgba(255,255,255,0.6)",
+                    }}>
+                    <item.icon size={16} />
+                    <span className="font-bold text-sm">{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+              {/* Bottom: lang toggle + auth */}
+              <div className="px-4 py-5 space-y-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <LangToggle />
+                {user ? (
+                  <button onClick={() => { handleLogout(); setIsOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
+                    style={{ background: "rgba(206,17,38,0.1)", color: "#CE1126" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    {t("logout")}
+                  </button>
+                ) : (
+                  <Link href="/auth" onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-white transition-all"
+                    style={{ background: "#009A49" }}>
+                    {t("login")}
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

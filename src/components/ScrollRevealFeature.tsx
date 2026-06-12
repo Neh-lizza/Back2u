@@ -37,7 +37,7 @@ export default function ScrollRevealFeature() {
           viewport={{ once: true }}
           className="font-black text-slate-900 leading-tight mb-4"
           style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}>
-          {t("scrollHeading").replace("it's gone forever.", "")}<span className="text-primary"> {t("scrollHeading").includes("forever") ? "it's gone forever." : "pour toujours."}</span>
+          {t("scrollHeading")}
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
