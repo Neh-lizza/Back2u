@@ -232,7 +232,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">250+</span> {t("recoveredAcross")}</p>
+                <p className="text-sm text-slate-500 font-medium"><span className="font-bold text-primary">250+</span> {t("trustLine")}</p>
               </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
                 className="flex flex-wrap items-center gap-4 text-xs text-slate-400 font-medium">
@@ -375,9 +375,9 @@ export default function LandingPage() {
             </p>
             <div className="space-y-4 mb-7">
               {[
-                { n: "1", title: "For people who lost something", desc: "Post a report, get matched, recover it. Your first report is free." },
-                { n: "2", title: "For people who find things", desc: "Post what you found, completely free forever. You earn trust points for honesty." },
-                { n: "3", title: "For families of missing persons", desc: "Post for free, no fees ever. Back2U helps surface the right people and information." },
+                { n: "1", title: t("whatPoint1Title"), desc: t("whatPoint1Desc") },
+                { n: "2", title: t("whatPoint2Title"), desc: t("whatPoint2Desc") },
+                { n: "3", title: t("whatPoint3Title"), desc: t("whatPoint3Desc") },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">
                   <span className="font-black shrink-0 leading-none"
@@ -429,10 +429,10 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-4 gap-0">
             {[
-              { step: "01", title: t("step1Title"), delay: 0, desc: "Fill in a simple form, add photos, and indicate where the item was lost or found. Your first report is always free.", svg: (<img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "02", title: t("step2Title"), delay: 0.1, desc: "Back2U automatically looks for reports that may match yours and suggests potential connections.", svg: (<img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "03", title: t("step3Title"), delay: 0.2, desc: "Confirm ownership with a few questions, then securely connect with the finder or owner.", svg: (<img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
-              { step: "04", title: t("step4Title"), delay: 0.3, desc: "Get your item back, share your experience, and help build a trusted community.", svg: (<img src="/images/hiw-4.svg" alt={t("step4Title")} className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "01", title: t("step1Title"), delay: 0, desc: t("step1Desc"), svg: (<img src="/images/hiw-1.svg" alt="Post report" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "02", title: t("step2Title"), delay: 0.1, desc: t("step2Desc"), svg: (<img src="/images/hiw-2.svg" alt="Smart matching" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "03", title: t("step3Title"), delay: 0.2, desc: t("step3Desc"), svg: (<img src="/images/hiw-3.svg" alt="Verify and chat" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
+              { step: "04", title: t("step4Title"), delay: 0.3, desc: t("step4Desc"), svg: (<img src="/images/hiw-4.svg" alt={t("step4Title")} className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.opacity = "0"; }} />) },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: item.delay }}
                 className="flex flex-col items-center text-center px-4 relative z-10">
@@ -455,7 +455,7 @@ export default function LandingPage() {
             { step: "1", title: t("step1Title"), desc: "Fill in a simple form, add photos, and indicate where the item was lost or found.", img: "/images/hiw-1.svg" },
             { step: "2", title: t("step2Title"), desc: "Back2U automatically looks for reports that may match yours.", img: "/images/hiw-2.svg" },
             { step: "3", title: t("step3Title"), desc: "Confirm ownership with a few questions, then securely connect.", img: "/images/hiw-3.svg" },
-            { step: "4", title: t("step4Title"), desc: "Get your item back, share your experience, and help build a trusted community.", img: "/images/hiw-4.svg" },
+            { step: "4", title: t("step4Title"), desc: t("step4Desc"), img: "/images/hiw-4.svg" },
           ].map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="flex flex-col items-center text-center p-4 rounded-2xl"
@@ -506,7 +506,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="px-7 space-y-2.5 mb-6">
-              {["Post unlimited lost reports","Contact any finder for free","Found items always free","Missing persons always free","First lost report free"].map((item, i) => (
+              {[t("pricingFeature1"),t("pricingFeature2"),t("pricingFeature3"),t("pricingFeature4"),t("pricingFeature5")].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <CheckCircle2 size={15} className="text-primary shrink-0" />
                   <span className="text-sm font-medium text-slate-600">{item}</span>
@@ -542,11 +542,11 @@ export default function LandingPage() {
             </div>
             <div className="px-7 space-y-2.5 mb-6">
               {[
-                { icon: CheckCircle2, text: "First report is always free" },
-                { icon: Bell,         text: "Notified the moment a match is found" },
-                { icon: Lock,         text: "No phone numbers ever shared" },
-                { icon: Smartphone,   text: "Use Back2U in English Or French" },
-                { icon: Award,        text: "Honesty earns Guardian points" },
+                { icon: CheckCircle2, text: t("whyReason1") },
+                { icon: Bell,         text: t("whyReason2") },
+                { icon: Lock,         text: t("whyReason3") },
+                { icon: Smartphone,   text: t("whyReason4") },
+                { icon: Award,        text: t("whyReason5") },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "#f0fdfa", border: "1px solid #99f6e4" }}>
@@ -635,12 +635,12 @@ export default function LandingPage() {
         </div>
         <div className="grid md:grid-cols-2 gap-3">
           {[
-            { q: "Is it free to use?", a: "Your first lost report is free. After that, a 300 XAF annual subscription gives you unlimited posts and contacts for 12 months. Found items and missing persons are always free." },
-            { q: "What if nobody has posted it yet?", a: "Your report stays active for 6 months. You get notified automatically the moment a match appears, even weeks later." },
-            { q: "Do I have to share my phone number?", a: "Never. Everything happens through Back2U private chat until both parties confirm the recovery." },
-            { q: "I found something. What should I do?", a: "Post a Found report with a photo and location. It is completely free. You earn 10 Guardian points just for helping and build your reputation in the community." },
-            { q: "How does the matching work?", a: "Our system scores reports by keyword similarity, GPS proximity, date, and AI visual image similarity. A high enough score triggers a match notification to both users." },
-            { q: "What if my item is sensitive?", a: "Mark it Sensitive or High Risk when posting. Photos blur publicly. High Risk items are reviewed by admin before going live." },
+            { q: t("faq1q"), a: t("faq1a") },
+            { q: t("faq2q"), a: t("faq2a") },
+            { q: t("faq3q"), a: t("faq3a") },
+            { q: t("faq4q"), a: t("faq4a") },
+            { q: t("faq5q"), a: t("faq5a") },
+            { q: t("faq6q"), a: t("faq6a") },
           ].map((faq, i) => <FAQItem key={i} q={faq.q} a={faq.a} />)}
         </div>
       </section>

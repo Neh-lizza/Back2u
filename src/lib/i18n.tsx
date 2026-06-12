@@ -140,6 +140,74 @@ export const translations = {
     search:          "Search",
     filter:          "Filter",
     madeInCameroon:  "Made in Cameroon",
+    // Hero
+    heroSubtitle:    "Whether it's a phone, a wallet, or a loved one. We can help you find it.",
+    trustLine:       "items recovered across Cameroon",
+
+    // What is Back2U body
+    whatBody1:       "Whether it's taxis, schools, roads or other public spaces. We often assume they were stolen. In many cases, however, the people who find these items simply have no way of returning them to their rightful owners.",
+    whatBody2:       "We built a platform where the person who finds your phone, wallet, document, bag, or any lost item can connect safely with the person who lost it. Beyond lost property, Back2U also supports missing-person searches, helping families and communities share information and work together to locate loved ones who have gone missing.",
+    whatPoint1Title: "For people who lost something",
+    whatPoint1Desc:  "Post a report, get matched, recover it. Your first report is free.",
+    whatPoint2Title: "For people who find things",
+    whatPoint2Desc:  "Post what you found, completely free forever. You earn trust points for honesty.",
+    whatPoint3Title: "For families of missing persons",
+    whatPoint3Desc:  "Post for free, no fees ever. Back2U helps surface the right people and information.",
+
+    // ScrollReveal
+    scrollHeading:   "Losing something doesn't mean it's gone forever.",
+    scrollSub:       "With Back2U, recovery is no longer a matter of chance. Join a community dedicated to helping people recover lost items and reconnect missing loved ones.",
+
+    // How it works steps desc
+    step1Desc:       "Fill in a simple form, add photos, and indicate where the item was lost or found. Your first report is always free.",
+    step2Desc:       "Back2U automatically looks for reports that may match yours and suggests potential connections.",
+    step3Desc:       "Confirm ownership with a few questions, then securely connect with the finder or owner.",
+    step4Desc:       "Get your item back, share your experience, and help build a trusted community.",
+    howSubtitle:     "From posting a report to recovering your item, here is exactly what happens.",
+
+    // Pricing
+    pricingHeading:  "Simple pricing to trust us.",
+    pricingSubtitle: "One fair price built for all.",
+    pricingFeature1: "Post unlimited lost reports",
+    pricingFeature2: "Contact any finder for free",
+    pricingFeature3: "Found items always free",
+    pricingFeature4: "Missing persons always free",
+    pricingFeature5: "First lost report free",
+    momoLine:        "MTN MoMo · Orange Money",
+    whyReason1:      "First report is always free",
+    whyReason2:      "Notified the moment a match is found",
+    whyReason3:      "No phone numbers ever shared",
+    whyReason4:      "Use Back2U in English or French",
+    whyReason5:      "Honesty earns Guardian points",
+
+    // Testimonials label
+    testiLabel:      "Testimonials",
+
+    // FAQ
+    faqHeading:      "Common questions.",
+    faqSubtitle:     "Everything you need to know before getting started.",
+    faq1q:           "Is it free to use?",
+    faq1a:           "Your first lost report is free. After that, a 300 XAF annual subscription gives you unlimited posts and contacts for 12 months. Found items and missing persons are always free.",
+    faq2q:           "What if nobody has posted it yet?",
+    faq2a:           "Your report stays active for 6 months. You get notified automatically the moment a match appears, even weeks later.",
+    faq3q:           "Do I have to share my phone number?",
+    faq3a:           "Never. Everything happens through Back2U private chat until both parties confirm the recovery.",
+    faq4q:           "I found something. What should I do?",
+    faq4a:           "Post a Found report with a photo and location. It is completely free. You earn 10 Guardian points just for helping.",
+    faq5q:           "How does the matching work?",
+    faq5a:           "Our system scores reports by keyword similarity, GPS proximity, date, and AI visual image similarity.",
+    faq6q:           "What if my item is sensitive?",
+    faq6a:           "Mark it Sensitive or High Risk when posting. Photos blur publicly. High Risk items are reviewed by admin before going live.",
+
+    // CTA section
+    ctaHeading:      "Lost something or someone?",
+    ctaBody:         "First post free. 300 XAF/year for unlimited access. Missing persons always free.",
+    ctaPost:         "Post free",
+
+    // Footer
+    footerTagline:   "Lost it? Report it. Found it? Return it.",
+    footerDesc:      "From lost phones and wallets to missing documents and loved ones, Back2U helps communities across Cameroon reconnect what has been separated through trust, technology, and collective action.",
+    footerCopyright: "kindness brings it back",
   },
 
   fr: {
@@ -275,6 +343,74 @@ export const translations = {
     search:          "Rechercher",
     filter:          "Filtrer",
     madeInCameroon:  "Fait au Cameroun",
+    // Hero
+    heroSubtitle:    "Qu'il s'agisse d'un telephone, d'un portefeuille ou d'un proche. Nous pouvons vous aider a le retrouver.",
+    trustLine:       "objets retrouves au Cameroun",
+
+    // What is Back2U body
+    whatBody1:       "Dans les taxis, les ecoles, les routes ou autres espaces publics. On suppose souvent qu'ils ont ete voles. Pourtant, dans bien des cas, les personnes qui trouvent ces objets n'ont simplement aucun moyen de les restituer a leurs proprietaires.",
+    whatBody2:       "Nous avons cree une plateforme permettant a la personne qui trouve votre telephone, portefeuille, document ou sac de se connecter en toute securite avec la personne qui l'a perdu. Au-dela des objets perdus, Back2U soutient egalement les recherches de personnes disparues.",
+    whatPoint1Title: "Pour les personnes ayant perdu quelque chose",
+    whatPoint1Desc:  "Deposez un signalement, obtenez une correspondance, recuperez votre objet. Votre premier signalement est gratuit.",
+    whatPoint2Title: "Pour les personnes qui trouvent des objets",
+    whatPoint2Desc:  "Postez ce que vous avez trouve, completement gratuit pour toujours. Vous gagnez des points de confiance pour votre honnetete.",
+    whatPoint3Title: "Pour les familles de personnes disparues",
+    whatPoint3Desc:  "Postez gratuitement, sans aucun frais. Back2U aide a identifier les bonnes personnes et informations.",
+
+    // ScrollReveal
+    scrollHeading:   "Perdre quelque chose ne signifie pas le perdre pour toujours.",
+    scrollSub:       "Avec Back2U, la recuperation n'est plus une question de chance. Rejoignez une communaute dediee a aider les gens a retrouver leurs objets perdus.",
+
+    // How it works
+    step1Desc:       "Remplissez un formulaire simple, ajoutez des photos et indiquez ou l'objet a ete perdu ou trouve. Votre premier signalement est toujours gratuit.",
+    step2Desc:       "Back2U recherche automatiquement les signalements susceptibles de correspondre au votre et suggere des connexions potentielles.",
+    step3Desc:       "Confirmez la propriete avec quelques questions, puis connectez-vous en toute securite avec le trouveur ou le proprietaire.",
+    step4Desc:       "Recuperez votre objet, partagez votre experience et aidez a construire une communaute de confiance.",
+    howSubtitle:     "Du depot d'un signalement a la recuperation de votre objet, voici exactement ce qui se passe.",
+
+    // Pricing
+    pricingHeading:  "Tarification simple et transparente.",
+    pricingSubtitle: "Un prix equitable pour tous.",
+    pricingFeature1: "Signalements d'objets perdus illimites",
+    pricingFeature2: "Contacter n'importe quel trouveur gratuitement",
+    pricingFeature3: "Objets trouves toujours gratuits",
+    pricingFeature4: "Personnes disparues toujours gratuites",
+    pricingFeature5: "Premier signalement perdu gratuit",
+    momoLine:        "MTN MoMo · Orange Money",
+    whyReason1:      "Le premier signalement est toujours gratuit",
+    whyReason2:      "Notifie des qu'une correspondance est trouvee",
+    whyReason3:      "Aucun numero de telephone jamais partage",
+    whyReason4:      "Utilisez Back2U en anglais ou en francais",
+    whyReason5:      "L'honnetete rapporte des points Gardien",
+
+    // Testimonials
+    testiLabel:      "Temoignages",
+
+    // FAQ
+    faqHeading:      "Questions frequentes.",
+    faqSubtitle:     "Tout ce que vous devez savoir avant de commencer.",
+    faq1q:           "Est-ce gratuit ?",
+    faq1a:           "Votre premier signalement perdu est gratuit. Ensuite, un abonnement annuel de 300 XAF vous donne des publications et contacts illimites pendant 12 mois.",
+    faq2q:           "Que faire si personne n'a encore signale mon objet ?",
+    faq2a:           "Votre signalement reste actif pendant 6 mois. Vous etes notifie automatiquement des qu'une correspondance apparait.",
+    faq3q:           "Dois-je partager mon numero de telephone ?",
+    faq3a:           "Jamais. Tout se passe via le chat prive Back2U jusqu'a ce que les deux parties confirment la recuperation.",
+    faq4q:           "J'ai trouve quelque chose. Que dois-je faire ?",
+    faq4a:           "Deposez un signalement Trouve avec une photo et une localisation. C'est completement gratuit. Vous gagnez 10 points Gardien.",
+    faq5q:           "Comment fonctionne la mise en correspondance ?",
+    faq5a:           "Notre systeme evalue les signalements par similarite de mots-cles, proximite GPS, date et similarite d'image par IA.",
+    faq6q:           "Que faire si mon objet est sensible ?",
+    faq6a:           "Marquez-le comme Sensible ou Tres sensible lors du depot. Les photos sont floutees publiquement.",
+
+    // CTA
+    ctaHeading:      "Vous avez perdu quelque chose ou quelqu'un ?",
+    ctaBody:         "Premier signalement gratuit. 300 XAF/an pour un acces illimite. Personnes disparues toujours gratuites.",
+    ctaPost:         "Signaler gratuitement",
+
+    // Footer
+    footerTagline:   "Perdu ? Signalez-le. Trouve ? Rendez-le.",
+    footerDesc:      "Des telephones et portefeuilles perdus aux documents et proches disparus, Back2U aide les communautes du Cameroun a se reconnnecter.",
+    footerCopyright: "la gentillesse le ramene",
   },
 } as const;
 

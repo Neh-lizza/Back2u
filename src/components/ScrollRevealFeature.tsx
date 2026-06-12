@@ -1,6 +1,7 @@
 // src/components/ScrollRevealFeature.tsx
 // ♻️ REPLACE
 "use client";
+import { useI18n } from "@/lib/i18n";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -25,6 +26,7 @@ const HEIGHTS = [230, 245, 268, 245, 230];
 const ROTATIONS = [-6, -2, 0, 2, 6];
 
 export default function ScrollRevealFeature() {
+  const { t } = useI18n();
   return (
     <section className="relative mt-0 mb-6 overflow-hidden" style={{ background: "#fff" }}>
 
@@ -35,8 +37,7 @@ export default function ScrollRevealFeature() {
           viewport={{ once: true }}
           className="font-black text-slate-900 leading-tight mb-4"
           style={{ fontFamily: "'Clash Grotesk', sans-serif", fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}>
-          Losing something doesn't mean
-          <span className="text-primary"> it's gone forever.</span>
+          {t("scrollHeading").replace("it's gone forever.", "")}<span className="text-primary"> {t("scrollHeading").includes("forever") ? "it's gone forever." : "pour toujours."}</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}

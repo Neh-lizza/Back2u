@@ -18,7 +18,7 @@ export default function Footer() {
              Lost it? Report it.<span className="text-primary">Found it? Return it.</span>
             </h3>
             <p className="text-white/30 text-sm max-w-sm font-medium leading-relaxed">
-              From lost phones and wallets to missing documents and loved ones, Back2U helps communities across Cameroon reconnect what has been separated through trust, technology, and collective action.
+              {t("footerDesc")}
             </p>
             <div className="flex gap-3">
               {[Facebook, Instagram, Twitter].map((Icon, i) => (
