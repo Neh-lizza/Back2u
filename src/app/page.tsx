@@ -18,10 +18,10 @@ import ScrollRevealFeature from "@/components/ScrollRevealFeature";
 import { useI18n } from "@/lib/i18n";
 
 const REVIEWS = [
-  { name: "Kemugne Angela",   location: "Douala",   text: "Found my laptop in 2 days. The safe zone meeting was very professional.", stars: 5 },
+  { name: "Kemugne Angela",   location: "Douala",   text: "Posted  my missing laptop , turns out Olar found it", stars: 5 },
   { name: "Ofor Gloria",      location: "Yaoundé",  text: "Honest community. Someone found my ID card and reported it here.",        stars: 5 },
   { name: "Mbachan Frankfils",location: "Buea",     text: "The interface is so simple to use even for my parents.",                   stars: 4 },
-  { name: "Fanta M.",         location: "Bamenda",  text: "I found a wallet near Marché Central and the owner contacted me within minutes.", stars: 5 },
+  { name: "Fanta M.",         location: "Bamenda",  text: "Good app, simple explanations", stars: 5 },
 ];
 
 const UploadIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
