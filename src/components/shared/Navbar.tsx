@@ -129,10 +129,9 @@ export default function Navbar() {
       <nav className="fixed top-0 w-full z-[100] hidden md:flex">
         <div className="flex items-center gap-1 px-6 py-2 w-full" style={PILL_STYLE}>
           {/* Logo */}
-          <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5 shrink-0 px-3 mr-2">
-            back2u<span className="text-primary text-3xl leading-none">.</span>
-          </Link>
-
+          <Link href="/" className="flex items-center shrink-0 px-3 mr-2">
+  <img src="/logo.png" alt="Back2U" className="h-8 w-auto object-contain" style={{ maxWidth: "100px" }} />
+</Link>
           {/* Nav items */}
           <div className="flex items-center gap-1 flex-1 justify-center">
             {navItems.map(item => <NavItem key={item.name} item={item} />)}

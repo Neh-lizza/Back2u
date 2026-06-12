@@ -343,7 +343,7 @@ export default function LandingPage() {
             <motion.div animate={{ y: [0,-6,0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="absolute right-4 top-4 bg-white rounded-2xl px-4 py-3 shadow-lg z-10"
               style={{ border: "1px solid #e2e8f0" }}>
-              <p className="text-2xl font-black text-primary leading-none" style={{ fontFamily: "'Clash Grotesk',sans-serif" }}>2,400+</p>
+              <p className="text-2xl font-black text-primary leading-none" style={{ fontFamily: "'Clash Grotesk',sans-serif" }}>250+</p>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5">Items recovered</p>
             </motion.div>
             <div className="absolute left-4 bottom-4 bg-white rounded-xl px-3 py-2 shadow-md z-10 flex items-center gap-2"
@@ -365,12 +365,12 @@ export default function LandingPage() {
             <h2 className="font-black leading-tight mb-5"
               style={{ fontSize: "clamp(1.7rem,3vw,2.4rem)", fontFamily: "'Clash Grotesk',sans-serif", color: "#222831" }}>
               Over 2000+ items are lost in Cameroon daily.
-              <span className="text-primary"> Most never come back.</span>
+              
             </h2>
-            <p className="text-slate-500 text-sm font-medium leading-relaxed mb-4">
-              Whethr it's taxis, schools, roads or other public spaces. We often assume they were stolen. In many cases, however, the people who find these items simply have no way of returning them to their rightful owners.
+            <p className="text-slate-600 text-lg font-medium leading-relaxed mb-4">
+              Whether it's taxis, schools, roads or other public spaces. We often assume they were stolen. In many cases, however, the people who find these items simply have no way of returning them to their rightful owners.
             </p>
-            <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6">
+            <p className="text-slate-700 text-lg font-medium leading-relaxed mb-4">
               We built a platform where the person who finds your phone, wallet, document, bag, or any lost item can connect safely with the person who lost it. Beyond lost property, Back2U also supports missing-person searches, helping families and communities share information and work together to locate loved ones who have gone missing. By making it easy to report, search, match, and recover lost items or reconnect missing persons with their families, Back2U fosters trust, community responsibility, and meaningful reunions across Cameroon.
             </p>
             <div className="space-y-4 mb-7">

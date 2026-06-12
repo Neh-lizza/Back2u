@@ -7,11 +7,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 const SLIDES = [
-  { src: "/screenshots/sample1.jpg", num: "01" },
-  { src: "/screenshots/sample2.jpg", num: "02" },
-  { src: "/screenshots/sample3.jpg", num: "03" },
-  { src: "/screenshots/sample4.jpg", num: "04" },
-  { src: "/screenshots/sample5.jpg", num: "05" },
+  { src: "/images/sample1.jpg", num: "01" },
+  { src: "/images/sample2.jpg", num: "02" },
+  { src: "/images/sample3.jpg", num: "03" },
+  { src: "/images/sample4.jpg", num: "04" },
+  { src: "/images/sample5.jpg", num: "05" },
 ];
 
 const CLIP_PATHS = [
@@ -93,7 +93,7 @@ With Back2U, recovery is no longer a matter of chance. Join a community dedicate
                 <p style={{ color: "#94a3b8", fontSize: "8px", fontWeight: 700,
                   textTransform: "uppercase", letterSpacing: "0.1em", marginTop: "8px",
                   textAlign: "center", padding: "0 12px" }}>
-                  /screenshots/sample{i + 1}.jpg
+                  /images{i + 1}.jpg
                 </p>
               </div>
             </motion.div>
