@@ -1,7 +1,7 @@
 {
-  "name": "Back2U - Lost & Found  platform for Cameroon",
+  "name": "Lost & Found  platform for Cameroon",
   "short_name": "Back2U",
-  "description": "Cameroon's #1 Lost & Found Recovery Network",
+  "description": "#1 Lost & Found Recovery Network",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

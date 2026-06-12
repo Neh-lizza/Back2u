@@ -108,8 +108,13 @@ export default function Navbar() {
       {/* ── MOBILE NAVBAR ── logo + hamburger only */}
       <nav className="fixed top-0 w-full z-[100] md:hidden">
         <div className="flex items-center justify-between px-5 py-3 w-full" style={PILL_STYLE}>
-          <Link href="/" className="font-clash text-xl font-black tracking-tighter text-white flex items-center gap-0.5">
-            back2u<span className="text-primary text-3xl leading-none">.</span>
+          <Link href="/" className="flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="Back2U"
+              className="h-8 w-auto object-contain"
+              style={{ maxWidth: "90px" }}
+            />
           </Link>
           <div className="flex items-center gap-3">
             {user && <NotificationBell userId={user.id} />}
@@ -176,9 +181,7 @@ export default function Navbar() {
               style={{ width: "280px", background: "#0a0a0a", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
               {/* Panel header */}
               <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <span className="font-black text-lg text-white" style={{ fontFamily: "'Clash Grotesk', sans-serif" }}>
-                  back<span style={{ color: "#009A49" }}>2u</span>
-                </span>
+                <img src="/logo.png" alt="Back2U" className="h-7 w-auto object-contain" style={{ maxWidth: "80px" }} />
                 <button onClick={() => setIsOpen(false)}
                   className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
                   style={{ background: "rgba(255,255,255,0.06)" }}>
